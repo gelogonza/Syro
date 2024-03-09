@@ -1,0 +1,25 @@
+<!-- SyroMusic/templates/SyroMusic/song_list.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List of Songs</title>
+</head>
+<body>
+    <h1>List of Songs</h1>
+    <ul>
+        {% for song in songs %}
+            <li>{{ song.title }}</li>
+        {% empty %}
+            <li>No songs available.</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Navigation links -->
+    <ul>
+        <li><a href="{% url 'artist_list' %}">View Artists</a></li>
+        <li><a href="{% url 'album_list' %}">View Albums</a></li>
+        <li><a href="{% url 'playlist_list' %}">View Playlists</a></li>
+    </ul>
+</body>
+</html>

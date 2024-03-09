@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List of Artists</title>
+</head>
+<body>
+    <h1>List of Artists</h1>
+    <ul>
+        {% for artist in artists %}
+            <li>{{ artist.name }}</li>
+        {% empty %}
+            <li>No artists available.</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Navigation links -->
+    <ul>
+        <li><a href="{% url 'album_list' %}">View Albums</a></li>
+        <li><a href="{% url 'song_list' %}">View Songs</a></li>
+        <li><a href="{% url 'playlist_list' %}">View Playlists</a></li>
+    </ul>
+</body>
+</html>
