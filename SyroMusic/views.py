@@ -39,7 +39,7 @@ def spotify_login(request):
     sp_oauth = SpotifyOAuth(client_id=settings.SPOTIPY_CLIENT_ID,
                            client_secret=settings.SPOTIPY_CLIENT_SECRET,
                            redirect_uri=settings.SPOTIPY_REDIRECT_URI,
-                           scope='user-library-read')  # Adjust the scope as needed
+                           scope='user-library-read') 
 
     # Redirect the user to Spotify's login page
     return redirect(sp_oauth.get_authorize_url())
@@ -63,4 +63,4 @@ def spotify_callback(request):
         # Implement your logic here for further actions after successful authentication
 
     # Redirect the user to the desired page after successful authentication
-    return redirect('home')  # Replace 'home' with the name of your desired view
+    return redirect('home') 
