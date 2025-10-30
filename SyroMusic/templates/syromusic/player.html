@@ -663,19 +663,69 @@
 
   // ==================== Color Extraction ====================
 
-  function extractDominantColors(img, numColors = 3) {
+  function extractDominantColor(img) {
+    /**
+     * Extracts the single most dominant color from an image.
+     * This color represents the most prevalent hue/tone in the image.
+     */
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
-      // Reduce image size for faster processing
+      canvas.width = 150;
+      canvas.height = 150;
+      ctx.drawImage(img, 0, 0, 150, 150);
+
+      const imageData = ctx.getImageData(0, 0, 150, 150).data;
+      const colorMap = {};
+
+      // Quantize colors to reduce noise (group similar colors together)
+      for (let i = 0; i < imageData.length; i += 4) {
+        const r = Math.floor(imageData[i] / 25) * 25;      // 25 = step size (0-255 becomes 0-10 buckets)
+        const g = Math.floor(imageData[i + 1] / 25) * 25;
+        const b = Math.floor(imageData[i + 2] / 25) * 25;
+        const key = `${r},${g},${b}`;
+        colorMap[key] = (colorMap[key] || 0) + 1;
+      }
+
+      // Find the single most frequent color
+      let dominantColor = 'rgb(26, 26, 46)';  // fallback
+      let maxCount = 0;
+
+      for (const [color, count] of Object.entries(colorMap)) {
+        if (count > maxCount) {
+          const [r, g, b] = color.split(',').map(Number);
+          const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+          // Only accept colors that are not too dark (< 20) or too bright (> 240)
+          if (brightness > 20 && brightness < 240) {
+            maxCount = count;
+            dominantColor = `rgb(${r}, ${g}, ${b})`;
+          }
+        }
+      }
+
+      return dominantColor;
+    } catch (error) {
+      console.error('Color extraction error:', error);
+      return 'rgb(26, 26, 46)';
+    }
+  }
+
+  function extractDominantColors(img, numColors = 3) {
+    /**
+     * Extracts multiple dominant colors for gradient variations.
+     * Returns: [dominantColor, accentColor1, accentColor2]
+     */
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
       canvas.width = 100;
       canvas.height = 100;
-
       ctx.drawImage(img, 0, 0, 100, 100);
       const imageData = ctx.getImageData(0, 0, 100, 100).data;
 
-      // Color quantization - sample colors
       const colorMap = {};
       for (let i = 0; i < imageData.length; i += 4) {
         const r = Math.floor(imageData[i] / 32) * 32;
@@ -685,31 +735,19 @@
         colorMap[key] = (colorMap[key] || 0) + 1;
       }
 
-      // Sort by frequency and get top colors
       const sortedColors = Object.entries(colorMap)
         .sort((a, b) => b[1] - a[1])
         .slice(0, numColors * 4)
         .filter(([color]) => {
           const [r, g, b] = color.split(',').map(Number);
-          // Filter out too bright or too dark colors, but allow more range
           const brightness = (r * 299 + g * 587 + b * 114) / 1000;
           const saturation = Math.max(r, g, b) - Math.min(r, g, b);
-          // Prefer more saturated colors
           return brightness > 15 && brightness < 220 && saturation > 10;
         })
         .slice(0, numColors)
         .map(([color]) => {
           const [r, g, b] = color.split(',').map(Number);
-          // Boost saturation for more vibrant colors
-          const max = Math.max(r, g, b);
-          const min = Math.min(r, g, b);
-          const boost = 1.3;
-          
-          const newR = Math.min(255, Math.round(r + (r - min) * (boost - 1)));
-          const newG = Math.min(255, Math.round(g + (g - min) * (boost - 1)));
-          const newB = Math.min(255, Math.round(b + (b - min) * (boost - 1)));
-          
-          return `rgb(${newR}, ${newG}, ${newB})`;
+          return `rgb(${r}, ${g}, ${b})`;
         });
 
       return sortedColors.length > 0 ? sortedColors : ['rgb(26, 26, 46)', 'rgb(22, 33, 62)', 'rgb(15, 52, 96)'];
@@ -726,18 +764,27 @@
     if (!albumArt || !dynamicBg) return;
 
     const updateBackground = () => {
-      const colors = extractDominantColors(albumArt, 4);
+      // Get the single dominant color (most prevalent in the image)
+      const dominantColor = extractDominantColor(albumArt);
 
-      // Create vibrant multi-stop gradient with more variation
+      // Get accent colors for variation
+      const accentColors = extractDominantColors(albumArt, 3);
+
+      // Use dominant color as the primary background color
+      // This makes the background match the cover's primary hue almost perfectly
       const gradient = `
-        radial-gradient(circle at 20% 80%, ${colors[0]} 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, ${colors[1]} 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, ${colors[2] || colors[0]} 0%, transparent 50%),
-        linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 50%, ${colors[2] || colors[0]} 100%)
+        radial-gradient(circle at 20% 80%, ${dominantColor} 0%, ${accentColors[1] || dominantColor} 40%, transparent 70%),
+        radial-gradient(circle at 80% 20%, ${accentColors[1] || dominantColor} 0%, transparent 50%),
+        linear-gradient(135deg, ${dominantColor} 0%, ${accentColors[0] || dominantColor} 50%, ${accentColors[2] || dominantColor} 100%)
       `;
 
       dynamicBg.style.background = gradient;
-      console.log('Dynamic background updated with colors:', colors);
+      dynamicBg.style.backgroundColor = dominantColor;  // Fallback solid color
+
+      console.log('Dynamic background:', {
+        dominant: dominantColor,
+        accents: accentColors
+      });
     };
 
     if (albumArt.complete) {
