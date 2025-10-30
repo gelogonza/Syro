@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_filters',
+    'django_celery_results',  # For storing Celery task results in Django DB
     'SyroMusic',
 ]
 
@@ -190,14 +191,17 @@ CSRF_COOKIE_HTTPONLY = True
 # ============================================================
 # Celery Configuration
 # ============================================================
-CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
+# Use Django ORM as broker if Redis is not available
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='django://')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='django-db')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True  # Don't fail on startup if broker unavailable
+CELERY_TASK_ALWAYS_EAGER = config('CELERY_TASK_ALWAYS_EAGER', default=False, cast=bool)  # Run tasks synchronously for development
 
 # Periodic tasks
 CELERY_BEAT_SCHEDULE = {

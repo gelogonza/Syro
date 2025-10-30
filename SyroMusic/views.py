@@ -27,7 +27,7 @@ def artist_detail(request, artist_id):
     """Display detailed view of a specific artist."""
     try:
         artist = Artist.objects.get(id=artist_id)
-        albums = artist.albums.all()
+        albums = artist.albums.select_related('artist').all()
 
         context = {
             'artist': artist,
@@ -41,15 +41,15 @@ def artist_detail(request, artist_id):
 
 def album_list(request):
     """Display list of all albums."""
-    albums = Album.objects.all()
+    albums = Album.objects.select_related('artist').all()
     return render(request, 'SyroMusic/album_list.html', {'albums': albums})
 
 
 def album_detail(request, album_id):
     """Display detailed view of a specific album."""
     try:
-        album = Album.objects.get(id=album_id)
-        songs = album.songs.all().order_by('track_number')
+        album = Album.objects.select_related('artist').get(id=album_id)
+        songs = album.songs.select_related('album', 'album__artist').order_by('track_number')
 
         context = {
             'album': album,
@@ -63,7 +63,7 @@ def album_detail(request, album_id):
 
 def song_list(request):
     """Display list of all songs."""
-    songs = Song.objects.all()
+    songs = Song.objects.select_related('album', 'album__artist').all()
     return render(request, 'SyroMusic/song_list.html', {'songs': songs})
 
 
@@ -84,7 +84,9 @@ def song_detail(request, song_id):
 def playlist_list(request):
     """Display list of all playlists or user's playlists if authenticated."""
     if request.user.is_authenticated:
-        playlists = Playlist.objects.filter(user=request.user)
+        playlists = Playlist.objects.filter(user=request.user).prefetch_related(
+            'songs', 'songs__album', 'songs__album__artist'
+        )
     else:
         playlists = Playlist.objects.none()
     return render(request, 'SyroMusic/playlist_list.html', {'playlists': playlists})
@@ -294,9 +296,11 @@ def stats_dashboard(request):
             top_tracks = listening_stats.top_tracks_medium_term
             period_label = 'Last 6 Months'
 
-        # Get recent listening activity
+        # Get recent listening activity (optimized with .only())
         recent_activity = UserListeningActivity.objects.filter(
             user=request.user
+        ).only(
+            'track_name', 'artist_name', 'album_name', 'played_at', 'duration_ms'
         ).order_by('-played_at')[:50]
 
         # Calculate some metrics

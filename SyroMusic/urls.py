@@ -38,6 +38,9 @@ urlpatterns = [
     path('api/playback/transfer/', playback_views.transfer_playback, name='transfer_playback'),
     path('api/playback/shuffle/', playback_views.set_shuffle, name='set_shuffle'),
     path('api/playback/repeat/', playback_views.set_repeat, name='set_repeat'),
+    path('api/playback/queue/add/', playback_views.add_to_queue, name='add_to_queue'),
+    path('api/playback/queue/get/', playback_views.get_queue, name='get_queue'),
+    path('api/playback/queue/clear/', playback_views.clear_queue, name='clear_queue'),
 
     # Search & Discovery
     path('search/', search_views.search, name='search'),

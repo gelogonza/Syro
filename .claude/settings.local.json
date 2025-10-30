@@ -10,7 +10,15 @@
       "Bash(python manage.py check:*)",
       "Bash(test:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(tree:*)",
+      "Bash(git rm:*)",
+      "Bash(xargs -I {} sh -c 'echo \"\"\"\"=== {} ===\"\"\"\" && head -5 {}')",
+      "Bash(git reset:*)",
+      "Bash(redis-cli ping:*)",
+      "Bash(redis-server:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

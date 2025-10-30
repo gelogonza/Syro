@@ -11,7 +11,7 @@ from cryptography.fernet import Fernet
 
 class Artist(models.Model):
     """Model representing a music artist."""
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True, db_index=True)
     biography = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -24,9 +24,9 @@ class Artist(models.Model):
 
 class Album(models.Model):
     """Model representing a music album."""
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, db_index=True)
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
-    release_date = models.DateField()
+    release_date = models.DateField(db_index=True)
     cover_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -39,11 +39,11 @@ class Album(models.Model):
 
 class Song(models.Model):
     """Model representing a song."""
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, db_index=True)
     album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='songs')
     duration = models.DurationField()
     track_number = models.IntegerField(null=True, blank=True)
-    spotify_id = models.CharField(max_length=255, blank=True, null=True)
+    spotify_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
@@ -132,7 +132,7 @@ class UserProfile(models.Model):
 class SpotifyUser(models.Model):
     """Model to store Spotify user authentication and profile data."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='spotify_user')
-    spotify_id = models.CharField(max_length=255, unique=True)
+    spotify_id = models.CharField(max_length=255, unique=True, db_index=True)
     spotify_username = models.CharField(max_length=255, blank=True)
     spotify_email = models.EmailField(blank=True)
     spotify_display_name = models.CharField(max_length=255, blank=True)

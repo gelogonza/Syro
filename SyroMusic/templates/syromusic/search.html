@@ -109,14 +109,22 @@
                   </div>
                 </div>
               </div>
-              <button onclick="playTrack('spotify:track:{{ song.id }}', {
-                name: '{{ song.title|escapejs }}',
-                artist: '{{ song.album.artist.name|escapejs }}',
-                album: '{{ song.album.title|escapejs }}'
-              })"
-                class="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-medium text-sm hover-glow opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 border-0 cursor-pointer">
-                [PLAY] Play
-              </button>
+              <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onclick="playTrack('spotify:track:{{ song.spotify_id }}', {
+                  name: '{{ song.title|escapejs }}',
+                  artist: '{{ song.album.artist.name|escapejs }}',
+                  album: '{{ song.album.title|escapejs }}'
+                })"
+                  class="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-medium text-sm hover-glow flex-shrink-0 border-0 cursor-pointer">
+                  <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:play"></span>
+                  Play
+                </button>
+                <button onclick="addToQueue('spotify:track:{{ song.spotify_id }}', '{{ song.title|escapejs }}')"
+                  class="px-4 py-2 rounded-lg border border-primary text-primary font-medium text-sm hover:bg-primary/10 flex-shrink-0">
+                  <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-plus"></span>
+                  Queue
+                </button>
+              </div>
             </div>
           {% endfor %}
         </div>
@@ -237,10 +245,10 @@
                   <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:play"></span>
                   Play
                 </button>
-                <button onclick="openAddToPlaylistModal('{{ track.uri }}', '{{ track.name|escapejs }}')" 
+                <button onclick="addToQueue('{{ track.uri }}', '{{ track.name|escapejs }}')"
                    class="px-4 py-2 rounded-lg border border-primary text-primary font-medium text-sm hover:bg-primary/10 flex-shrink-0">
                   <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-plus"></span>
-                  Add
+                  Queue
                 </button>
               </div>
             </div>
@@ -352,6 +360,52 @@
 <script>
   let currentTrackUri = null;
   let userPlaylists = [];
+
+  // Notification system
+  function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all transform translate-x-0 ${
+      type === 'success' ? 'bg-gradient-to-r from-primary to-accent text-black' : 'bg-red-500 text-white'
+    }`;
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="iconify h-5 w-5" data-icon="${type === 'success' ? 'mdi:check-circle' : 'mdi:alert-circle'}"></span>
+        <span class="font-medium">${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.transform = 'translateX(400px)';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  // Add to queue function
+  async function addToQueue(trackUri, trackName) {
+    try {
+      const response = await fetch('/music/api/playback/queue/add/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          track_uri: trackUri
+        })
+      });
+      
+      if (response.ok) {
+        showNotification(`"${trackName}" added to queue!`, 'success');
+      } else {
+        const data = await response.json();
+        showNotification(data.error || 'Failed to add to queue', 'error');
+      }
+    } catch (error) {
+      console.error('Error adding to queue:', error);
+      showNotification('Failed to add to queue. Please try again.', 'error');
+    }
+  }
 
   async function playTrack(trackUri) {
     try {

@@ -136,6 +136,21 @@
       background-clip: text;
     }
     
+    /* Animated Gradient for Logo */
+    @keyframes gradient-shift {
+      0%, 100% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+    
+    .animate-gradient {
+      background-size: 200% 200%;
+      animation: gradient-shift 3s ease infinite;
+    }
+    
     /* Hover Glow Effect */
     .hover-glow:hover {
       box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
@@ -261,12 +276,12 @@
   </div>
 
   <!-- ===================== Header & Navigation ===================== -->
-  <header class="sticky top-0 z-50 w-full glass border-b border-border">
+  <header class="sticky top-0 z-50 w-full backdrop-blur-lg bg-white/10 border-b border-white/20 shadow-lg">
     <nav class="container mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <!-- Logo -->
         <a href="{% url 'home' %}" class="flex items-center">
-          <span class="text-2xl font-bold gradient-text">Syro</span>
+          <span class="text-2xl font-bold text-white">Syro</span>
         </a>
         
         <!-- Desktop Navigation -->
@@ -373,19 +388,10 @@
   </main>
 
   <!-- ===================== Footer ===================== -->
-  <footer class="border-t border-border glass mt-16">
+  <footer class="border-t border-white/10 backdrop-blur-lg bg-white/5 mt-16">
     <div class="container mx-auto px-4 py-8">
-      <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-        <div class="flex items-center space-x-2">
-          <span class="text-sm text-muted-foreground">&copy; 2025 Syro. All rights reserved.</span>
-        </div>
-        <div class="flex items-center space-x-4 text-sm text-muted-foreground">
-          <a href="#" class="hover:text-primary transition">Privacy</a>
-          <span>•</span>
-          <a href="#" class="hover:text-primary transition">Terms</a>
-          <span>•</span>
-          <a href="#" class="hover:text-primary transition">Contact</a>
-        </div>
+      <div class="flex items-center justify-center">
+        <span class="text-sm text-gray-400">&copy; 2025 Syro. All rights reserved.</span>
       </div>
     </div>
   </footer>

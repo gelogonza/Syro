@@ -406,6 +406,16 @@ class SpotifyService:
             logger.error(f"Error adding to queue: {str(e)}")
             return False
 
+    def get_queue(self):
+        """Get the user's current playback queue."""
+        try:
+            if not self.sp:
+                return None
+            return self.sp.queue()
+        except Exception as e:
+            logger.error(f"Error getting queue: {str(e)}")
+            return None
+
     def set_repeat(self, state, device_id=None):
         """
         Set repeat mode.

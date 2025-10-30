@@ -8,6 +8,30 @@
   <p class="text-muted-foreground text-lg">Explore our collection of talented artists</p>
 </div>
 
+<!-- Search Bar -->
+<div class="glass rounded-2xl p-6 border border-primary/20 bg-gradient-to-br from-primary/10 to-accent/10 mb-8">
+  <div class="flex gap-2 mb-4">
+    <div class="relative flex-1">
+      <span class="iconify absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" data-icon="mdi:magnify"></span>
+      <input type="text" 
+             id="searchInput"
+             placeholder="Search artists, albums, songs..."
+             class="w-full pl-12 pr-4 py-3 bg-background/50 border border-border rounded-lg text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+    </div>
+    <button onclick="performSearch()" 
+            class="px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-semibold hover-glow flex items-center">
+      <span class="iconify h-5 w-5 mr-2" data-icon="mdi:magnify"></span>
+      Search
+    </button>
+  </div>
+  
+  <!-- Search Results -->
+  <div id="searchResults" class="hidden mt-4">
+    <h3 class="text-lg font-semibold mb-3">Search Results</h3>
+    <div id="searchResultsList" class="space-y-2"></div>
+  </div>
+</div>
+
 {% if artists %}
   <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
     {% for artist in artists %}
@@ -66,5 +90,173 @@
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }
+
+  let searchTimeout;
+
+  // Notification system
+  function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all transform translate-x-0 ${
+      type === 'success' ? 'bg-gradient-to-r from-primary to-accent text-black' : 'bg-red-500 text-white'
+    }`;
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="iconify h-5 w-5" data-icon="${type === 'success' ? 'mdi:check-circle' : 'mdi:alert-circle'}"></span>
+        <span class="font-medium">${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.transform = 'translateX(400px)';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  // Add to queue function
+  async function addToQueue(trackUri, trackName) {
+    try {
+      const response = await fetch('/music/api/playback/queue/add/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          track_uri: trackUri
+        })
+      });
+      
+      if (response.ok) {
+        showNotification(`"${trackName}" added to queue!`, 'success');
+      } else {
+        const data = await response.json();
+        showNotification(data.error || 'Failed to add to queue', 'error');
+      }
+    } catch (error) {
+      console.error('Error adding to queue:', error);
+      showNotification('Failed to add to queue. Please try again.', 'error');
+    }
+  }
+
+  // Play track function
+  async function playTrack(trackUri, trackInfo) {
+    try {
+      const response = await fetch('/music/api/playback/play/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          uris: [trackUri]
+        })
+      });
+      
+      if (response.ok) {
+        showNotification(`Now playing: ${trackInfo.name}`, 'success');
+        setTimeout(() => {
+          window.location.href = '{% url "music:player" %}';
+        }, 1000);
+      } else {
+        const data = await response.json();
+        showNotification(data.error || 'Failed to play track', 'error');
+      }
+    } catch (error) {
+      console.error('Error playing track:', error);
+      showNotification('Failed to play track. Please make sure you have an active Spotify session.', 'error');
+    }
+  }
+
+  // Search function
+  async function performSearch() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (!query) return;
+
+    const resultsContainer = document.getElementById('searchResults');
+    const resultsList = document.getElementById('searchResultsList');
+    
+    resultsList.innerHTML = '<p class="text-muted-foreground">Searching...</p>';
+    resultsContainer.classList.remove('hidden');
+
+    try {
+      const response = await fetch(`/music/api/search/?q=${encodeURIComponent(query)}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        displaySearchResults(data);
+      } else {
+        resultsList.innerHTML = '<p class="text-red-500">Search failed. Please try again.</p>';
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      resultsList.innerHTML = '<p class="text-red-500">Search failed. Please try again.</p>';
+    }
+  }
+
+  function displaySearchResults(data) {
+    const resultsList = document.getElementById('searchResultsList');
+    
+    if (!data.tracks || data.tracks.length === 0) {
+      resultsList.innerHTML = '<p class="text-muted-foreground">No tracks found.</p>';
+      return;
+    }
+
+    resultsList.innerHTML = data.tracks.slice(0, 10).map(track => `
+      <div class="glass rounded-lg p-4 border border-border hover:bg-muted/50 transition-colors flex items-center justify-between group">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          ${track.album?.images?.[0]?.url ? 
+            `<img src="${track.album.images[0].url}" alt="${track.name}" class="h-10 w-10 rounded-lg object-cover flex-shrink-0">` :
+            `<div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+              <span class="iconify h-5 w-5 text-primary" data-icon="mdi:music-note"></span>
+            </div>`
+          }
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">${track.name}</div>
+            <div class="text-sm text-muted-foreground line-clamp-1">
+              ${track.artists?.map(a => a.name).join(', ') || 'Unknown'} • ${track.album?.name || 'Unknown'}
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onclick='playTrack("${track.uri}", ${JSON.stringify({name: track.name}).replace(/'/g, "\\'")})' 
+                  class="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-medium text-sm hover-glow flex-shrink-0">
+            <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:play"></span>
+            Play
+          </button>
+          <button onclick='addToQueue("${track.uri}", "${track.name.replace(/"/g, '&quot;')}")' 
+                  class="px-4 py-2 rounded-lg border border-primary text-primary font-medium text-sm hover:bg-primary/10 flex-shrink-0">
+            <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-plus"></span>
+            Queue
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Search on enter key
+  document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      performSearch();
+    }
+  });
+
+  // Debounced search on input
+  document.getElementById('searchInput')?.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      const query = this.value.trim();
+      if (query.length >= 3) {
+        performSearch();
+      } else if (query.length === 0) {
+        document.getElementById('searchResults').classList.add('hidden');
+      }
+    }, 500);
+  });
 </script>
 {% endblock content %}

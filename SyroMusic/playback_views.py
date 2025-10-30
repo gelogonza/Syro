@@ -95,10 +95,19 @@ def player_page(request):
 @require_http_methods(['POST'])
 def play_track(request):
     """Play a specific track, album, or playlist."""
+    import json
+    
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
-        uri = request.POST.get('uri')
-        device_id = request.POST.get('device_id')
+        
+        # Handle both JSON and form data
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+            uri = data.get('track_uri') or data.get('uri')
+            device_id = data.get('device_id')
+        else:
+            uri = request.POST.get('track_uri') or request.POST.get('uri')
+            device_id = request.POST.get('device_id')
 
         if not uri:
             return JsonResponse({'status': 'error', 'message': 'URI required'}, status=400)
@@ -445,6 +454,133 @@ def get_available_devices(request):
             'devices': device_list,
             'active_device': active_device,
             'has_active_device': bool(active_device),
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required(login_url='login')
+@require_http_methods(['POST'])
+def add_to_queue(request):
+    """Add a track to the playback queue."""
+    import json
+    
+    try:
+        spotify_user = get_object_or_404(SpotifyUser, user=request.user)
+        
+        # Handle both JSON and form data
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+            track_uri = data.get('track_uri') or data.get('uri')
+            track_info = data.get('track_info', {})
+        else:
+            track_uri = request.POST.get('track_uri') or request.POST.get('uri')
+            track_info = {}
+
+        if not track_uri:
+            return JsonResponse({'status': 'error', 'message': 'Track URI required'}, status=400)
+
+        access_token = TokenManager.refresh_user_token(spotify_user)
+        if not access_token:
+            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
+
+        # Add to Spotify's queue
+        sp = SpotifyService(access_token=access_token)
+        success = sp.add_to_queue(track_uri)
+
+        if success:
+            # Also update local queue model
+            queue, _ = PlaybackQueue.objects.get_or_create(user=request.user)
+            
+            # Add track to queue_tracks list
+            if not queue.queue_tracks:
+                queue.queue_tracks = []
+            
+            # Create track object with info
+            track_obj = {
+                'uri': track_uri,
+                'spotify_id': track_uri.split(':')[-1] if ':' in track_uri else track_uri,
+                'added_at': timezone.now().isoformat(),
+            }
+            
+            # Merge with provided track info
+            if track_info:
+                track_obj.update(track_info)
+            
+            queue.queue_tracks.append(track_obj)
+            queue.save()
+
+            track_name = track_info.get('title', 'Track')
+            return JsonResponse({
+                'status': 'success',
+                'message': f'"{track_name}" added to queue',
+                'queue_length': len(queue.queue_tracks)
+            })
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Failed to add to queue'}, status=400)
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required(login_url='login')
+def get_queue(request):
+    """Get the current playback queue."""
+    try:
+        spotify_user = get_object_or_404(SpotifyUser, user=request.user)
+        access_token = TokenManager.refresh_user_token(spotify_user)
+
+        if not access_token:
+            return JsonResponse({'status': 'error', 'message': 'Token expired'}, status=401)
+
+        # Get Spotify's queue
+        sp = SpotifyService(access_token=access_token)
+        spotify_queue = sp.get_queue()
+
+        # Get local queue
+        local_queue, _ = PlaybackQueue.objects.get_or_create(user=request.user)
+
+        # Format queue data
+        queue_items = []
+        
+        if spotify_queue and 'queue' in spotify_queue:
+            for item in spotify_queue['queue']:
+                queue_items.append({
+                    'id': item.get('id', ''),
+                    'uri': item.get('uri', ''),
+                    'name': item.get('name', 'Unknown'),
+                    'artists': ', '.join([a['name'] for a in item.get('artists', [])]),
+                    'album': item.get('album', {}).get('name', ''),
+                    'album_image': item.get('album', {}).get('images', [{}])[0].get('url', ''),
+                    'duration_ms': item.get('duration_ms', 0),
+                })
+
+        return JsonResponse({
+            'status': 'success',
+            'currently_playing': spotify_queue.get('currently_playing') if spotify_queue else None,
+            'queue': queue_items,
+            'queue_length': len(queue_items),
+            'local_queue_length': len(local_queue.queue_tracks),
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required(login_url='login')
+@require_http_methods(['POST'])
+def clear_queue(request):
+    """Clear the local queue."""
+    try:
+        queue, _ = PlaybackQueue.objects.get_or_create(user=request.user)
+        queue.queue_tracks = []
+        queue.current_index = 0
+        queue.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Queue cleared'
         })
 
     except Exception as e:

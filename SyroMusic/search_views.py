@@ -39,19 +39,19 @@ def search(request):
         if search_type in ['all', 'album']:
             results['albums'] = Album.objects.filter(
                 Q(title__icontains=query) | Q(artist__name__icontains=query)
-            )[:10]
+            ).select_related('artist')[:10]
 
         if search_type in ['all', 'track']:
             results['songs'] = Song.objects.filter(
                 Q(title__icontains=query) | Q(album__artist__name__icontains=query)
-            )[:10]
+            ).select_related('album', 'album__artist')[:10]
 
         if search_type in ['all', 'playlist']:
             if request.user.is_authenticated:
                 results['playlists'] = Playlist.objects.filter(
                     Q(title__icontains=query),
                     user=request.user
-                )[:10]
+                ).prefetch_related('songs', 'songs__album', 'songs__album__artist')[:10]
 
         # Also search Spotify if user is authenticated
         if request.user.is_authenticated:
@@ -88,88 +88,193 @@ def search(request):
     return render(request, 'SyroMusic/search.html', context)
 
 
+@login_required(login_url='login')
 def search_json_api(request):
     """
     JSON API endpoint for smart search.
     Used by AJAX for real-time search in player and playlists.
-    Returns songs in JSON format with full metadata.
+    Returns songs, artists, and albums in JSON format with full metadata.
+    Requires authentication for security.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     query = request.GET.get('q', '').strip()
 
     if not query or len(query) < 2:
         return JsonResponse({
             'status': 'success',
             'songs': [],
-            'message': 'Query too short'
+            'artists': [],
+            'albums': [],
+            'message': 'Query must be at least 2 characters'
         })
 
     try:
-        # Search local database first
+        results = {
+            'songs': [],
+            'artists': [],
+            'albums': [],
+        }
+
+        # Search local database for songs
         local_songs = Song.objects.filter(
             Q(title__icontains=query) | Q(album__artist__name__icontains=query)
-        )[:15]
+        ).select_related('album', 'album__artist')[:10]
 
-        songs_data = []
         for song in local_songs:
-            songs_data.append({
-                'id': song.id,
-                'title': song.title,
-                'spotify_id': song.spotify_id,
-                'album': {
-                    'id': song.album.id,
-                    'title': song.album.title,
-                    'artist': {
-                        'id': song.album.artist.id,
-                        'name': song.album.artist.name,
+            # Add validation for required fields
+            if song.album and song.album.artist:
+                results['songs'].append({
+                    'type': 'song',
+                    'id': song.id,
+                    'title': song.title,
+                    'spotify_id': song.spotify_id or '',
+                    'uri': f'spotify:track:{song.spotify_id}' if song.spotify_id else None,
+                    'album': {
+                        'id': song.album.id,
+                        'title': song.album.title or 'Unknown Album',
+                        'artist': {
+                            'id': song.album.artist.id,
+                            'name': song.album.artist.name or 'Unknown Artist',
+                        },
+                        'cover_url': song.album.cover_url or '',
                     },
-                    'cover_url': song.album.cover_url,
-                },
+                })
+
+        # Search local database for artists
+        local_artists = Artist.objects.filter(
+            Q(name__icontains=query)
+        )[:5]
+
+        for artist in local_artists:
+            results['artists'].append({
+                'type': 'artist',
+                'id': artist.id,
+                'name': artist.name or 'Unknown',
+                'biography': artist.biography or '',
+                'image_url': getattr(artist, 'image_url', ''),
             })
 
-        # If user is authenticated, also search Spotify
-        if request.user.is_authenticated and len(songs_data) < 10:
+        # Search local database for albums
+        local_albums = Album.objects.filter(
+            Q(title__icontains=query) | Q(artist__name__icontains=query)
+        ).select_related('artist')[:5]
+
+        for album in local_albums:
+            if album.artist:
+                results['albums'].append({
+                    'type': 'album',
+                    'id': album.id,
+                    'title': album.title or 'Unknown Album',
+                    'artist': {
+                        'id': album.artist.id,
+                        'name': album.artist.name or 'Unknown Artist',
+                    },
+                    'cover_url': album.cover_url or '',
+                    'release_date': str(album.release_date) if album.release_date else '',
+                })
+
+        # If local results are sparse, search Spotify
+        if len(results['songs']) < 8:
             try:
                 spotify_user = SpotifyUser.objects.filter(user=request.user).first()
                 if spotify_user:
                     access_token = TokenManager.refresh_user_token(spotify_user)
                     if access_token:
                         sp = SpotifyService(access_token=access_token)
-                        spotify_results = sp.search(query, 'track', limit=10)
 
-                        if spotify_results and 'tracks' in spotify_results:
-                            for track in spotify_results['tracks']:
-                                # Check if we already have this song
-                                existing = any(s['spotify_id'] == track.get('id') for s in songs_data)
-                                if not existing and len(songs_data) < 20:
-                                    artist = track.get('artists', [{}])[0] if track.get('artists') else {}
-                                    album = track.get('album', {})
-                                    songs_data.append({
-                                        'id': track.get('id'),
-                                        'title': track.get('name', ''),
-                                        'spotify_id': track.get('id'),
-                                        'album': {
-                                            'id': album.get('id'),
-                                            'title': album.get('name', ''),
-                                            'artist': {
-                                                'id': artist.get('id'),
-                                                'name': artist.get('name', ''),
-                                            },
-                                            'cover_url': album.get('images', [{}])[0].get('url', '') if album.get('images') else '',
-                                        },
-                                    })
+                        # Search for tracks on Spotify
+                        try:
+                            spotify_results = sp.search(query, 'track', limit=10)
+                            if spotify_results and 'tracks' in spotify_results:
+                                for track in spotify_results['tracks']['items']:
+                                    # Avoid duplicates
+                                    spotify_id = track.get('id', '')
+                                    if not any(s.get('spotify_id') == spotify_id for s in results['songs']):
+                                        if len(results['songs']) < 20:
+                                            artist_info = track.get('artists', [{}])[0] if track.get('artists') else {}
+                                            album_info = track.get('album', {})
+
+                                            results['songs'].append({
+                                                'type': 'track',
+                                                'id': spotify_id,
+                                                'title': track.get('name', 'Unknown'),
+                                                'spotify_id': spotify_id,
+                                                'uri': track.get('uri', ''),
+                                                'preview_url': track.get('preview_url', ''),
+                                                'album': {
+                                                    'id': album_info.get('id', ''),
+                                                    'title': album_info.get('name', 'Unknown Album'),
+                                                    'artist': {
+                                                        'id': artist_info.get('id', ''),
+                                                        'name': artist_info.get('name', 'Unknown Artist'),
+                                                    },
+                                                    'cover_url': (album_info.get('images', [{}])[0].get('url', '')
+                                                                 if album_info.get('images') else ''),
+                                                },
+                                            })
+                        except Exception as e:
+                            logger.warning(f'Spotify track search failed for query "{query}": {str(e)}')
+
+                        # Search for artists on Spotify
+                        if len(results['artists']) < 5:
+                            try:
+                                artist_results = sp.search(query, 'artist', limit=5)
+                                if artist_results and 'artists' in artist_results:
+                                    for artist in artist_results['artists']['items']:
+                                        artist_id = artist.get('id', '')
+                                        if not any(a.get('id') == artist_id for a in results['artists']):
+                                            results['artists'].append({
+                                                'type': 'artist',
+                                                'id': artist_id,
+                                                'name': artist.get('name', 'Unknown'),
+                                                'biography': '',
+                                                'image_url': (artist.get('images', [{}])[0].get('url', '')
+                                                             if artist.get('images') else ''),
+                                            })
+                            except Exception as e:
+                                logger.warning(f'Spotify artist search failed for query "{query}": {str(e)}')
+
+                        # Search for albums on Spotify
+                        if len(results['albums']) < 5:
+                            try:
+                                album_results = sp.search(query, 'album', limit=5)
+                                if album_results and 'albums' in album_results:
+                                    for album in album_results['albums']['items']:
+                                        album_id = album.get('id', '')
+                                        if not any(a.get('id') == album_id for a in results['albums']):
+                                            artist_info = album.get('artists', [{}])[0] if album.get('artists') else {}
+                                            results['albums'].append({
+                                                'type': 'album',
+                                                'id': album_id,
+                                                'title': album.get('name', 'Unknown'),
+                                                'artist': {
+                                                    'id': artist_info.get('id', ''),
+                                                    'name': artist_info.get('name', 'Unknown'),
+                                                },
+                                                'cover_url': (album.get('images', [{}])[0].get('url', '')
+                                                             if album.get('images') else ''),
+                                                'release_date': album.get('release_date', ''),
+                                            })
+                            except Exception as e:
+                                logger.warning(f'Spotify album search failed for query "{query}": {str(e)}')
             except Exception as e:
-                # If Spotify search fails, just use local results
-                pass
+                logger.error(f'Spotify service error during search for "{query}": {str(e)}')
+                # Continue with local results if Spotify fails
 
         return JsonResponse({
             'status': 'success',
-            'songs': songs_data[:20],
+            'songs': results['songs'][:20],
+            'artists': results['artists'][:10],
+            'albums': results['albums'][:10],
         })
 
     except Exception as e:
+        logger.error(f'Search API error: {str(e)}')
         return JsonResponse({
             'status': 'error',
-            'message': str(e)
+            'message': 'Search failed. Please try again.'
         }, status=500)
 
 

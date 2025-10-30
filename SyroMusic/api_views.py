@@ -64,7 +64,7 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for browsing albums.
     Supports: list, retrieve
     """
-    queryset = Album.objects.all()
+    queryset = Album.objects.select_related('artist').all()
     serializer_class = AlbumSerializer
     pagination_class = StandardResultsSetPagination
     permission_classes = [AllowAny]
@@ -79,7 +79,7 @@ class SongViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for browsing songs.
     Supports: list, retrieve
     """
-    queryset = Song.objects.all()
+    queryset = Song.objects.select_related('album', 'album__artist').all()
     serializer_class = SongSerializer
     pagination_class = StandardResultsSetPagination
     permission_classes = [AllowAny]
@@ -101,7 +101,9 @@ class PlaylistViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Return only playlists owned by the current user."""
-        return Playlist.objects.filter(user=self.request.user)
+        return Playlist.objects.filter(user=self.request.user).prefetch_related(
+            'songs', 'songs__album', 'songs__album__artist'
+        )
 
     def perform_create(self, serializer):
         """Create a new playlist for the current user."""
@@ -215,7 +217,11 @@ class ListeningActivityViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """Return only listening activity for the current user."""
-        return UserListeningActivity.objects.filter(user=self.request.user)
+        return UserListeningActivity.objects.filter(
+            user=self.request.user
+        ).only(
+            'track_name', 'artist_name', 'album_name', 'played_at', 'duration_ms', 'spotify_track_id'
+        )
 
     @action(detail=False, methods=['get'])
     def recent(self, request):
