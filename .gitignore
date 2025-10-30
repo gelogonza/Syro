@@ -138,6 +138,7 @@ Thumbs.db
 # Documentation (essential only)
 *.md
 !README.md
+!ADVANCED_FEATURES_GUIDE.md
 
 # Allow .docs folder for archived documentation
 !.docs/
