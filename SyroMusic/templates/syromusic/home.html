@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {% extends 'base.html' %}
 
 {% block title %}Home - Syro{% endblock title %}
@@ -9,7 +8,7 @@
   .hero-gradient {
     background: #000000;
   }
-  
+
   /* Liquid Glass Morphic Cards (Raycast-style) */
   .liquid-glass-card {
     background: linear-gradient(
@@ -20,7 +19,7 @@
     backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
-    box-shadow: 
+    box-shadow:
       0 8px 32px 0 rgba(0, 0, 0, 0.37),
       inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
       0 0 0 1px rgba(0, 0, 0, 0.5);
@@ -28,7 +27,7 @@
     position: relative;
     overflow: hidden;
   }
-  
+
   .liquid-glass-card::before {
     content: '';
     position: absolute;
@@ -43,7 +42,7 @@
       rgba(255, 255, 255, 0) 100%
     );
   }
-  
+
   .liquid-glass-card:hover {
     background: linear-gradient(
       135deg,
@@ -52,12 +51,12 @@
     );
     border-color: rgba(255, 255, 255, 0.12);
     transform: translateY(-4px) scale(1.02);
-    box-shadow: 
+    box-shadow:
       0 16px 48px 0 rgba(0, 0, 0, 0.5),
       inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
       0 0 0 1px rgba(0, 0, 0, 0.5);
   }
-  
+
   /* Icon container with glass effect */
   .icon-bubble {
     background: linear-gradient(
@@ -67,11 +66,11 @@
     );
     backdrop-filter: blur(10px);
     border: 1px solid rgba(16, 185, 129, 0.2);
-    box-shadow: 
+    box-shadow:
       0 4px 16px 0 rgba(16, 185, 129, 0.1),
       inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
   }
-  
+
   .liquid-glass-card:hover .icon-bubble {
     background: linear-gradient(
       135deg,
@@ -81,7 +80,7 @@
     border-color: rgba(16, 185, 129, 0.3);
     transform: scale(1.1) rotate(-5deg);
   }
-  
+
   /* CTA Card with enhanced glass effect */
   .liquid-glass-cta {
     background: linear-gradient(
@@ -92,12 +91,12 @@
     backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 32px;
-    box-shadow: 
+    box-shadow:
       0 12px 40px 0 rgba(0, 0, 0, 0.4),
       inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   .liquid-glass-cta:hover {
     background: linear-gradient(
       135deg,
@@ -106,11 +105,11 @@
     );
     border-color: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
-    box-shadow: 
+    box-shadow:
       0 20px 60px 0 rgba(0, 0, 0, 0.5),
       inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
   }
-  
+
   /* Shiny Gradient Animation for Text */
   @keyframes gradient-shift {
     0% {
@@ -123,7 +122,7 @@
       background-position: 0% 50%;
     }
   }
-  
+
   /* Floating Animation */
   @keyframes float {
     0%, 100% {
@@ -133,11 +132,11 @@
       transform: translateY(-20px);
     }
   }
-  
+
   .float-animation {
     animation: float 6s ease-in-out infinite;
   }
-  
+
   /* Pulse Animation */
   @keyframes pulse-glow {
     0%, 100% {
@@ -147,11 +146,11 @@
       box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
     }
   }
-  
+
   .pulse-glow {
     animation: pulse-glow 3s ease-in-out infinite;
   }
-  
+
   /* Audio Visualizer Canvas */
   .geometric-bg {
     position: absolute;
@@ -160,18 +159,18 @@
     overflow: hidden;
     pointer-events: none;
   }
-  
+
   #audioVisualizerCanvas {
     width: 100%;
     height: 100%;
     display: block;
   }
-  
+
   /* Fade In Animations */
   .fade-in-up {
     animation: fadeInUp 1s ease-out;
   }
-  
+
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -182,12 +181,12 @@
       transform: translateY(0);
     }
   }
-  
+
   .delay-100 { animation-delay: 0.1s; animation-fill-mode: both; }
   .delay-200 { animation-delay: 0.2s; animation-fill-mode: both; }
   .delay-300 { animation-delay: 0.3s; animation-fill-mode: both; }
   .delay-400 { animation-delay: 0.4s; animation-fill-mode: both; }
-  
+
   /* Book Flip Animation for Feature Cards */
   @keyframes bookFlip {
     0% {
@@ -199,64 +198,34 @@
       opacity: 1;
     }
   }
-  
+
   .book-flip {
     animation: bookFlip 0.8s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
     transform-origin: left center;
     opacity: 0;
   }
-  
+
   .book-flip-1 { animation-delay: 0.1s; }
   .book-flip-2 { animation-delay: 0.3s; }
   .book-flip-3 { animation-delay: 0.5s; }
   .book-flip-4 { animation-delay: 0.7s; }
-  
+
   /* Add perspective to container */
   .feature-cards-container {
     perspective: 2000px;
   }
-  
+
   /* Enhanced card hover effect */
   .feature-card {
     transition: all 0.3s ease;
     transform-style: preserve-3d;
   }
-  
+
   .feature-card:hover {
     transform: perspective(1000px) rotateY(5deg) translateY(-10px);
   }
 </style>
 {% endblock extra_css %}
-=======
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Welcome to SyroMusic</title>
-    <!-- Add CSS styles and links to external CSS files at some point -->
-</head>
-<body>
-    <header>
-        <h1>Welcome to SyroMusic</h1>
-    </header>
-
-    <main>
-        <h2>Latest Releases</h2>
-        <!-- Add content related to the latest releases or featured music here -->
-        <ul>
-            <!-- example list of featured songs or albums -->
-            <li><a href="#">Featured Song 1</a></li>
-            <li><a href="#">Featured Song 2</a></li>
-            <li><a href="#">Featured Album 1</a></li>
-            <li><a href="#">Featured Album 2</a></li>
-        </ul>
-    </main>
-
-    <section>
-        <h2>About SyroMusic</h2>
-        <!-- brief introduction or description of app  -->
-        <p>SyroMusic is your one-stop destination for discovering and enjoying the latest music releases, artist profiles, and more.</p>
-    </section>
->>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006
 
 {% block content %}
 <!-- Hero Section with Animated Background -->

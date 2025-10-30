@@ -1080,16 +1080,20 @@
         </div>
       `;
 
+      console.log('Searching for:', query);
+
       fetch(`/music/api/search/?q=${encodeURIComponent(query)}`, {
         signal: abortController.signal
       })
         .then(response => {
+          console.log('Search response status:', response.status);
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: Search failed`);
           }
           return response.json();
         })
         .then(data => {
+          console.log('Search results:', data);
           abortController = null;
 
           if (!data || typeof data !== 'object') {
@@ -1115,6 +1119,7 @@
     }
 
     function renderSearchResults(data) {
+      console.log('Rendering search results:', data);
       const songs = Array.isArray(data?.songs) ? data.songs.filter(Boolean) : [];
       const artists = Array.isArray(data?.artists) ? data.artists.filter(Boolean) : [];
       const albums = Array.isArray(data?.albums) ? data.albums.filter(Boolean) : [];
@@ -1141,8 +1146,9 @@
               Songs (${songs.length})
             </h3>
             <div class="search-section-items">
-              ${songs.map(song => {
+              ${songs.map((song, idx) => {
                 try {
+                  console.log(`Rendering song ${idx}:`, song);
                   return renderSongResult(song);
                 } catch (e) {
                   console.error('Error rendering song:', song, e);
@@ -1195,6 +1201,7 @@
       }
 
       resultsDiv.innerHTML = html;
+      console.log('Search results rendered successfully');
     }
 
     function renderSongResult(song) {
@@ -1215,6 +1222,7 @@
         return '';
       }
 
+      // Handle nested artist structure from search API
       const artistName = String(
         (song.artist && song.artist.name) ||
         (song.album && song.album.artist && song.album.artist.name) ||
@@ -1237,7 +1245,7 @@
 
       return `
         <div class="search-result-item song-result">
-          <div class="flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors" onclick="playTrackFromSearch('${safeUri}')">
+          <div class="flex items-center gap-3">
             ${albumCover ? `
               <img
                 src="${safeCover}"
@@ -1257,20 +1265,20 @@
             </div>
             <div class="flex gap-2 flex-shrink-0">
               <button
-                class="control-btn"
-                onclick="event.stopPropagation(); playTrackFromSearch('${safeUri}');"
+                class="control-btn !w-10 !h-10"
+                onclick="playTrackFromSearch('${safeUri}');"
                 title="Play"
                 type="button"
               >
-                <span class="iconify text-xl" data-icon="mdi:play"></span>
+                <span class="iconify text-lg" data-icon="mdi:play"></span>
               </button>
               <button
-                class="control-btn"
-                onclick="event.stopPropagation(); addToQueueFromSearch('${safeUri}', {title: '${escapeHtml(title)}', artist: '${safeArtist}', album: '${safeAlbum}'});"
+                class="control-btn !w-10 !h-10"
+                onclick="addToQueueFromSearch('${safeUri}', {title: '${escapeHtml(title)}', artist: '${safeArtist}', album: '${safeAlbum}'});"
                 title="Add to Queue"
                 type="button"
               >
-                <span class="iconify text-xl" data-icon="mdi:playlist-plus"></span>
+                <span class="iconify text-lg" data-icon="mdi:playlist-plus"></span>
               </button>
             </div>
           </div>
@@ -1397,6 +1405,7 @@
   }
 
   function playTrack(trackUri) {
+    console.log('Playing track:', trackUri);
     const deviceId = getActiveDeviceId();
 
     fetch('{% url "music:play_track" %}', {
@@ -1412,12 +1421,20 @@
     })
     .then(response => response.json())
     .then(data => {
+      console.log('Play track response:', data);
       if (data.status === 'success') {
+        showNotification('Now playing', 'success');
         setTimeout(() => {
           updatePlaybackState();
           applyDynamicBackground();
         }, 500);
+      } else {
+        showNotification(data.message || 'Failed to play track', 'error');
       }
+    })
+    .catch(error => {
+      console.error('Play track error:', error);
+      showNotification('Failed to play track', 'error');
     });
   }
 
