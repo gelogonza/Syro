@@ -5,6 +5,18 @@
 
 {% block extra_css %}
 <style>
+  /* Hide Spotify Web Playback SDK Modal */
+  iframe[src*="spotify"],
+  div[class*="spotify"],
+  div[id*="spotify-player"],
+  div[class*="now-playing-widget"],
+  body > div[style*="position: fixed"][style*="z-index"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
   /* Dark Theme Override for Player Page */
   body {
     background: #0a0a0a !important;
@@ -642,6 +654,22 @@
 <script>
   // ==================== Utility Functions ====================
 
+  function getCsrfToken() {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
   function formatTime(ms) {
     const seconds = Math.floor((ms / 1000) % 60);
     const minutes = Math.floor((ms / 1000 / 60) % 60);
@@ -1079,12 +1107,20 @@
       `;
 
       console.log('Searching for:', query);
+      console.log('CSRF Token:', getCsrfToken());
 
       fetch(`/music/api/search/?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
         signal: abortController.signal
       })
         .then(response => {
           console.log('Search response status:', response.status);
+          console.log('Search response headers:', response.headers);
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: Search failed`);
           }
@@ -1634,6 +1670,12 @@
   // ==================== Initialization ====================
 
   document.addEventListener('DOMContentLoaded', function() {
+    // Remove any Spotify SDK injected elements
+    removeSpotifySDKElements();
+    
+    // Keep checking and removing Spotify SDK elements
+    setInterval(removeSpotifySDKElements, 1000);
+    
     // Apply dynamic background on load
     applyDynamicBackground();
 
@@ -1653,11 +1695,28 @@
     setupPlayerSearch();
 
     // Initialize Spotify Web Playback SDK
-    initializeSpotifyPlayer();
+    // DISABLED: Creates unwanted "Now Playing" modal window
+    // initializeSpotifyPlayer();
 
     // Initialize new features
     initializeAdvancedFeatures();
   });
+
+  // ==================== Remove Spotify SDK Elements ====================
+  function removeSpotifySDKElements() {
+    // Remove any iframes from Spotify
+    document.querySelectorAll('iframe[src*="spotify"]').forEach(el => el.remove());
+    
+    // Remove any divs that might be the Spotify player
+    document.querySelectorAll('body > div').forEach(el => {
+      const style = window.getComputedStyle(el);
+      if (style.position === 'fixed' && 
+          (style.zIndex > 9000 || el.className.includes('spotify') || el.id.includes('spotify'))) {
+        console.log('Removing Spotify element:', el);
+        el.remove();
+      }
+    });
+  }
 
   /* ==================== Advanced Features Initialization ==================== */
   function initializeAdvancedFeatures() {
