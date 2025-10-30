@@ -47,9 +47,9 @@
   .playlist-actions a,
   .playlist-actions button {
     padding: 0.5rem 1rem;
-    background: white;
-    color: #663399;
-    border: none;
+    background: #2a2a2a;
+    color: #10b981;
+    border: 1px solid #404040;
     border-radius: 4px;
     cursor: pointer;
     font-weight: 600;
@@ -60,19 +60,21 @@
 
   .playlist-actions a:hover,
   .playlist-actions button:hover {
-    background: rgba(255,255,255,0.9);
+    background: #333333;
+    border-color: #505050;
   }
 
   .tracklist {
-    background: white;
+    background: #1a1a1a;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    border: 1px solid #333;
   }
 
   .track-item {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #333;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -80,7 +82,7 @@
   }
 
   .track-item:hover {
-    background-color: #f9f9f9;
+    background-color: #2a2a2a;
   }
 
   .track-item:last-child {
@@ -97,7 +99,7 @@
 
   .track-artist {
     font-size: 0.85rem;
-    color: #999;
+    color: #a0a0a0;
     margin-top: 0.25rem;
   }
 
@@ -119,20 +121,21 @@
   .empty-playlist {
     text-align: center;
     padding: 2rem;
-    color: #999;
+    color: #a0a0a0;
   }
 
   .playlist-search-section {
-    background: white;
+    background: #1a1a1a;
     padding: 1.5rem;
     border-radius: 8px;
     margin: 2rem 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    border: 1px solid #333;
   }
 
   .playlist-search-section h3 {
     margin: 0 0 1rem 0;
-    color: #333;
+    color: #ffffff;
     font-size: 1.1rem;
   }
 
@@ -145,16 +148,22 @@
   #playlistSearchInput {
     flex: 1;
     padding: 0.75rem;
-    border: 1px solid #ddd;
+    border: 1px solid #404040;
     border-radius: 4px;
     font-size: 1rem;
     transition: border-color 0.2s;
+    background: #2a2a2a;
+    color: #ffffff;
   }
 
   #playlistSearchInput:focus {
     outline: none;
-    border-color: #663399;
-    box-shadow: 0 0 0 2px rgba(102, 51, 153, 0.1);
+    border-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+  }
+
+  #playlistSearchInput::placeholder {
+    color: #808080;
   }
 
   .search-results {
@@ -164,19 +173,19 @@
 
   .search-result-item {
     padding: 1rem;
-    border: 1px solid #eee;
+    border: 1px solid #333;
     border-radius: 4px;
     margin-bottom: 0.75rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #f9f9f9;
+    background: #2a2a2a;
     transition: all 0.2s;
   }
 
   .search-result-item:hover {
-    background: #f0f0f0;
-    border-color: #ccc;
+    background: #333333;
+    border-color: #404040;
   }
 
   .search-result-info {
@@ -185,12 +194,12 @@
 
   .search-result-name {
     font-weight: 600;
-    color: #333;
+    color: #ffffff;
   }
 
   .search-result-artist {
     font-size: 0.85rem;
-    color: #999;
+    color: #a0a0a0;
     margin-top: 0.25rem;
   }
 
@@ -221,13 +230,13 @@
 
   .loading-message {
     text-align: center;
-    color: #999;
+    color: #a0a0a0;
     padding: 1rem;
   }
 
   .no-results-message {
     text-align: center;
-    color: #999;
+    color: #a0a0a0;
     padding: 1rem;
   }
 </style>

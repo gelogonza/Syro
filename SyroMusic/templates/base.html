@@ -21,20 +21,20 @@
       theme: {
         extend: {
           colors: {
-            background: '#ffffff',
-            foreground: '#000000',
-            card: '#f9f9f9',
-            'card-foreground': '#000000',
+            background: '#0a0a0a',
+            foreground: '#ffffff',
+            card: '#1a1a1a',
+            'card-foreground': '#ffffff',
             primary: '#10b981',
             'primary-foreground': '#ffffff',
-            secondary: '#f3f4f6',
-            'secondary-foreground': '#000000',
-            muted: '#f3f4f6',
-            'muted-foreground': '#6b7280',
+            secondary: '#2a2a2a',
+            'secondary-foreground': '#ffffff',
+            muted: '#404040',
+            'muted-foreground': '#a0a0a0',
             accent: '#22c55e',
-            'accent-foreground': '#ffffff',
-            border: '#e5e7eb',
-            input: '#f9f9f9',
+            'accent-foreground': '#000000',
+            border: '#333333',
+            input: '#1a1a1a',
             ring: '#10b981',
           },
           fontFamily: {
@@ -52,26 +52,26 @@
     ::-webkit-scrollbar {
       width: 12px;
     }
-    
+
     ::-webkit-scrollbar-track {
-      background: #f9f9f9;
+      background: #1a1a1a;
     }
-    
+
     ::-webkit-scrollbar-thumb {
-      background: #d1d5db;
+      background: #404040;
       border-radius: 6px;
     }
-    
+
     ::-webkit-scrollbar-thumb:hover {
-      background: #9ca3af;
+      background: #505050;
     }
-    
+
     /* Modern Theme Styles */
     body {
-      background: #ffffff;
+      background: #0a0a0a;
       position: relative;
     }
-    
+
     /* Subtle gradient overlay */
     body::before {
       content: '';
@@ -80,48 +80,52 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.03), rgba(34, 197, 94, 0.03));
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.02), rgba(34, 197, 94, 0.02));
       pointer-events: none;
       z-index: 0;
     }
-    
+
     body > * {
       position: relative;
       z-index: 1;
     }
-    
+
     body {
       font-family: 'Inter', system-ui, sans-serif;
-      color: #000000;
+      color: #ffffff;
     }
-    
-    /* Force text inputs and textareas to have black text */
+
+    /* Force text inputs and textareas to have white text */
     input, textarea, select {
-      color: #000000 !important;
+      color: #ffffff !important;
+      background: #1a1a1a !important;
+      border-color: #333333 !important;
     }
-    
+
     input::placeholder, textarea::placeholder {
-      color: #666666 !important;
+      color: #808080 !important;
     }
     
     /* Modern Cards with Glass Effect */
     .glass {
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(26, 26, 26, 0.8);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    
+
     .card {
-      background: white;
+      background: #1a1a1a;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
       transition: all 0.3s ease;
+      border: 1px solid #333333;
     }
-    
+
     .card:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
       transform: translateY(-2px);
+      border-color: #404040;
     }
     
     /* Gradient Text */
@@ -150,33 +154,33 @@
       width: 80%;
       max-width: 320px;
       height: 100vh;
-      background: rgba(255, 255, 255, 0.98);
+      background: rgba(10, 10, 10, 0.98);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-left: 1px solid rgba(0, 0, 0, 0.1);
-      box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: -4px 0 16px rgba(0, 0, 0, 0.5);
       transition: right 0.3s ease;
       z-index: 100;
       overflow-y: auto;
     }
-    
+
     .mobile-menu.active {
       right: 0;
     }
-    
+
     .mobile-menu-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.7);
       opacity: 0;
       visibility: hidden;
       transition: all 0.3s ease;
       z-index: 99;
     }
-    
+
     .mobile-menu-overlay.active {
       opacity: 1;
       visibility: visible;
@@ -188,7 +192,7 @@
   
   {% block extra_css %}{% endblock extra_css %}
 </head>
-<body class="bg-white text-black antialiased">
+<body class="bg-black text-white antialiased">
 
   <!-- Mobile Menu Overlay -->
   <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
@@ -204,50 +208,50 @@
       </div>
       
       <nav class="space-y-2">
-        <a href="{% url 'home' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+        <a href="{% url 'home' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Home
         </a>
-        <a href="{% url 'music:player' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+        <a href="{% url 'music:player' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Player
         </a>
-        <a href="{% url 'music:search' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+        <a href="{% url 'music:search' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Search
         </a>
-        <a href="{% url 'music:stats_dashboard' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+        <a href="{% url 'music:stats_dashboard' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Stats
         </a>
-        <a href="{% url 'music:wrapped' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+        <a href="{% url 'music:wrapped' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Wrapped
         </a>
-        <a href="{% url 'music:artist_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+        <a href="{% url 'music:artist_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Artists
         </a>
-        <a href="{% url 'music:album_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+        <a href="{% url 'music:album_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Albums
         </a>
-        <a href="{% url 'music:playlist_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+        <a href="{% url 'music:playlist_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Playlists
         </a>
-        
+
         {% if user.is_authenticated %}
-          <div class="pt-4 mt-4 border-t border-gray-200">
-            <p class="text-sm text-gray-600 mb-2">{{ user.username }}</p>
-            <a href="{% url 'music:dashboard' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition mb-2">
+          <div class="pt-4 mt-4 border-t border-gray-700">
+            <p class="text-sm text-gray-400 mb-2">{{ user.username }}</p>
+            <a href="{% url 'music:dashboard' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition mb-2">
               Dashboard
             </a>
-            <a href="{% url 'logout' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+            <a href="{% url 'logout' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
               Logout
             </a>
           </div>
         {% else %}
-          <div class="pt-4 mt-4 border-t border-gray-200 space-y-2">
+          <div class="pt-4 mt-4 border-t border-gray-700 space-y-2">
             <a href="{% url 'music:spotify_login' %}" class="block px-4 py-3 rounded-lg bg-primary text-white hover:bg-accent transition text-center">
               Spotify Login
             </a>
-            <a href="{% url 'login' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+            <a href="{% url 'login' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
               Login
             </a>
-            <a href="{% url 'signup' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+            <a href="{% url 'signup' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
               Sign Up
             </a>
           </div>
@@ -267,31 +271,31 @@
         
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-1">
-          <a href="{% url 'home' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+          <a href="{% url 'home' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
             Home
           </a>
-          <a href="{% url 'music:dashboard' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+          <a href="{% url 'music:dashboard' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
             Dashboard
           </a>
-          <a href="{% url 'music:search' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+          <a href="{% url 'music:search' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
             Search
           </a>
-          <a href="{% url 'music:stats_dashboard' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+          <a href="{% url 'music:stats_dashboard' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
             Stats
           </a>
-          <a href="{% url 'music:wrapped' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+          <a href="{% url 'music:wrapped' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
             Wrapped
           </a>
-          <a href="{% url 'music:player' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+          <a href="{% url 'music:player' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
             Player
           </a>
-          <a href="{% url 'music:artist_list' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+          <a href="{% url 'music:artist_list' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
             Artists
           </a>
-          <a href="{% url 'music:album_list' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+          <a href="{% url 'music:album_list' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
             Albums
           </a>
-          <a href="{% url 'music:playlist_list' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+          <a href="{% url 'music:playlist_list' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
             Playlists
           </a>
         </div>
@@ -300,29 +304,29 @@
         <div class="flex items-center space-x-2">
           {% if user.is_authenticated %}
             <div class="hidden md:flex items-center space-x-3">
-              <span class="text-sm text-muted-foreground">{{ user.username }}</span>
-              <a href="{% url 'music:dashboard' %}" 
-                 class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/80 transition">
+              <span class="text-sm text-gray-400">{{ user.username }}</span>
+              <a href="{% url 'music:dashboard' %}"
+                 class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-gray-900 hover:bg-gray-800 text-white transition">
                 Dashboard
               </a>
-              <a href="{% url 'logout' %}" 
-                 class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-secondary transition">
+              <a href="{% url 'logout' %}"
+                 class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-900 text-white transition">
                 Logout
               </a>
             </div>
           {% else %}
-            <a href="{% url 'music:spotify_login' %}" 
+            <a href="{% url 'music:spotify_login' %}"
                class="hidden md:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-primary text-white hover:bg-accent transition hover-glow">
               Spotify Login
             </a>
-            <a href="{% url 'login' %}" 
-               class="hidden md:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-secondary transition">
+            <a href="{% url 'login' %}"
+               class="hidden md:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-900 text-white transition">
               Login
             </a>
           {% endif %}
-          
+
           <!-- Mobile Burger Button -->
-          <button id="openMobileMenu" class="md:hidden p-2 rounded-lg hover:bg-secondary transition">
+          <button id="openMobileMenu" class="md:hidden p-2 rounded-lg hover:bg-gray-900 text-white transition">
             <span class="iconify h-6 w-6" data-icon="mdi:menu"></span>
           </button>
         </div>

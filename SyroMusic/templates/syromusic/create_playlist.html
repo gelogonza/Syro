@@ -7,22 +7,22 @@
   <div style="max-width: 600px; margin: 2rem auto;">
     <h1 style="text-align: center; margin-bottom: 2rem;">Create New Playlist</h1>
 
-    <form method="post" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <form method="post" style="background: #1a1a1a; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); border: 1px solid #333;">
       {% csrf_token %}
 
       <div style="margin-bottom: 1.5rem;">
-        <label for="title" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Playlist Name *</label>
-        <input type="text" id="title" name="title" required placeholder="My Awesome Playlist" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+        <label for="title" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #ffffff;">Playlist Name *</label>
+        <input type="text" id="title" name="title" required placeholder="My Awesome Playlist" style="width: 100%; padding: 0.75rem; border: 1px solid #404040; border-radius: 4px; font-size: 1rem; background: #2a2a2a; color: #ffffff;">
       </div>
 
       <div style="margin-bottom: 2rem;">
-        <label for="description" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Description</label>
-        <textarea id="description" name="description" rows="4" placeholder="Add a description for your playlist..." style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; resize: vertical;"></textarea>
+        <label for="description" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #ffffff;">Description</label>
+        <textarea id="description" name="description" rows="4" placeholder="Add a description for your playlist..." style="width: 100%; padding: 0.75rem; border: 1px solid #404040; border-radius: 4px; font-size: 1rem; resize: vertical; background: #2a2a2a; color: #ffffff;"></textarea>
       </div>
 
       <div style="display: flex; gap: 1rem;">
         <button type="submit" class="btn" style="flex: 1; background-color: #1DB954;">Create Playlist</button>
-        <a href="{% url 'music:playlist_list' %}" class="btn" style="flex: 1; background-color: #999; text-align: center;">Cancel</a>
+        <a href="{% url 'music:playlist_list' %}" class="btn" style="flex: 1; background-color: #404040; color: #ffffff; text-align: center;">Cancel</a>
       </div>
     </form>
   </div>

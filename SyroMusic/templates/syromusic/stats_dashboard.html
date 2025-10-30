@@ -34,7 +34,7 @@
   }
 
   .sync-button {
-    background-color: white;
+    background-color: #1a1a1a;
     color: #1DB954;
     padding: 0.75rem 1.75rem;
     border: none;
@@ -65,7 +65,7 @@
   .time-range-btn {
     padding: 0.65rem 1.25rem;
     border: 2px solid #ddd;
-    background-color: white;
+    background-color: #1a1a1a;
     border-radius: 25px;
     cursor: pointer;
     font-size: 0.95rem;
@@ -120,7 +120,7 @@
   }
 
   .artist-card {
-    background: white;
+    background: #1a1a1a;
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -158,13 +158,13 @@
   .artist-name {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1f1f1f;
+    color: #ffffff;
     margin-bottom: 0.5rem;
   }
 
   .artist-genres {
     font-size: 0.85rem;
-    color: #999;
+    color: #a0a0a0;
     margin-bottom: 0.75rem;
     min-height: 2.5rem;
   }
@@ -181,7 +181,7 @@
 
   /* Top Tracks List */
   .tracks-container {
-    background: white;
+    background: #1a1a1a;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -241,7 +241,7 @@
   .track-name {
     font-weight: 600;
     font-size: 1.1rem;
-    color: #1f1f1f;
+    color: #ffffff;
     margin-bottom: 0.35rem;
   }
 
@@ -253,7 +253,7 @@
 
   .track-album {
     font-size: 0.85rem;
-    color: #999;
+    color: #a0a0a0;
   }
 
   .play-button {
@@ -313,7 +313,7 @@
   }
 
   .activity-content {
-    background: white;
+    background: #1a1a1a;
     padding: 1.25rem;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
@@ -323,7 +323,7 @@
   .activity-track-name {
     font-weight: 600;
     font-size: 1.05rem;
-    color: #1f1f1f;
+    color: #ffffff;
     margin-bottom: 0.35rem;
   }
 
@@ -335,14 +335,14 @@
 
   .activity-timestamp {
     font-size: 0.85rem;
-    color: #999;
+    color: #a0a0a0;
   }
 
   /* Empty State */
   .empty-state {
     text-align: center;
     padding: 3rem 1.5rem;
-    background: white;
+    background: #1a1a1a;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     margin-top: 2rem;
@@ -359,7 +359,7 @@
   }
 
   .empty-state p {
-    color: #999;
+    color: #a0a0a0;
     margin-bottom: 1.5rem;
   }
 
@@ -372,7 +372,7 @@
   }
 
   .summary-item {
-    background: white;
+    background: #1a1a1a;
     padding: 1.25rem;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
@@ -381,7 +381,7 @@
 
   .summary-label {
     font-size: 0.85rem;
-    color: #999;
+    color: #a0a0a0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0.5rem;
@@ -585,8 +585,8 @@
 
   <!-- Last Synced Info -->
   {% if listening_stats.last_synced %}
-    <div style="text-align: center; margin-top: 3rem; padding: 1.5rem; background: #f9f9f9; border-radius: 8px;">
-      <p style="color: #999; font-size: 0.95rem;">
+    <div style="text-align: center; margin-top: 3rem; padding: 1.5rem; background: #2a2a2a; border-radius: 8px;">
+      <p style="color: #a0a0a0; font-size: 0.95rem;">
         Last synced: <strong>{{ listening_stats.last_synced|date:"DATETIME_FORMAT" }}</strong>
       </p>
     </div>

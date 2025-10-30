@@ -32,19 +32,21 @@
   }
 
   .album-card {
-    background: white;
+    background: #1a1a1a;
     border-radius: 8px;
     padding: 1rem;
     text-align: center;
     text-decoration: none;
     color: inherit;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
     transition: all 0.3s ease;
+    border: 1px solid #333;
   }
 
   .album-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    border-color: #404040;
   }
 
   .album-cover {
@@ -67,7 +69,7 @@
 
   .album-year {
     font-size: 0.85rem;
-    color: #999;
+    color: #a0a0a0;
   }
 </style>
 {% endblock extra_css %}
@@ -100,7 +102,7 @@
         {% endfor %}
       </div>
     {% else %}
-      <p style="text-align: center; color: #999; margin-top: 2rem;">No albums found.</p>
+      <p style="text-align: center; color: #a0a0a0; margin-top: 2rem;">No albums found.</p>
     {% endif %}
   </div>
 

@@ -52,15 +52,16 @@
   }
 
   .tracklist {
-    background: white;
+    background: #1a1a1a;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    border: 1px solid #333;
   }
 
   .track-item {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #333;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -68,7 +69,7 @@
   }
 
   .track-item:hover {
-    background-color: #f9f9f9;
+    background-color: #2a2a2a;
   }
 
   .track-item:last-child {
@@ -77,7 +78,7 @@
 
   .track-number {
     min-width: 30px;
-    color: #999;
+    color: #a0a0a0;
     font-weight: 600;
     margin-right: 1rem;
   }
@@ -92,14 +93,14 @@
   }
 
   .track-duration {
-    color: #999;
+    color: #a0a0a0;
     font-size: 0.85rem;
   }
 
   .duration {
     min-width: 50px;
     text-align: right;
-    color: #999;
+    color: #a0a0a0;
   }
 </style>
 {% endblock extra_css %}
@@ -138,7 +139,7 @@
       {% endfor %}
     </div>
   {% else %}
-    <p style="text-align: center; color: #999; margin-top: 2rem;">No songs found.</p>
+    <p style="text-align: center; color: #a0a0a0; margin-top: 2rem;">No songs found.</p>
   {% endif %}
 
   <div style="text-align: center; margin-top: 3rem;">
