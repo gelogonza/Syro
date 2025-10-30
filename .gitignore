@@ -92,4 +92,25 @@ yarn-error.log
 ._*
 .localized
 
+# Documentation (auto-generated during sessions)
+*.md
+!README.md
+!CONTRIBUTING.md
+
+# Claude Code
+.claude/
+
+# Cache files
+.cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Sensitive information
 .env
+.env.local
+.env.*.local
+credentials.json
+secrets.json
+private_key.pem
+spotify_credentials.json
