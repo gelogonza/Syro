@@ -161,6 +161,27 @@
       transition: all 0.3s ease;
     }
     
+    /* Navigation Link Underline Effect */
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #10b981, #22c55e);
+      transform: translateX(-50%);
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover {
+      color: #10b981;
+    }
+    
+    .nav-link:hover::after {
+      width: 80%;
+    }
+    
     /* Mobile Menu Styles */
     .mobile-menu {
       position: fixed;
@@ -286,31 +307,31 @@
         
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-1">
-          <a href="{% url 'home' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
+          <a href="{% url 'home' %}" class="nav-link px-4 py-2 text-white transition relative">
             Home
           </a>
-          <a href="{% url 'music:dashboard' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
+          <a href="{% url 'music:dashboard' %}" class="nav-link px-4 py-2 text-white transition relative">
             Dashboard
           </a>
-          <a href="{% url 'music:search' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
+          <a href="{% url 'music:search' %}" class="nav-link px-4 py-2 text-white transition relative">
             Search
           </a>
-          <a href="{% url 'music:stats_dashboard' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
+          <a href="{% url 'music:stats_dashboard' %}" class="nav-link px-4 py-2 text-white transition relative">
             Stats
           </a>
-          <a href="{% url 'music:wrapped' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
+          <a href="{% url 'music:wrapped' %}" class="nav-link px-4 py-2 text-white transition relative">
             Wrapped
           </a>
-          <a href="{% url 'music:player' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
+          <a href="{% url 'music:player' %}" class="nav-link px-4 py-2 text-white transition relative">
             Player
           </a>
-          <a href="{% url 'music:artist_list' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
+          <a href="{% url 'music:artist_list' %}" class="nav-link px-4 py-2 text-white transition relative">
             Artists
           </a>
-          <a href="{% url 'music:album_list' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
+          <a href="{% url 'music:album_list' %}" class="nav-link px-4 py-2 text-white transition relative">
             Albums
           </a>
-          <a href="{% url 'music:playlist_list' %}" class="px-4 py-2 rounded-lg hover:bg-gray-900 text-white transition">
+          <a href="{% url 'music:playlist_list' %}" class="nav-link px-4 py-2 text-white transition relative">
             Playlists
           </a>
         </div>

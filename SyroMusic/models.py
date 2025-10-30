@@ -10,6 +10,7 @@ from base64 import b64encode, b64decode
 from cryptography.fernet import Fernet
 
 class Artist(models.Model):
+<<<<<<< HEAD
     """Model representing a music artist."""
     name = models.CharField(max_length=255, unique=True, db_index=True)
     biography = models.TextField(blank=True, null=True)
@@ -36,12 +37,24 @@ class Album(models.Model):
 
     class Meta:
         ordering = ['-release_date']
+=======
+    name = models.CharField(max_length=255)
+    biography = models.TextField()
+    # artist-related fields (e.g., image, genre)
+
+class Album(models.Model):
+    title = models.CharField(max_length=255)
+    artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
+    release_date = models.DateField()
+    # album-related fields (e.g., cover image)
+>>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006
 
 class Song(models.Model):
     """Model representing a song."""
     title = models.CharField(max_length=255, db_index=True)
     album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='songs')
     duration = models.DurationField()
+<<<<<<< HEAD
     track_number = models.IntegerField(null=True, blank=True)
     spotify_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -98,10 +111,14 @@ class EncryptedField(models.TextField):
         """Convert database value to Python value."""
         return self.from_db_value(value, None, None)
 
+=======
+    # song-related fields (e.g., track number, genre)
+>>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006
 
 class Playlist(models.Model):
     """Model representing a user's playlist."""
     title = models.CharField(max_length=255)
+<<<<<<< HEAD
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='playlists')
     songs = models.ManyToManyField(Song, blank=True, related_name='playlists')
     description = models.TextField(blank=True, null=True)
@@ -350,3 +367,12 @@ class PlaybackQueue(models.Model):
 
     class Meta:
         ordering = ['-last_updated']
+=======
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    songs = models.ManyToManyField(Song)
+    # playlist-related fields (e.g., description)
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # user-related fields (e.g., profile picture, bio)
+>>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006

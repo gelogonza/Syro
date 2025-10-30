@@ -109,6 +109,15 @@ def signup(request):
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
 
+<<<<<<< HEAD
+=======
+def spotify_login(request):
+    # Initialize SpotifyOAuth with your Spotify API credentials
+    sp_oauth = SpotifyOAuth(client_id=settings.SPOTIPY_CLIENT_ID,
+                           client_secret=settings.SPOTIPY_CLIENT_SECRET,
+                           redirect_uri=settings.SPOTIPY_REDIRECT_URI,
+                           scope='user-library-read') 
+>>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006
 
 def spotify_login(request):
     """Initiate Spotify OAuth login flow."""
@@ -141,6 +150,7 @@ def spotify_callback(request):
             messages.error(request, 'No authorization code received from Spotify.')
             return redirect('login')
 
+<<<<<<< HEAD
         # Exchange code for tokens
         token_info = SpotifyService.get_access_token(code)
 
@@ -377,3 +387,7 @@ def wrapped_view(request):
     except Exception as e:
         messages.error(request, f'Error loading wrapped: {str(e)}')
         return redirect('music:dashboard')
+=======
+    # Redirect the user to the desired page after successful authentication
+    return redirect('home') 
+>>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006
