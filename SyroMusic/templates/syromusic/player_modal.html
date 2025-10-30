@@ -1,0 +1,340 @@
+<!-- Universal Music Player Modal -->
+<!-- Include this in any template where you want play functionality -->
+
+<style>
+  /* Device Selector Modal */
+  .device-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .device-modal-overlay.active {
+    display: flex;
+  }
+
+  .device-modal {
+    background: white;
+    border: 4px solid #000000;
+    box-shadow: 8px 8px 0 0 #000000;
+    padding: 2rem;
+    border-radius: 0;
+    max-width: 400px;
+    width: 90%;
+  }
+
+  .modal-header {
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+
+  .modal-message {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+    color: #333;
+  }
+
+  .device-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .device-option {
+    padding: 1rem;
+    border: 3px solid #000000;
+    background: white;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .device-option:hover {
+    background: black;
+    color: white;
+  }
+
+  .device-option-icon {
+    font-size: 1.2rem;
+    font-weight: 900;
+  }
+
+  .device-option-name {
+    flex: 1;
+  }
+
+  .device-option-type {
+    font-size: 0.75rem;
+    opacity: 0.7;
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .modal-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border: 3px solid #000000;
+    background: white;
+    font-weight: 900;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s ease;
+    font-size: 0.9rem;
+  }
+
+  .modal-btn:hover {
+    background: black;
+    color: white;
+  }
+
+  .modal-btn.secondary {
+    background: #f5f5f5;
+  }
+
+  /* Toast Notifications */
+  .toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: black;
+    color: white;
+    padding: 1rem 1.5rem;
+    border: 3px solid #000;
+    box-shadow: 6px 6px 0 0 #000;
+    border-radius: 0;
+    z-index: 10000;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    max-width: 300px;
+    animation: slideIn 0.3s ease;
+  }
+
+  .toast-notification.error {
+    background: #ff3333;
+  }
+
+  .toast-notification.success {
+    background: #00aa00;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+</style>
+
+<!-- Device Selection Modal -->
+<div class="device-modal-overlay" id="deviceModal">
+  <div class="device-modal">
+    <div class="modal-header">Select Device</div>
+    <div class="modal-message">
+      No active device found. Please select a device to play music.
+    </div>
+    <div class="device-options" id="deviceOptions">
+      <!-- Populated by JavaScript -->
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn secondary" onclick="closeDeviceModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Global state for playback
+  window.syroPlayer = {
+    pendingTrackUri: null,
+    pendingTrackInfo: null,
+  };
+
+  /**
+   * Play a track - handles device selection if needed
+   * @param {string} trackUri - Spotify track URI (e.g., 'spotify:track:123')
+   * @param {object} trackInfo - Track info for display {name, artist, album}
+   */
+  async function playTrack(trackUri, trackInfo = {}) {
+    if (!trackUri) {
+      showToast('No track URI provided', 'error');
+      return;
+    }
+
+    try {
+      // Fetch available devices
+      const response = await fetch('{% url "music:get_devices" %}');
+      const data = await response.json();
+
+      if (data.status !== 'success') {
+        showToast('Failed to fetch devices', 'error');
+        return;
+      }
+
+      // If there's an active device, play directly
+      if (data.has_active_device) {
+        playTrackOnDevice(trackUri, data.active_device.id, trackInfo);
+      } else if (data.devices.length > 0) {
+        // Show device selector modal
+        window.syroPlayer.pendingTrackUri = trackUri;
+        window.syroPlayer.pendingTrackInfo = trackInfo;
+        showDeviceSelector(data.devices);
+      } else {
+        // No devices available
+        showToast('No Spotify devices available. Open Spotify on a device.', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showToast('Error fetching devices', 'error');
+    }
+  }
+
+  /**
+   * Show device selector modal
+   * @param {array} devices - List of available devices
+   */
+  function showDeviceSelector(devices) {
+    const deviceOptions = document.getElementById('deviceOptions');
+    deviceOptions.innerHTML = '';
+
+    devices.forEach((device) => {
+      const deviceIcon = getDeviceIcon(device.type);
+      const option = document.createElement('div');
+      option.className = 'device-option';
+      option.innerHTML = `
+        <span class="device-option-icon">${deviceIcon}</span>
+        <div>
+          <div class="device-option-name">${device.name}</div>
+          <div class="device-option-type">${device.type}</div>
+        </div>
+      `;
+      option.onclick = () => selectDevice(device);
+      deviceOptions.appendChild(option);
+    });
+
+    document.getElementById('deviceModal').classList.add('active');
+  }
+
+  /**
+   * Select a device and play track
+   * @param {object} device - Selected device
+   */
+  function selectDevice(device) {
+    const trackUri = window.syroPlayer.pendingTrackUri;
+    const trackInfo = window.syroPlayer.pendingTrackInfo;
+
+    closeDeviceModal();
+    playTrackOnDevice(trackUri, device.id, trackInfo);
+  }
+
+  /**
+   * Play track on specific device
+   * @param {string} trackUri - Spotify track URI
+   * @param {string} deviceId - Device ID
+   * @param {object} trackInfo - Track info for display
+   */
+  function playTrackOnDevice(trackUri, deviceId, trackInfo = {}) {
+    fetch('{% url "music:play_track" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `uri=${encodeURIComponent(trackUri)}&device_id=${deviceId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        const trackName = trackInfo.name || 'Track';
+        const artist = trackInfo.artist ? ` by ${trackInfo.artist}` : '';
+        showToast(`Now playing: ${trackName}${artist}`, 'success');
+      } else {
+        showToast(data.message || 'Failed to play track', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showToast('Error playing track', 'error');
+    });
+  }
+
+  /**
+   * Get device icon based on type
+   * @param {string} type - Device type
+   * @returns {string} Icon character
+   */
+  function getDeviceIcon(type) {
+    const typeMap = {
+      'Computer': '🖥️',
+      'Smartphone': '📱',
+      'Speaker': '🔊',
+      'TV': '📺',
+      'AVR': '🎛️',
+      'STR_RECEIVER': '🎛️',
+      'Unknown': '🎵'
+    };
+    return typeMap[type] || '🎵';
+  }
+
+  /**
+   * Close device modal
+   */
+  function closeDeviceModal() {
+    document.getElementById('deviceModal').classList.remove('active');
+    window.syroPlayer.pendingTrackUri = null;
+    window.syroPlayer.pendingTrackInfo = null;
+  }
+
+  /**
+   * Show toast notification
+   * @param {string} message - Notification message
+   * @param {string} type - 'success', 'error', 'info'
+   */
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.remove();
+    }, 4000);
+  }
+
+  // Close modal when clicking outside
+  document.getElementById('deviceModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeDeviceModal();
+    }
+  });
+
+  // Close modal on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeDeviceModal();
+    }
+  });
+</script>

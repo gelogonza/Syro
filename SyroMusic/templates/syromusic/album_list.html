@@ -1,23 +1,77 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>List of Albums</title>
-</head>
-<body>
-    <h1>List of Albums</h1>
-    <ul>
-        {% for album in albums %}
-            <li>{{ album.title }}</li>
-        {% empty %}
-            <li>No albums available.</li>
-        {% endfor %}
-    </ul>
+{% extends 'base.html' %}
 
-     <!-- Navigation links -->
-     <ul>
-        <li><a href="{% url 'artist_list' %}">View Artists</a></li>
-        <li><a href="{% url 'song_list' %}">View Songs</a></li>
-        <li><a href="{% url 'playlist_list' %}">View Playlists</a></li>
-    </ul>
-</body>
-</html>
+{% block title %}Albums - Syro{% endblock title %}
+
+{% block content %}
+<div class="mb-8">
+  <h1 class="text-4xl font-bold mb-2 gradient-text">Albums</h1>
+  <p class="text-muted-foreground text-lg">Browse our collection of albums</p>
+</div>
+
+{% if albums %}
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {% for album in albums %}
+      <div class="glass rounded-xl border border-border hover-glow hover:scale-105 transition-all group overflow-hidden">
+        <!-- Album Cover -->
+        <div class="aspect-square bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center relative overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 group-hover:scale-110 transition-transform"></div>
+          <i data-lucide="disc-3" class="h-20 w-20 text-primary/50 relative z-10"></i>
+          
+          <!-- Play Button Overlay -->
+          <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <button class="h-14 w-14 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center hover-glow">
+              <i data-lucide="play" class="h-6 w-6 text-black ml-1"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Album Info -->
+        <div class="p-5">
+          <h3 class="text-lg font-semibold mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+            {{ album.title }}
+          </h3>
+          <p class="text-sm text-muted-foreground mb-1">
+            <span class="flex items-center">
+              <i data-lucide="user" class="h-3 w-3 mr-1"></i>
+              {{ album.artist.name }}
+            </span>
+          </p>
+          <p class="text-xs text-muted-foreground mb-4 flex items-center">
+            <i data-lucide="calendar" class="h-3 w-3 mr-1"></i>
+            Released: {{ album.release_date|date:"M d, Y" }}
+          </p>
+          
+          <!-- Action Button -->
+          <a href="{% url 'music:album_detail' album.id %}" 
+             class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/80 border border-border w-full group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-accent group-hover:text-black transition-all">
+            <i data-lucide="disc" class="h-4 w-4 mr-2"></i>
+            View Album
+          </a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <!-- Empty State -->
+  <div class="glass rounded-2xl p-12 border border-border text-center">
+    <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-6">
+      <i data-lucide="disc-3" class="h-10 w-10 text-primary"></i>
+    </div>
+    <h2 class="text-2xl font-bold mb-3">No Albums Found</h2>
+    <p class="text-muted-foreground mb-8 max-w-md mx-auto">
+      We're building our album collection. Check back soon for great music!
+    </p>
+    <a href="{% url 'music:search' %}" 
+       class="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold bg-gradient-to-r from-primary to-accent text-black hover-glow">
+      <i data-lucide="search" class="h-5 w-5 mr-2"></i>
+      Search for Albums
+    </a>
+  </div>
+{% endif %}
+
+<script>
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+</script>
+{% endblock content %}

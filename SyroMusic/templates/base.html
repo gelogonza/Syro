@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Syro{% endblock title %}</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Iconify -->
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background: '#ffffff',
+            foreground: '#000000',
+            card: '#f9f9f9',
+            'card-foreground': '#000000',
+            primary: '#10b981',
+            'primary-foreground': '#ffffff',
+            secondary: '#f3f4f6',
+            'secondary-foreground': '#000000',
+            muted: '#f3f4f6',
+            'muted-foreground': '#6b7280',
+            accent: '#22c55e',
+            'accent-foreground': '#ffffff',
+            border: '#e5e7eb',
+            input: '#f9f9f9',
+            ring: '#10b981',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f9f9f9;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 6px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #9ca3af;
+    }
+    
+    /* Modern Theme Styles */
+    body {
+      background: #ffffff;
+      position: relative;
+    }
+    
+    /* Subtle gradient overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.03), rgba(34, 197, 94, 0.03));
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    body > * {
+      position: relative;
+      z-index: 1;
+    }
+    
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #000000;
+    }
+    
+    /* Force text inputs and textareas to have black text */
+    input, textarea, select {
+      color: #000000 !important;
+    }
+    
+    input::placeholder, textarea::placeholder {
+      color: #666666 !important;
+    }
+    
+    /* Modern Cards with Glass Effect */
+    .glass {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+    
+    /* Gradient Text */
+    .gradient-text {
+      background: linear-gradient(135deg, #10b981, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Hover Glow Effect */
+    .hover-glow:hover {
+      box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+    }
+    
+    /* Smooth transitions */
+    button, a {
+      transition: all 0.3s ease;
+    }
+    
+    /* Mobile Menu Styles */
+    .mobile-menu {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 80%;
+      max-width: 320px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+      transition: right 0.3s ease;
+      z-index: 100;
+      overflow-y: auto;
+    }
+    
+    .mobile-menu.active {
+      right: 0;
+    }
+    
+    .mobile-menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 99;
+    }
+    
+    .mobile-menu-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+  
+  <!-- Spotify Web Playback SDK -->
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  
+  {% block extra_css %}{% endblock extra_css %}
+</head>
+</head>
+<body class="bg-white text-black antialiased">
+
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-8">
+        <span class="text-2xl font-bold gradient-text">Menu</span>
+        <button id="closeMobileMenu" class="p-2 rounded-lg hover:bg-gray-100">
+          <span class="iconify h-6 w-6" data-icon="mdi:close"></span>
+        </button>
+      </div>
+      
+      <nav class="space-y-2">
+        <a href="{% url 'home' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+          Home
+        </a>
+        <a href="{% url 'music:player' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+          Player
+        </a>
+        <a href="{% url 'music:search' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+          Search
+        </a>
+        <a href="{% url 'music:stats_dashboard' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+          Stats
+        </a>
+        <a href="{% url 'music:wrapped' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+          Wrapped
+        </a>
+        <a href="{% url 'music:artist_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+          Artists
+        </a>
+        <a href="{% url 'music:album_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+          Albums
+        </a>
+        <a href="{% url 'music:playlist_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+          Playlists
+        </a>
+        
+        {% if user.is_authenticated %}
+          <div class="pt-4 mt-4 border-t border-gray-200">
+            <p class="text-sm text-gray-600 mb-2">{{ user.username }}</p>
+            <a href="{% url 'music:dashboard' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition mb-2">
+              Dashboard
+            </a>
+            <a href="{% url 'logout' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+              Logout
+            </a>
+          </div>
+        {% else %}
+          <div class="pt-4 mt-4 border-t border-gray-200 space-y-2">
+            <a href="{% url 'music:spotify_login' %}" class="block px-4 py-3 rounded-lg bg-primary text-white hover:bg-accent transition text-center">
+              Spotify Login
+            </a>
+            <a href="{% url 'login' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+              Login
+            </a>
+            <a href="{% url 'signup' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition">
+              Sign Up
+            </a>
+          </div>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
+
+  <!-- ===================== Header & Navigation ===================== -->
+  <header class="sticky top-0 z-50 w-full glass border-b border-border">
+    <nav class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <a href="{% url 'home' %}" class="flex items-center">
+          <span class="text-2xl font-bold gradient-text">Syro</span>
+        </a>
+        
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-1">
+          <a href="{% url 'home' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+            Home
+          </a>
+          <a href="{% url 'music:dashboard' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+            Dashboard
+          </a>
+          <a href="{% url 'music:search' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+            Search
+          </a>
+          <a href="{% url 'music:stats_dashboard' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+            Stats
+          </a>
+          <a href="{% url 'music:wrapped' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+            Wrapped
+          </a>
+          <a href="{% url 'music:player' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+            Player
+          </a>
+          <a href="{% url 'music:artist_list' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+            Artists
+          </a>
+          <a href="{% url 'music:album_list' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+            Albums
+          </a>
+          <a href="{% url 'music:playlist_list' %}" class="px-4 py-2 rounded-lg hover:bg-secondary transition">
+            Playlists
+          </a>
+        </div>
+        
+        <!-- Auth Section & Mobile Burger -->
+        <div class="flex items-center space-x-2">
+          {% if user.is_authenticated %}
+            <div class="hidden md:flex items-center space-x-3">
+              <span class="text-sm text-muted-foreground">{{ user.username }}</span>
+              <a href="{% url 'music:dashboard' %}" 
+                 class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/80 transition">
+                Dashboard
+              </a>
+              <a href="{% url 'logout' %}" 
+                 class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-secondary transition">
+                Logout
+              </a>
+            </div>
+          {% else %}
+            <a href="{% url 'music:spotify_login' %}" 
+               class="hidden md:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-primary text-white hover:bg-accent transition hover-glow">
+              Spotify Login
+            </a>
+            <a href="{% url 'login' %}" 
+               class="hidden md:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-secondary transition">
+              Login
+            </a>
+          {% endif %}
+          
+          <!-- Mobile Burger Button -->
+          <button id="openMobileMenu" class="md:hidden p-2 rounded-lg hover:bg-secondary transition">
+            <span class="iconify h-6 w-6" data-icon="mdi:menu"></span>
+          </button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ===================== Main Content ===================== -->
+  <main class="container mx-auto px-4 py-8 min-h-screen">
+    <!-- Messages -->
+    {% if messages %}
+      <div class="space-y-3 mb-6">
+        {% for message in messages %}
+          <div class="rounded-lg border px-4 py-3 text-sm glass 
+                      {% if 'error' in message.tags %}
+                        border-red-500/50 bg-red-500/10 text-red-200
+                      {% elif 'success' in message.tags %}
+                        border-primary/50 bg-primary/10 text-primary
+                      {% elif 'warning' in message.tags %}
+                        border-yellow-500/50 bg-yellow-500/10 text-yellow-200
+                      {% else %}
+                        border-border bg-muted/50 text-foreground
+                      {% endif %}">
+            <div class="flex items-center space-x-2">
+              {% if 'error' in message.tags %}
+                <span class="iconify h-4 w-4" data-icon="mdi:alert-circle"></span>
+              {% elif 'success' in message.tags %}
+                <span class="iconify h-4 w-4" data-icon="mdi:check-circle"></span>
+              {% elif 'warning' in message.tags %}
+                <span class="iconify h-4 w-4" data-icon="mdi:alert"></span>
+              {% else %}
+                <span class="iconify h-4 w-4" data-icon="mdi:information"></span>
+              {% endif %}
+              <span>{{ message }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}
+      <!-- Page content goes here -->
+    {% endblock content %}
+  </main>
+
+  <!-- ===================== Footer ===================== -->
+  <footer class="border-t border-border glass mt-16">
+    <div class="container mx-auto px-4 py-8">
+      <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+        <div class="flex items-center space-x-2">
+          <span class="text-sm text-muted-foreground">&copy; 2025 Syro. All rights reserved.</span>
+        </div>
+        <div class="flex items-center space-x-4 text-sm text-muted-foreground">
+          <a href="#" class="hover:text-primary transition">Privacy</a>
+          <span>•</span>
+          <a href="#" class="hover:text-primary transition">Terms</a>
+          <span>•</span>
+          <a href="#" class="hover:text-primary transition">Contact</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu functionality
+    const openMenuBtn = document.getElementById('openMobileMenu');
+    const closeMenuBtn = document.getElementById('closeMobileMenu');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+
+    function openMobileMenu() {
+      mobileMenu.classList.add('active');
+      mobileMenuOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+      mobileMenu.classList.remove('active');
+      mobileMenuOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    if (openMenuBtn) {
+      openMenuBtn.addEventListener('click', openMobileMenu);
+    }
+
+    if (closeMenuBtn) {
+      closeMenuBtn.addEventListener('click', closeMobileMenu);
+    }
+
+    if (mobileMenuOverlay) {
+      mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+    }
+
+    // Close menu on link click
+    const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+    mobileMenuLinks.forEach(link => {
+      link.addEventListener('click', closeMobileMenu);
+    });
+  </script>
+
+  {% block extra_js %}{% endblock extra_js %}
+
+  <!-- Universal Player Modal -->
+  {% include 'SyroMusic/player_modal.html' %}
+</body>
+</html>

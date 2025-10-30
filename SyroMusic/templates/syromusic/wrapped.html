@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Wrapped - Syro{% endblock title %}
+
+{% block extra_css %}
+<style>
+  .wrapped-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .wrapped-slide {
+    background: white;
+    border: 4px solid #000000;
+    box-shadow: 8px 8px 0 0 #000000;
+    padding: 3rem 2rem;
+    margin-bottom: 2rem;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .wrapped-title {
+    font-size: 3rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+    line-height: 1;
+  }
+
+  .wrapped-subtitle {
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+
+  .wrapped-stat {
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 1rem;
+  }
+
+  .wrapped-label {
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .genre-list {
+    width: 100%;
+    margin-top: 2rem;
+  }
+
+  .genre-item {
+    background: #f5f5f5;
+    border: 3px solid #000000;
+    box-shadow: 4px 4px 0 0 #000000;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .genre-name {
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .genre-rank {
+    font-size: 3rem;
+    font-weight: 900;
+    opacity: 0.3;
+  }
+
+  .artist-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+    margin-top: 2rem;
+  }
+
+  .artist-card-wrapped {
+    background: white;
+    border: 3px solid #000000;
+    box-shadow: 4px 4px 0 0 #000000;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .artist-image-wrapped {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 3px solid #000000;
+    object-fit: cover;
+    margin-bottom: 1rem;
+  }
+
+  .artist-name-wrapped {
+    font-size: 1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+
+  .top-artist-large {
+    width: 200px;
+    height: 200px;
+    border: 4px solid #000000;
+    box-shadow: 6px 6px 0 0 #000000;
+    object-fit: cover;
+    margin: 2rem 0;
+  }
+
+  .brutalist-back-btn {
+    background: white;
+    border: 3px solid #000000;
+    box-shadow: 4px 4px 0 0 #000000;
+    padding: 1rem 2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: black;
+    display: inline-block;
+    transition: all 0.15s ease;
+    font-size: 1rem;
+    margin-top: 2rem;
+  }
+
+  .brutalist-back-btn:hover {
+    background: black;
+    color: white;
+  }
+
+  @media (max-width: 640px) {
+    .wrapped-slide {
+      padding: 2rem 1rem;
+      min-height: 400px;
+    }
+
+    .wrapped-title {
+      font-size: 2rem;
+    }
+
+    .wrapped-stat {
+      font-size: 3.5rem;
+    }
+
+    .genre-name {
+      font-size: 1.2rem;
+    }
+
+    .genre-rank {
+      font-size: 2rem;
+    }
+
+    .artist-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="wrapped-container">
+  <!-- Intro Slide -->
+  <div class="wrapped-slide">
+    <div class="wrapped-title">YOUR SYRO WRAPPED</div>
+    <div class="wrapped-subtitle">{{ year }} Edition</div>
+    <p class="font-bold text-lg uppercase">Let's dive into your music journey</p>
+  </div>
+
+  <!-- Total Artists Listened -->
+  <div class="wrapped-slide">
+    <div class="wrapped-subtitle">You listened to</div>
+    <div class="wrapped-stat">{{ total_artists }}</div>
+    <div class="wrapped-label">Different Artists</div>
+  </div>
+
+  <!-- Total Tracks Listened -->
+  <div class="wrapped-slide">
+    <div class="wrapped-subtitle">You played</div>
+    <div class="wrapped-stat">{{ total_tracks }}</div>
+    <div class="wrapped-label">Different Tracks</div>
+  </div>
+
+  <!-- Top Genre -->
+  {% if top_genre %}
+  <div class="wrapped-slide">
+    <div class="wrapped-subtitle">Your top genre was</div>
+    <div class="wrapped-stat" style="font-size: 3rem;">{{ top_genre.name|upper }}</div>
+    <div class="wrapped-label">{{ top_genre.count }} artists in this genre</div>
+  </div>
+  {% endif %}
+
+  <!-- Top 5 Genres -->
+  {% if top_genres %}
+  <div class="wrapped-slide">
+    <div class="wrapped-title" style="font-size: 2rem; margin-bottom: 1rem;">YOUR TOP GENRES</div>
+    <div class="genre-list">
+      {% for genre in top_genres|slice:":5" %}
+        <div class="genre-item">
+          <div class="genre-name">{{ genre.name }}</div>
+          <div class="genre-rank">#{{ forloop.counter }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Top Artist -->
+  {% if top_artist %}
+  <div class="wrapped-slide">
+    <div class="wrapped-subtitle">Your #1 artist was</div>
+    {% if top_artist.image_url %}
+      <img src="{{ top_artist.image_url }}" alt="{{ top_artist.name }}" class="top-artist-large">
+    {% endif %}
+    <div class="wrapped-stat" style="font-size: 2.5rem;">{{ top_artist.name|upper }}</div>
+    <div class="wrapped-label">You're in the top {{ top_artist.popularity }}% of listeners</div>
+  </div>
+  {% endif %}
+
+  <!-- Top 5 Artists Grid -->
+  {% if top_artists %}
+  <div class="wrapped-slide">
+    <div class="wrapped-title" style="font-size: 2rem; margin-bottom: 1rem;">YOUR TOP ARTISTS</div>
+    <div class="artist-grid">
+      {% for artist in top_artists|slice:":4" %}
+        <div class="artist-card-wrapped">
+          {% if artist.image_url %}
+            <img src="{{ artist.image_url }}" alt="{{ artist.name }}" class="artist-image-wrapped">
+          {% else %}
+            <div class="artist-image-wrapped" style="background: #f5f5f5; display: flex; align-items: center; justify-content: center;">
+              <span class="iconify h-12 w-12" data-icon="mdi:account-music"></span>
+            </div>
+          {% endif %}
+          <div class="artist-name-wrapped">{{ artist.name }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Thanks Slide -->
+  <div class="wrapped-slide">
+    <div class="wrapped-title">THANKS FOR LISTENING</div>
+    <div class="wrapped-subtitle">See you in {{ next_year }}</div>
+    <a href="{% url 'music:dashboard' %}" class="brutalist-back-btn">
+      BACK TO DASHBOARD
+    </a>
+  </div>
+</div>
+{% endblock content %}

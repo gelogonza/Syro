@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/pip:*)",
+      "Bash(python3 -m pip install:*)",
+      "Bash(python3:*)",
+      "Bash(curl:*)",
+      "Bash(.venv/bin/python:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

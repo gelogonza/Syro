@@ -1,35 +1,138 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Welcome to SyroMusic</title>
-    <!-- Add your CSS styles and links to external CSS files here if needed -->
-</head>
-<body>
-    <header>
-        <h1>Welcome to SyroMusic</h1>
-    </header>
+{% extends 'base.html' %}
 
-    <main>
-        <h2>Latest Releases</h2>
-        <!-- Add content related to the latest releases or featured music here -->
-        <ul>
-            <!-- Example list of featured songs or albums -->
-            <li><a href="#">Featured Song 1</a></li>
-            <li><a href="#">Featured Song 2</a></li>
-            <li><a href="#">Featured Album 1</a></li>
-            <li><a href="#">Featured Album 2</a></li>
-        </ul>
-    </main>
+{% block title %}Home - Syro{% endblock title %}
 
-    <section>
-        <h2>About SyroMusic</h2>
-        <!-- Add a brief introduction or description of your app here -->
-        <p>SyroMusic is your one-stop destination for discovering and enjoying the latest music releases, artist profiles, and more.</p>
-    </section>
+{% block content %}
+<!-- Hero Section -->
+<section class="relative overflow-hidden py-24 md:py-32">
+  <div class="relative z-10 container mx-auto px-4 text-center">
+    <h1 class="text-6xl md:text-8xl font-bold mb-6 gradient-text leading-none">
+      Syro
+    </h1>
+    
+    <p class="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+      Discover the latest music releases, explore artist profiles, and create personalized playlists
+    </p>
+    
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <a href="{% url 'music:search' %}" 
+         class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold bg-gradient-to-r from-primary to-accent text-white hover-glow transition-all shadow-lg">
+        <span class="iconify h-5 w-5 mr-2" data-icon="mdi:magnify"></span>
+        Explore Music
+      </a>
+      <a href="{% url 'music:artist_list' %}" 
+         class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold border border-border hover:bg-secondary transition-all">
+        <span class="iconify h-5 w-5 mr-2" data-icon="mdi:account-group"></span>
+        Browse Artists
+      </a>
+    </div>
+  </div>
+</section>
 
-    <footer>
-        <!-- Add footer content, links, or copyright information here -->
-        <p>&copy; 2024 SyroMusic. All rights reserved.</p>
-    </footer>
-</body>
-</html>
+<!-- Features Section -->
+<section class="py-16">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-12">
+      <h2 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">Discover Amazing Features</h2>
+      <p class="text-muted-foreground text-lg">Everything you need to enjoy your music</p>
+    </div>
+    
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <a href="{% url 'music:song_list' %}" 
+         class="card p-6 hover-glow transition-all group">
+        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <span class="iconify h-6 w-6 text-primary" data-icon="mdi:music"></span>
+        </div>
+        <h3 class="text-xl font-bold mb-2 group-hover:text-primary transition-colors">Browse Songs</h3>
+        <p class="text-sm text-muted-foreground">Explore millions of tracks</p>
+      </a>
+      
+      <a href="{% url 'music:album_list' %}" 
+         class="card p-6 hover-glow transition-all group">
+        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <span class="iconify h-6 w-6 text-primary" data-icon="mdi:album"></span>
+        </div>
+        <h3 class="text-xl font-bold mb-2 group-hover:text-primary transition-colors">Albums</h3>
+        <p class="text-sm text-muted-foreground">Discover complete albums</p>
+      </a>
+      
+      <a href="{% url 'music:artist_list' %}" 
+         class="card p-6 hover-glow transition-all group">
+        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <span class="iconify h-6 w-6 text-primary" data-icon="mdi:microphone"></span>
+        </div>
+        <h3 class="text-xl font-bold mb-2 group-hover:text-primary transition-colors">Artists</h3>
+        <p class="text-sm text-muted-foreground">Follow your favorite musicians</p>
+      </a>
+      
+      <a href="{% url 'music:playlist_list' %}" 
+         class="card p-6 hover-glow transition-all group">
+        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <span class="iconify h-6 w-6 text-primary" data-icon="mdi:playlist-music"></span>
+        </div>
+        <h3 class="text-xl font-bold mb-2 group-hover:text-primary transition-colors">Playlists</h3>
+        <p class="text-sm text-muted-foreground">Create custom playlists</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- About Section -->
+<section class="py-16">
+  <div class="container mx-auto px-4">
+    <div class="glass rounded-2xl p-8 md:p-12 border border-primary/20">
+      <div class="max-w-3xl mx-auto text-center">
+        <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-6">
+          <span class="iconify h-8 w-8 text-primary" data-icon="mdi:heart"></span>
+        </div>
+        
+        <h2 class="text-4xl font-bold mb-6 gradient-text">About Syro</h2>
+        
+        <p class="text-lg text-muted-foreground mb-6 leading-relaxed">
+          Syro is your one-stop destination for discovering and enjoying the latest music releases, artist profiles, and more.
+        </p>
+        
+        <p class="text-lg text-muted-foreground leading-relaxed">
+          Explore our vast collection of artists, albums, and songs. Create your own playlists and share them with friends.
+        </p>
+        
+        <div class="mt-10 flex flex-wrap items-center justify-center gap-6">
+          <div class="flex items-center space-x-2">
+            <span class="iconify h-5 w-5 text-primary" data-icon="mdi:check-circle"></span>
+            <span class="text-sm font-medium">Unlimited Streaming</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="iconify h-5 w-5 text-primary" data-icon="mdi:check-circle"></span>
+            <span class="text-sm font-medium">HD Audio Quality</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="iconify h-5 w-5 text-primary" data-icon="mdi:check-circle"></span>
+            <span class="text-sm font-medium">Offline Playback</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="iconify h-5 w-5 text-primary" data-icon="mdi:check-circle"></span>
+            <span class="text-sm font-medium">Cross-Platform</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-16">
+  <div class="container mx-auto px-4">
+    <div class="glass rounded-2xl p-8 md:p-12 border border-border text-center hover-glow transition-all">
+      <h2 class="text-4xl font-bold mb-4 gradient-text">Ready to Start Your Musical Journey?</h2>
+      <p class="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+        Connect your Spotify account and unlock unlimited access to millions of songs
+      </p>
+      <a href="{% url 'music:spotify_login' %}" 
+         class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold bg-gradient-to-r from-primary to-accent text-white hover-glow transition-all shadow-lg">
+        <span class="iconify h-5 w-5 mr-2" data-icon="mdi:spotify"></span>
+        Connect with Spotify
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock content %}

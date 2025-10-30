@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ album.title }} - {{ album.artist.name }}{% endblock title %}
+
+{% block extra_css %}
+<style>
+  .album-header {
+    background: linear-gradient(135deg, #1DB954, #1ed760);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  .album-cover-large {
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    flex-shrink: 0;
+  }
+
+  .album-info {
+    flex: 1;
+  }
+
+  .album-info h1 {
+    margin: 0 0 0.5rem 0;
+    color: white;
+  }
+
+  .album-info p {
+    margin: 0.25rem 0;
+    opacity: 0.95;
+  }
+
+  .artist-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .artist-link:hover {
+    text-decoration: underline;
+  }
+
+  .tracklist {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .track-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.2s;
+  }
+
+  .track-item:hover {
+    background-color: #f9f9f9;
+  }
+
+  .track-item:last-child {
+    border-bottom: none;
+  }
+
+  .track-number {
+    min-width: 30px;
+    color: #999;
+    font-weight: 600;
+    margin-right: 1rem;
+  }
+
+  .track-info {
+    flex: 1;
+  }
+
+  .track-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .track-duration {
+    color: #999;
+    font-size: 0.85rem;
+  }
+
+  .duration {
+    min-width: 50px;
+    text-align: right;
+    color: #999;
+  }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container">
+  <a href="{% url 'music:album_list' %}" style="color: #1DB954; text-decoration: none; margin-bottom: 1rem; display: inline-block;">
+    ← Back to Albums
+  </a>
+
+  <div class="album-header">
+    <div class="album-cover-large"></div>
+    <div class="album-info">
+      <h1>{{ album.title }}</h1>
+      <p>
+        By <a href="{% url 'music:artist_detail' album.artist.id %}" class="artist-link">{{ album.artist.name }}</a>
+      </p>
+      <p>Released: {{ album.release_date|date:"MMMM d, Y" }}</p>
+      <p style="margin-top: 1rem;">{{ album.songs.count }} songs</p>
+    </div>
+  </div>
+
+  <h2 style="margin-top: 2rem;">Tracklist</h2>
+  {% if songs %}
+    <div class="tracklist">
+      {% for song in songs %}
+        <a href="{% url 'music:song_detail' song.id %}" style="text-decoration: none; color: inherit;">
+          <div class="track-item">
+            <span class="track-number">{{ song.track_number|default:forloop.counter }}</span>
+            <div class="track-info">
+              <div class="track-name">{{ song.title }}</div>
+            </div>
+            <span class="duration">{{ song.duration|default:"3:00" }}</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="text-align: center; color: #999; margin-top: 2rem;">No songs found.</p>
+  {% endif %}
+
+  <div style="text-align: center; margin-top: 3rem;">
+    <a href="{% url 'music:album_list' %}" class="btn" style="background-color: #1DB954;">
+      ← Back to Albums
+    </a>
+  </div>
+</div>
+{% endblock content %}

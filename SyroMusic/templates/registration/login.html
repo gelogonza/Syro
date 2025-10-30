@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Syro{% endblock title %}
+
+{% block content %}
+<div class="max-w-md mx-auto py-12">
+  <div class="glass rounded-2xl p-8 border border-border">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-primary to-accent mb-4">
+        <i data-lucide="user" class="h-8 w-8 text-black"></i>
+      </div>
+      <h1 class="text-3xl font-bold mb-2 gradient-text">Welcome Back</h1>
+      <p class="text-muted-foreground">Enter your credentials to access Syro</p>
+    </div>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="rounded-lg border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          {% for error in form.non_field_errors %}
+            <p class="flex items-center">
+              <i data-lucide="alert-circle" class="h-4 w-4 mr-2"></i>
+              {{ error }}
+            </p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="space-y-2">
+          <label class="text-sm font-medium">{{ field.label }}</label>
+          <div class="relative">
+            {% if field.name == 'username' %}
+              <i data-lucide="user" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground"></i>
+              <input type="text" 
+                     name="{{ field.name }}" 
+                     value="{{ field.value|default:'' }}"
+                     class="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-lg text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                     placeholder="Enter your username"
+                     required>
+            {% elif field.name == 'password' %}
+              <i data-lucide="lock" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground"></i>
+              <input type="password" 
+                     name="{{ field.name }}" 
+                     class="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-lg text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                     placeholder="Enter your password"
+                     required>
+            {% else %}
+              {{ field }}
+            {% endif %}
+          </div>
+          {% if field.errors %}
+            <div class="text-sm text-red-400">
+              {% for error in field.errors %}
+                <p class="flex items-center">
+                  <i data-lucide="alert-circle" class="h-3 w-3 mr-1"></i>
+                  {{ error }}
+                </p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <button type="submit" 
+              class="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-semibold hover-glow flex items-center justify-center group">
+        <i data-lucide="log-in" class="h-5 w-5 mr-2 group-hover:scale-110 transition-transform"></i>
+        Login
+      </button>
+    </form>
+
+    <!-- Divider -->
+    <div class="relative my-6">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-border"></div>
+      </div>
+      <div class="relative flex justify-center text-sm">
+        <span class="px-2 bg-card text-muted-foreground">Or continue with</span>
+      </div>
+    </div>
+
+    <!-- Spotify Login -->
+    <a href="{% url 'music:spotify_login' %}" 
+       class="w-full py-3 rounded-lg border border-border hover:bg-secondary flex items-center justify-center group transition-colors">
+      <i data-lucide="music-2" class="h-5 w-5 mr-2 text-primary"></i>
+      <span>Sign in with Spotify</span>
+    </a>
+
+    <!-- Sign Up Link -->
+    <p class="text-center mt-6 text-sm text-muted-foreground">
+      Don't have an account? 
+      <a href="{% url 'signup' %}" class="text-primary hover:text-accent transition-colors font-medium">
+        Sign up here
+      </a>
+    </p>
+  </div>
+</div>
+
+<script>
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+</script>
+{% endblock content %}

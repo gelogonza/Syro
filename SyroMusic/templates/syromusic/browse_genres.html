@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse by Genre - Syro{% endblock title %}
+
+{% block extra_css %}
+<style>
+  .genre-header {
+    background: linear-gradient(135deg, #1DB954, #1ed760);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .genre-header h1 {
+    margin: 0;
+    color: white;
+  }
+
+  .genre-section {
+    margin-bottom: 3rem;
+  }
+
+  .genre-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #333;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid #1DB954;
+  }
+
+  .tracks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .track-card {
+    background: white;
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+  }
+
+  .track-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+
+  .track-cover {
+    width: 100%;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #1DB954, #1ed760);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .track-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .track-artist {
+    font-size: 0.75rem;
+    color: #999;
+  }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container">
+  <div class="genre-header">
+    <h1>Browse by Genre</h1>
+    <p>Discover music across different genres</p>
+  </div>
+
+  {% if genres %}
+    {% for genre_group in genres %}
+      <div class="genre-section">
+        <div class="genre-title">{{ genre_group.name }}</div>
+        <div class="tracks-grid">
+          {% for track in genre_group.tracks %}
+            <a href="https://open.spotify.com/track/{{ track.id }}" target="_blank" class="track-card">
+              {% if track.album.images %}
+                <img src="{{ track.album.images.0.url }}" alt="{{ track.name }}" style="width: 100%; aspect-ratio: 1; border-radius: 4px; margin-bottom: 0.5rem;">
+              {% else %}
+                <div class="track-cover">Music</div>
+              {% endif %}
+              <div class="track-name">{{ track.name|truncatewords:2 }}</div>
+              <div class="track-artist">
+                {% for artist in track.artists|slice:":1" %}
+                  {{ artist.name }}
+                {% endfor %}
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div style="text-align: center; padding: 2rem; color: #999;">
+      <p>Could not load genres. Please try again later.</p>
+    </div>
+  {% endif %}
+
+  <div style="text-align: center; margin-top: 3rem;">
+    <a href="{% url 'music:search' %}" class="btn" style="background-color: #663399;">
+      Search
+    </a>
+    <a href="{% url 'music:recommendations' %}" class="btn" style="background-color: #1DB954;">
+      Recommendations
+    </a>
+  </div>
+</div>
+{% endblock content %}

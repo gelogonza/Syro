@@ -1,25 +1,103 @@
-<!-- SyroMusic/templates/SyroMusic/playlist_list.html -->
+{% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>List of Playlists</title>
-</head>
-<body>
-    <h1>List of Playlists</h1>
-    <ul>
-        {% for playlist in playlists %}
-            <li>{{ playlist.title }}</li>
-        {% empty %}
-            <li>No playlists available.</li>
-        {% endfor %}
-    </ul>
+{% block title %}My Playlists - Syro{% endblock title %}
 
-    <!-- Navigation links -->
-    <ul>
-        <li><a href="{% url 'artist_list' %}">View Artists</a></li>
-        <li><a href="{% url 'album_list' %}">View Albums</a></li>
-        <li><a href="{% url 'song_list' %}">View Songs</a></li>
-    </ul>
-</body>
-</html>
+{% block content %}
+<div class="mb-8">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-4xl font-bold mb-2 gradient-text">My Playlists</h1>
+      <p class="text-muted-foreground">Manage and organize your music collections</p>
+    </div>
+    <a href="{% url 'music:create_playlist' %}" 
+       class="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold bg-gradient-to-r from-primary to-accent text-black hover-glow group">
+      <i data-lucide="plus" class="h-5 w-5 mr-2 group-hover:scale-110 transition-transform"></i>
+      Create Playlist
+    </a>
+  </div>
+</div>
+
+{% if playlists %}
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {% for playlist in playlists %}
+      <div class="glass rounded-xl border border-border hover-glow hover:scale-105 transition-all group overflow-hidden">
+        <!-- Playlist Cover -->
+        <div class="aspect-square bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center relative overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 group-hover:scale-110 transition-transform"></div>
+          <i data-lucide="music" class="h-16 w-16 text-primary/50 relative z-10"></i>
+          
+          <!-- Play Button Overlay -->
+          <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <button class="h-14 w-14 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center hover-glow">
+              <i data-lucide="play" class="h-6 w-6 text-black ml-1"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Playlist Info -->
+        <div class="p-5">
+          <h3 class="text-lg font-semibold mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+            {{ playlist.name }}
+          </h3>
+          <p class="text-sm text-muted-foreground mb-4 line-clamp-2">
+            {{ playlist.description|default:"No description" }}
+          </p>
+          
+          <!-- Metadata -->
+          <div class="flex items-center justify-between text-xs text-muted-foreground mb-4">
+            <span class="flex items-center">
+              <i data-lucide="music-2" class="h-3 w-3 mr-1"></i>
+              {{ playlist.songs.count }} track{{ playlist.songs.count|pluralize }}
+            </span>
+            <span class="flex items-center">
+              <i data-lucide="calendar" class="h-3 w-3 mr-1"></i>
+              {{ playlist.created_at|date:"M d, Y" }}
+            </span>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex items-center gap-2">
+            <a href="{% url 'music:playlist_detail' playlist.id %}" 
+               class="flex-1 inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/80 border border-border">
+              <i data-lucide="eye" class="h-4 w-4 mr-2"></i>
+              View
+            </a>
+            <a href="{% url 'music:edit_playlist' playlist.id %}" 
+               class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-muted border border-border">
+              <i data-lucide="edit" class="h-4 w-4"></i>
+            </a>
+            <a href="{% url 'music:delete_playlist' playlist.id %}" 
+               class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-red-500/10 hover:text-red-400 border border-border hover:border-red-500/50">
+              <i data-lucide="trash-2" class="h-4 w-4"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <!-- Empty State -->
+  <div class="glass rounded-2xl p-12 border border-border text-center">
+    <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-6">
+      <i data-lucide="music-4" class="h-10 w-10 text-primary"></i>
+    </div>
+    <h2 class="text-2xl font-bold mb-3">No Playlists Yet</h2>
+    <p class="text-muted-foreground mb-8 max-w-md mx-auto">
+      Start organizing your favorite music by creating your first playlist. 
+      It's easy and takes just a few seconds!
+    </p>
+    <a href="{% url 'music:create_playlist' %}" 
+       class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold bg-gradient-to-r from-primary to-accent text-black hover-glow group">
+      <i data-lucide="plus" class="h-5 w-5 mr-2 group-hover:scale-110 transition-transform"></i>
+      Create Your First Playlist
+    </a>
+  </div>
+{% endif %}
+
+<script>
+  // Reinitialize icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+</script>
+{% endblock content %}

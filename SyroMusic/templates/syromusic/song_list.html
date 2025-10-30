@@ -1,25 +1,91 @@
-<!-- SyroMusic/templates/SyroMusic/song_list.html -->
+{% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>List of Songs</title>
-</head>
-<body>
-    <h1>List of Songs</h1>
-    <ul>
-        {% for song in songs %}
-            <li>{{ song.title }}</li>
-        {% empty %}
-            <li>No songs available.</li>
-        {% endfor %}
-    </ul>
+{% block title %}Songs - Syro{% endblock title %}
 
-    <!-- Navigation links -->
-    <ul>
-        <li><a href="{% url 'artist_list' %}">View Artists</a></li>
-        <li><a href="{% url 'album_list' %}">View Albums</a></li>
-        <li><a href="{% url 'playlist_list' %}">View Playlists</a></li>
-    </ul>
-</body>
-</html>
+{% block content %}
+<div class="mb-8">
+  <h1 class="text-4xl font-bold mb-2 gradient-text">Songs</h1>
+  <p class="text-muted-foreground text-lg">Browse our collection of songs</p>
+</div>
+
+{% if songs %}
+  <div class="glass rounded-xl border border-border overflow-hidden">
+    {% for song in songs %}
+      <div class="p-4 border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors group">
+        <div class="flex items-center justify-between gap-4">
+          <!-- Song Info -->
+          <div class="flex items-center gap-4 flex-1 min-w-0">
+            <!-- Album Art Placeholder -->
+            <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+              <i data-lucide="music" class="h-5 w-5 text-primary"></i>
+            </div>
+            
+            <!-- Song Details -->
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+                {{ song.title }}
+              </h3>
+              <div class="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+                <span class="flex items-center">
+                  <i data-lucide="disc" class="h-3 w-3 mr-1"></i>
+                  {{ song.album.title }}
+                </span>
+                <span class="flex items-center">
+                  <i data-lucide="user" class="h-3 w-3 mr-1"></i>
+                  {{ song.album.artist.name }}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Duration and Actions -->
+          <div class="flex items-center gap-3 flex-shrink-0">
+            <span class="text-sm text-muted-foreground hidden sm:block">
+              {{ song.duration }}
+            </span>
+            <div class="flex items-center gap-2">
+              <button class="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-secondary border border-border transition-colors">
+                <i data-lucide="heart" class="h-4 w-4"></i>
+              </button>
+              <a href="{% url 'music:song_detail' song.id %}" 
+                 class="h-9 px-4 rounded-lg flex items-center justify-center bg-gradient-to-r from-primary to-accent text-black font-medium text-sm hover-glow opacity-0 group-hover:opacity-100 transition-opacity">
+                <i data-lucide="play" class="h-4 w-4 mr-1"></i>
+                Play
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  
+  <!-- Pagination placeholder -->
+  <div class="mt-8 flex justify-center">
+    <div class="glass rounded-lg px-6 py-3 border border-border text-sm text-muted-foreground">
+      Showing {{ songs|length }} song{{ songs|length|pluralize }}
+    </div>
+  </div>
+{% else %}
+  <!-- Empty State -->
+  <div class="glass rounded-2xl p-12 border border-border text-center">
+    <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-6">
+      <i data-lucide="music" class="h-10 w-10 text-primary"></i>
+    </div>
+    <h2 class="text-2xl font-bold mb-3">No Songs Found</h2>
+    <p class="text-muted-foreground mb-8 max-w-md mx-auto">
+      We're building our music library. Check back soon for amazing tracks!
+    </p>
+    <a href="{% url 'music:search' %}" 
+       class="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold bg-gradient-to-r from-primary to-accent text-black hover-glow">
+      <i data-lucide="search" class="h-5 w-5 mr-2"></i>
+      Search for Songs
+    </a>
+  </div>
+{% endif %}
+
+<script>
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+</script>
+{% endblock content %}

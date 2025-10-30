@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ song.title }} - {{ song.album.artist.name }}{% endblock title %}
+
+{% block extra_css %}
+<style>
+  .song-display {
+    background: linear-gradient(135deg, #bd70f4, #663399);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .song-display h1 {
+    margin: 0 0 1rem 0;
+    color: white;
+    font-size: 2.5rem;
+  }
+
+  .song-display p {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+    opacity: 0.95;
+  }
+
+  .play-button {
+    margin-top: 2rem;
+    background: white;
+    color: #663399;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .play-button:hover {
+    transform: scale(1.05);
+  }
+
+  .song-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .info-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .info-label {
+    color: #999;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+
+  .info-value {
+    font-size: 1.2rem;
+    color: #1f1f1f;
+    font-weight: 600;
+  }
+
+  .breadcrumb {
+    margin-bottom: 1rem;
+  }
+
+  .breadcrumb a {
+    color: #663399;
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    text-decoration: underline;
+  }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container">
+  <div class="breadcrumb">
+    <a href="{% url 'music:song_list' %}">Songs</a>
+    {% if song.album %}
+      &nbsp;/ <a href="{% url 'music:album_detail' song.album.id %}">{{ song.album.title }}</a>
+      {% if song.album.artist %}
+        &nbsp;/ <a href="{% url 'music:artist_detail' song.album.artist.id %}">{{ song.album.artist.name }}</a>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="song-display">
+    <h1>{{ song.title }}</h1>
+    {% if song.album %}
+      <p>From <strong>{{ song.album.title }}</strong></p>
+    {% endif %}
+    {% if song.album.artist %}
+      <p>By <a href="{% url 'music:artist_detail' song.album.artist.id %}" style="color: white; font-weight: 500;">{{ song.album.artist.name }}</a></p>
+    {% endif %}
+    <button class="play-button">Play on Spotify</button>
+  </div>
+
+  <div class="song-info-grid">
+    {% if song.duration %}
+      <div class="info-card">
+        <div class="info-label">Duration</div>
+        <div class="info-value">{{ song.duration }}</div>
+      </div>
+    {% endif %}
+
+    {% if song.track_number %}
+      <div class="info-card">
+        <div class="info-label">Track Number</div>
+        <div class="info-value">#{{ song.track_number }}</div>
+      </div>
+    {% endif %}
+
+    {% if song.album.release_date %}
+      <div class="info-card">
+        <div class="info-label">Release Date</div>
+        <div class="info-value">{{ song.album.release_date|date:"M d, Y" }}</div>
+      </div>
+    {% endif %}
+
+    {% if song.album %}
+      <div class="info-card">
+        <div class="info-label">Album</div>
+        <div class="info-value">
+          <a href="{% url 'music:album_detail' song.album.id %}" style="color: #663399; text-decoration: none;">
+            {{ song.album.title }}
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div style="text-align: center; margin-top: 3rem;">
+    <a href="{% url 'music:song_list' %}" class="btn" style="background-color: #663399;">
+      Back to Songs
+    </a>
+    <a href="{% url 'music:player' %}" class="btn" style="background-color: #1DB954;">
+      Go to Player
+    </a>
+  </div>
+</div>
+{% endblock content %}

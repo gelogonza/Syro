@@ -1,0 +1,552 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results - Syro{% endblock title %}
+
+{% block content %}
+<!-- Search Bar -->
+<div class="glass rounded-2xl p-6 md:p-8 border border-primary/20 bg-gradient-to-br from-primary/10 to-accent/10 mb-8">
+  <form method="get" class="flex gap-2 mb-4">
+    <div class="relative flex-1">
+      <span class="iconify absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" data-icon="mdi:magnify"></span>
+      <input type="text" 
+             name="q" 
+             value="{{ query }}" 
+             placeholder="Search artists, albums, songs, playlists..."
+             class="w-full pl-12 pr-4 py-3 bg-background/50 border border-border rounded-lg text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+    </div>
+    <button type="submit" 
+            class="px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-semibold hover-glow flex items-center">
+      <span class="iconify h-5 w-5 mr-2" data-icon="mdi:magnify"></span>
+      Search
+    </button>
+  </form>
+
+  <div class="flex gap-2 flex-wrap">
+    <a href="{% url 'music:search' %}?q={{ query }}&type=all" 
+       class="px-4 py-2 rounded-full text-sm font-medium transition-all {% if search_type == 'all' %}bg-gradient-to-r from-primary to-accent text-black{% else %}bg-muted hover:bg-muted/80{% endif %}">
+      All
+    </a>
+    <a href="{% url 'music:search' %}?q={{ query }}&type=artist" 
+       class="px-4 py-2 rounded-full text-sm font-medium transition-all {% if search_type == 'artist' %}bg-gradient-to-r from-primary to-accent text-black{% else %}bg-muted hover:bg-muted/80{% endif %}">
+      Artists
+    </a>
+    <a href="{% url 'music:search' %}?q={{ query }}&type=album" 
+       class="px-4 py-2 rounded-full text-sm font-medium transition-all {% if search_type == 'album' %}bg-gradient-to-r from-primary to-accent text-black{% else %}bg-muted hover:bg-muted/80{% endif %}">
+      Albums
+    </a>
+    <a href="{% url 'music:search' %}?q={{ query }}&type=track" 
+       class="px-4 py-2 rounded-full text-sm font-medium transition-all {% if search_type == 'track' %}bg-gradient-to-r from-primary to-accent text-black{% else %}bg-muted hover:bg-muted/80{% endif %}">
+      Tracks
+    </a>
+    <a href="{% url 'music:search' %}?q={{ query }}&type=playlist" 
+       class="px-4 py-2 rounded-full text-sm font-medium transition-all {% if search_type == 'playlist' %}bg-gradient-to-r from-primary to-accent text-black{% else %}bg-muted hover:bg-muted/80{% endif %}">
+      Playlists
+    </a>
+  </div>
+</div>
+
+{% if query %}
+  <!-- Results -->
+  <div class="space-y-8">
+    {% if results.artists %}
+      <div>
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:microphone"></span>
+          Artists
+        </h2>
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {% for artist in results.artists %}
+            <a href="{% url 'music:artist_detail' artist.id %}" 
+               class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all text-center group">
+              <div class="h-24 w-24 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <span class="iconify h-10 w-10 text-primary" data-icon="mdi:account"></span>
+              </div>
+              <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ artist.name }}</div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if results.albums %}
+      <div>
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:album"></span>
+          Albums
+        </h2>
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {% for album in results.albums %}
+            <a href="{% url 'music:album_detail' album.id %}" 
+               class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all group">
+              <div class="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                <span class="iconify h-12 w-12 text-primary" data-icon="mdi:disc"></span>
+              </div>
+              <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ album.title }}</div>
+              <div class="text-sm text-muted-foreground line-clamp-1">{{ album.artist.name }}</div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if results.songs %}
+      <div>
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:music"></span>
+          Tracks
+        </h2>
+        <div class="glass rounded-xl border border-border overflow-hidden">
+          {% for song in results.songs %}
+            <div class="p-4 border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors flex items-center justify-between group">
+              <div class="flex items-center gap-3 flex-1 min-w-0">
+                <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+                  <span class="iconify h-5 w-5 text-primary" data-icon="mdi:music-note"></span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ song.title }}</div>
+                  <div class="text-sm text-muted-foreground line-clamp-1">
+                    {{ song.album.artist.name }} • {{ song.album.title }}
+                  </div>
+                </div>
+              </div>
+              <button onclick="playTrack('spotify:track:{{ song.id }}', {
+                name: '{{ song.title|escapejs }}',
+                artist: '{{ song.album.artist.name|escapejs }}',
+                album: '{{ song.album.title|escapejs }}'
+              })"
+                class="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-medium text-sm hover-glow opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 border-0 cursor-pointer">
+                ▶ Play
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if results.playlists %}
+      <div>
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:playlist-music"></span>
+          Playlists
+        </h2>
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {% for playlist in results.playlists %}
+            <a href="{% url 'music:playlist_detail' playlist.id %}" 
+               class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all group">
+              <div class="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                <span class="iconify h-12 w-12 text-primary" data-icon="mdi:playlist-play"></span>
+              </div>
+              <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ playlist.title }}</div>
+              <div class="text-sm text-muted-foreground line-clamp-1">{{ playlist.songs.count }} songs</div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Spotify Results -->
+    {% if results.spotify_artists %}
+      <div>
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:spotify"></span>
+          Artists from Spotify
+        </h2>
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {% for artist in results.spotify_artists %}
+            <a href="{{ artist.external_urls.spotify }}" target="_blank" rel="noopener noreferrer"
+               class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all text-center group">
+              {% if artist.images %}
+                <img src="{{ artist.images.0.url }}" alt="{{ artist.name }}" class="h-24 w-24 mx-auto rounded-full object-cover mb-3 group-hover:scale-110 transition-transform">
+              {% else %}
+                <div class="h-24 w-24 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <span class="iconify h-10 w-10 text-primary" data-icon="mdi:account"></span>
+                </div>
+              {% endif %}
+              <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ artist.name }}</div>
+              {% if artist.followers %}
+                <div class="text-xs text-muted-foreground">{{ artist.followers.total|floatformat:0 }} followers</div>
+              {% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if results.spotify_albums %}
+      <div>
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:spotify"></span>
+          Albums from Spotify
+        </h2>
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {% for album in results.spotify_albums %}
+            <div class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all group cursor-pointer"
+               onclick="playTrack('{{ album.uri }}')">
+              {% if album.images %}
+                <img src="{{ album.images.0.url }}" alt="{{ album.name }}" class="aspect-square rounded-lg object-cover mb-3 group-hover:scale-105 transition-transform">
+              {% else %}
+                <div class="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                  <span class="iconify h-12 w-12 text-primary" data-icon="mdi:disc"></span>
+                </div>
+              {% endif %}
+              <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ album.name }}</div>
+              <div class="text-sm text-muted-foreground line-clamp-1">
+                {% for artist in album.artists %}{{ artist.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              </div>
+              <div class="mt-2 flex items-center text-sm text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                <span class="iconify h-4 w-4 mr-1" data-icon="mdi:play-circle"></span>
+                Play Album
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if results.spotify_tracks %}
+      <div>
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:spotify"></span>
+          Tracks from Spotify
+        </h2>
+        <div class="glass rounded-xl border border-border overflow-hidden">
+          {% for track in results.spotify_tracks %}
+            <div class="p-4 border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors flex items-center justify-between group">
+              <div class="flex items-center gap-3 flex-1 min-w-0">
+                {% if track.album.images %}
+                  <img src="{{ track.album.images.0.url }}" alt="{{ track.name }}" class="h-10 w-10 rounded-lg object-cover flex-shrink-0">
+                {% else %}
+                  <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+                    <span class="iconify h-5 w-5 text-primary" data-icon="mdi:music-note"></span>
+                  </div>
+                {% endif %}
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ track.name }}</div>
+                  <div class="text-sm text-muted-foreground line-clamp-1">
+                    {% for artist in track.artists %}{{ artist.name }}{% if not forloop.last %}, {% endif %}{% endfor %} • {{ track.album.name }}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onclick="playTrack('{{ track.uri }}', {
+                  name: '{{ track.name|escapejs }}',
+                  artist: '{% for artist in track.artists %}{{ artist.name }}{% if not forloop.last %}, {% endif %}{% endfor %}',
+                  album: '{{ track.album.name|escapejs }}'
+                })"
+                   class="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium text-sm hover-glow flex-shrink-0">
+                  <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:play"></span>
+                  Play
+                </button>
+                <button onclick="openAddToPlaylistModal('{{ track.uri }}', '{{ track.name|escapejs }}')" 
+                   class="px-4 py-2 rounded-lg border border-primary text-primary font-medium text-sm hover:bg-primary/10 flex-shrink-0">
+                  <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-plus"></span>
+                  Add
+                </button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if results.spotify_playlists %}
+      <div>
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:spotify"></span>
+          Playlists from Spotify
+        </h2>
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {% for playlist in results.spotify_playlists %}
+            <a href="{{ playlist.external_urls.spotify }}" target="_blank" rel="noopener noreferrer"
+               class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all group">
+              {% if playlist.images %}
+                <img src="{{ playlist.images.0.url }}" alt="{{ playlist.name }}" class="aspect-square rounded-lg object-cover mb-3 group-hover:scale-105 transition-transform">
+              {% else %}
+                <div class="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                  <span class="iconify h-12 w-12 text-primary" data-icon="mdi:playlist-play"></span>
+                </div>
+              {% endif %}
+              <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ playlist.name }}</div>
+              <div class="text-sm text-muted-foreground line-clamp-1">{{ playlist.tracks.total }} tracks</div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if not results.artists and not results.albums and not results.songs and not results.playlists and not results.spotify_artists and not results.spotify_albums and not results.spotify_tracks and not results.spotify_playlists %}
+      <div class="glass rounded-2xl p-12 border border-border text-center">
+        <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-6">
+          <span class="iconify h-10 w-10 text-primary" data-icon="mdi:magnify-close"></span>
+        </div>
+        <h2 class="text-2xl font-bold mb-3">No results found for "{{ query }}"</h2>
+        <p class="text-muted-foreground">Try searching with different keywords or filters</p>
+      </div>
+    {% endif %}
+  </div>
+
+{% else %}
+  <div class="glass rounded-2xl p-12 border border-border text-center">
+    <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-6">
+      <span class="iconify h-10 w-10 text-primary" data-icon="mdi:magnify"></span>
+    </div>
+    <h2 class="text-2xl font-bold mb-3">Start Searching</h2>
+    <p class="text-muted-foreground mb-8">Use the search bar above to find artists, albums, songs, and playlists</p>
+    
+    <div class="flex flex-wrap items-center justify-center gap-3">
+      <a href="{% url 'music:recommendations' %}" 
+         class="inline-flex items-center rounded-lg px-6 py-3 text-sm font-semibold bg-gradient-to-r from-primary to-accent text-black hover-glow">
+        <span class="iconify h-4 w-4 mr-2" data-icon="mdi:star-outline"></span>
+        Recommended For You
+      </a>
+      <a href="{% url 'music:browse_genres' %}" 
+         class="inline-flex items-center rounded-lg px-6 py-3 text-sm font-semibold border border-border hover:bg-secondary">
+        <span class="iconify h-4 w-4 mr-2" data-icon="mdi:grid"></span>
+        Browse by Genre
+      </a>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Add to Playlist Modal -->
+<div id="addToPlaylistModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+  <div class="glass rounded-xl p-6 max-w-md w-full mx-4 border border-border">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-bold">Add to Playlist</h3>
+      <button onclick="closeAddToPlaylistModal()" class="p-2 rounded-lg hover:bg-gray-100">
+        <span class="iconify h-5 w-5" data-icon="mdi:close"></span>
+      </button>
+    </div>
+    
+    <div class="mb-4">
+      <p class="text-sm text-muted-foreground mb-2">Track: <span id="modalTrackName" class="font-semibold"></span></p>
+    </div>
+    
+    <!-- Create New Playlist Section -->
+    <div class="mb-6">
+      <h4 class="font-semibold mb-2">Create New Playlist</h4>
+      <input type="text" id="newPlaylistName" placeholder="Playlist name" 
+             class="w-full px-4 py-2 rounded-lg border border-border bg-background mb-2">
+      <textarea id="newPlaylistDescription" placeholder="Description (optional)" 
+                class="w-full px-4 py-2 rounded-lg border border-border bg-background mb-2 resize-none" rows="2"></textarea>
+      <button onclick="createAndAddToPlaylist()" 
+              class="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium hover-glow">
+        <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:plus"></span>
+        Create & Add Track
+      </button>
+    </div>
+    
+    <!-- Add to Existing Playlist Section -->
+    <div>
+      <h4 class="font-semibold mb-2">Add to Existing Playlist</h4>
+      <div id="playlistsList" class="space-y-2 max-h-48 overflow-y-auto">
+        <p class="text-sm text-muted-foreground">Loading playlists...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+  let currentTrackUri = null;
+  let userPlaylists = [];
+
+  async function playTrack(trackUri) {
+    try {
+      const response = await fetch('/music/api/playback/play/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          uris: [trackUri]
+        })
+      });
+      
+      if (response.ok) {
+        // Redirect to player page
+        window.location.href = '{% url "music:player" %}';
+      } else {
+        const data = await response.json();
+        alert('Error playing track: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error playing track:', error);
+      alert('Failed to play track. Please make sure you have an active Spotify session.');
+    }
+  }
+
+  async function playAlbum(albumUri) {
+    try {
+      const response = await fetch('/music/api/playback/play/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          context_uri: albumUri
+        })
+      });
+      
+      if (response.ok) {
+        // Redirect to player page
+        window.location.href = '{% url "music:player" %}';
+      } else {
+        const data = await response.json();
+        alert('Error playing album: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error playing album:', error);
+      alert('Failed to play album. Please make sure you have an active Spotify session.');
+    }
+  }
+
+  async function fetchUserPlaylists() {
+    try {
+      const response = await fetch('/music/api/playlists/', {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        userPlaylists = data.results || data;
+        displayPlaylists();
+      } else {
+        document.getElementById('playlistsList').innerHTML = 
+          '<p class="text-sm text-muted-foreground">Error loading playlists</p>';
+      }
+    } catch (error) {
+      console.error('Error fetching playlists:', error);
+      document.getElementById('playlistsList').innerHTML = 
+        '<p class="text-sm text-muted-foreground">Error loading playlists</p>';
+    }
+  }
+
+  function displayPlaylists() {
+    const container = document.getElementById('playlistsList');
+    
+    if (userPlaylists.length === 0) {
+      container.innerHTML = '<p class="text-sm text-muted-foreground">No playlists found</p>';
+      return;
+    }
+    
+    container.innerHTML = userPlaylists.map(playlist => `
+      <button onclick="addToExistingPlaylist(${playlist.id})" 
+              class="w-full px-4 py-2 rounded-lg border border-border hover:bg-muted/50 text-left transition">
+        <div class="font-semibold">${playlist.title}</div>
+        <div class="text-xs text-muted-foreground">${playlist.songs?.length || 0} songs</div>
+      </button>
+    `).join('');
+  }
+
+  function openAddToPlaylistModal(trackUri, trackName) {
+    currentTrackUri = trackUri;
+    document.getElementById('modalTrackName').textContent = trackName;
+    document.getElementById('addToPlaylistModal').classList.remove('hidden');
+    document.getElementById('newPlaylistName').value = '';
+    document.getElementById('newPlaylistDescription').value = '';
+    fetchUserPlaylists();
+  }
+
+  function closeAddToPlaylistModal() {
+    document.getElementById('addToPlaylistModal').classList.add('hidden');
+    currentTrackUri = null;
+  }
+
+  async function createAndAddToPlaylist() {
+    const name = document.getElementById('newPlaylistName').value.trim();
+    const description = document.getElementById('newPlaylistDescription').value.trim();
+    
+    if (!name) {
+      alert('Please enter a playlist name');
+      return;
+    }
+    
+    try {
+      // Create playlist on Spotify
+      const response = await fetch('/music/api/playlists/create_with_spotify/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          name: name,
+          description: description,
+          public: false
+        })
+      });
+      
+      if (response.ok) {
+        const playlist = await response.json();
+        
+        // Add track to the new playlist
+        const addResponse = await fetch(`/music/api/playlists/${playlist.id}/add_track/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+            track_uri: currentTrackUri
+          })
+        });
+        
+        if (addResponse.ok) {
+          alert(`Successfully created "${name}" and added track!`);
+          closeAddToPlaylistModal();
+        } else {
+          const errorData = await addResponse.json();
+          alert('Playlist created but failed to add track: ' + (errorData.error || 'Unknown error'));
+        }
+      } else {
+        const data = await response.json();
+        alert('Error creating playlist: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to create playlist. Please try again.');
+    }
+  }
+
+  async function addToExistingPlaylist(playlistId) {
+    try {
+      const response = await fetch(`/music/api/playlists/${playlistId}/add_track/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          track_uri: currentTrackUri
+        })
+      });
+      
+      if (response.ok) {
+        alert('Track added to playlist successfully!');
+        closeAddToPlaylistModal();
+      } else {
+        const data = await response.json();
+        alert('Error adding to playlist: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to add track. Please try again.');
+    }
+  }
+
+  // Close modal when clicking outside
+  document.getElementById('addToPlaylistModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeAddToPlaylistModal();
+    }
+  });
+</script>
+{% endblock extra_js %}

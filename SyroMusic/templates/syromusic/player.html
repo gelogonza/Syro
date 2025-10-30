@@ -1,0 +1,980 @@
+{% extends 'base.html' %}
+
+{% block title %}Music Player - Syro{% endblock title %}
+
+{% block extra_css %}
+<style>
+  .player-container {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    margin: 2rem 0;
+    min-height: calc(100vh - 250px);
+  }
+
+  .main-player {
+    background: white;
+    border: 4px solid #000000;
+    box-shadow: 8px 8px 0 0 #000000;
+    padding: 2rem;
+    color: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: background-color 0.3s ease;
+  }
+
+  .now-playing-display {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .album-art {
+    width: 250px;
+    height: 250px;
+    border: 4px solid #000000;
+    box-shadow: 6px 6px 0 0 #000000;
+    object-fit: cover;
+    margin-bottom: 2rem;
+  }
+
+  .album-placeholder {
+    width: 250px;
+    height: 250px;
+    background: #f5f5f5;
+    border: 4px solid #000000;
+    box-shadow: 6px 6px 0 0 #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 2rem;
+  }
+
+  .track-info {
+    margin-bottom: 1.5rem;
+  }
+
+  .track-name {
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+    word-wrap: break-word;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+
+  .artist-album-info {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .album-info {
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  /* Progress Bar */
+  .progress-container {
+    margin-bottom: 2rem;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e5e5e5;
+    border: 2px solid #000000;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+  }
+
+  .progress {
+    height: 100%;
+    background: black;
+    transition: width 0.1s linear;
+  }
+
+  .time-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  /* Player Controls */
+  .player-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .control-btn {
+    background: white;
+    color: black;
+    border: 3px solid #000000;
+    box-shadow: 4px 4px 0 0 #000000;
+    padding: 1rem;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .control-btn:hover {
+    background: black;
+    color: white;
+  }
+
+  .control-btn.small {
+    width: 50px;
+    height: 50px;
+    font-size: 0.7rem;
+  }
+
+  .control-btn.active {
+    background: black;
+    color: white;
+  }
+
+  .play-pause-btn {
+    width: 70px;
+    height: 70px;
+    font-size: 1.5rem;
+  }
+
+  /* Volume Control */
+  .volume-control {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .volume-slider {
+    width: 100%;
+    height: 8px;
+    background: #e5e5e5;
+    border: 2px solid #000000;
+    cursor: pointer;
+    accent-color: black;
+  }
+
+  .volume-value {
+    min-width: 50px;
+    text-align: right;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  /* Device Panel */
+  .device-panel {
+    background: white;
+    border: 4px solid #000000;
+    box-shadow: 6px 6px 0 0 #000000;
+    padding: 1.5rem;
+  }
+
+  .panel-title {
+    font-size: 1.1rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    color: #000000;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+
+  .device-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .device-item {
+    padding: 0.75rem;
+    border: 3px solid #000000;
+    box-shadow: 3px 3px 0 0 #000000;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.95rem;
+    font-weight: 700;
+    background: white;
+  }
+
+  .device-item:hover {
+    background: black;
+    color: white;
+  }
+
+  .device-item.active {
+    background: black;
+    color: white;
+  }
+
+  .device-icon {
+    margin-right: 0.5rem;
+    font-weight: 900;
+  }
+
+  /* Queue Section */
+  .queue-section {
+    margin-top: 1.5rem;
+  }
+
+  .queue-section .panel-title {
+    margin-bottom: 0.75rem;
+  }
+
+  .queue-empty {
+    text-align: center;
+    padding: 1rem;
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  /* Loading State */
+  .loading {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e5e5e5;
+    border-top-color: #000000;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* No Playback State */
+  .no-playback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 3rem;
+  }
+
+  .no-playback-icon {
+    font-size: 4rem;
+    font-weight: 900;
+  }
+
+  .no-playback-text {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  /* Navigation Buttons */
+  .nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .brutalist-nav-btn {
+    background: white;
+    border: 3px solid #000000;
+    box-shadow: 4px 4px 0 0 #000000;
+    padding: 0.75rem 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: black;
+    display: inline-block;
+    transition: all 0.15s ease;
+    font-size: 0.9rem;
+    letter-spacing: -0.02em;
+  }
+
+  .brutalist-nav-btn:hover {
+    background: black;
+    color: white;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .player-container {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .album-art, .album-placeholder {
+      width: 200px;
+      height: 200px;
+      margin-bottom: 1rem;
+    }
+
+    .track-name {
+      font-size: 1.5rem;
+    }
+
+    .control-btn {
+      width: 50px;
+      height: 50px;
+      padding: 0.75rem;
+    }
+
+    .play-pause-btn {
+      width: 60px;
+      height: 60px;
+      font-size: 1.3rem;
+    }
+
+    .main-player {
+      padding: 1.5rem;
+    }
+  }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container">
+  <h1 class="text-4xl font-black text-center mb-8 uppercase" style="letter-spacing: -0.02em;">MUSIC PLAYER</h1>
+
+  <!-- Search Section -->
+  <div style="background: white; padding: 1.5rem; border: 2px solid #000; box-shadow: 4px 4px 0 #000; margin-bottom: 2rem;">
+    <h2 style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 900;">SEARCH & PLAY</h2>
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+      <input
+        type="text"
+        id="playerSearchInput"
+        placeholder="Search for a song..."
+        style="flex: 1; padding: 0.75rem; border: 2px solid #000; font-weight: 600;"
+        autocomplete="off"
+      >
+    </div>
+    <div id="playerSearchResults" style="max-height: 300px; overflow-y: auto;"></div>
+  </div>
+
+  <div class="player-container">
+    <!-- Main Player -->
+    <div class="main-player" id="mainPlayer">
+      {% if now_playing and now_playing.track_name %}
+        <!-- Now Playing Display -->
+        <div class="now-playing-display">
+          {% if now_playing.album_image_url %}
+            <img src="{{ now_playing.album_image_url }}" 
+                 alt="Album Art" 
+                 class="album-art" 
+                 id="albumArt"
+                 crossorigin="anonymous">
+          {% else %}
+            <div class="album-placeholder">♪</div>
+          {% endif %}
+
+          <div class="track-info">
+            <div class="track-name">{{ now_playing.track_name }}</div>
+            <div class="artist-album-info">{{ now_playing.artist_name }}</div>
+            {% if now_playing.album_name %}
+              <div class="album-info">{{ now_playing.album_name }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+          <div class="progress-bar" id="progressBar">
+            <div class="progress" id="progressFill" style="width: 0%"></div>
+          </div>
+          <div class="time-display">
+            <span id="currentTime">0:00</span>
+            <span id="duration">0:00</span>
+          </div>
+        </div>
+      {% else %}
+        <div class="no-playback">
+          <div class="no-playback-icon">||</div>
+          <div class="no-playback-text">NO TRACK PLAYING</div>
+          <div style="font-size: 0.9rem; font-weight: 600;">START PLAYING MUSIC FROM SPOTIFY OR SEARCH FOR A TRACK</div>
+        </div>
+      {% endif %}
+
+      <!-- Player Controls -->
+      <div class="player-controls">
+        <button class="control-btn small" id="shuffleBtn" title="Toggle Shuffle" onclick="toggleShuffle()">SH</button>
+        <button class="control-btn small" onclick="previousTrack()" title="Previous Track">◄◄</button>
+        <button class="control-btn play-pause-btn" id="playPauseBtn" title="Play/Pause" onclick="togglePlayPause()">
+          {% if current_playback and current_playback.is_playing %}||{% else %}►{% endif %}
+        </button>
+        <button class="control-btn small" onclick="nextTrack()" title="Next Track">►►</button>
+        <button class="control-btn small" id="repeatBtn" title="Toggle Repeat" onclick="toggleRepeat()">RP</button>
+      </div>
+
+      <!-- Volume Control -->
+      <div class="volume-control">
+        <span style="font-size: 1.2rem; font-weight: 900;">VOL</span>
+        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="100" onchange="setVolume(this.value)">
+        <span class="volume-value" id="volumeValue">100%</span>
+      </div>
+    </div>
+
+    <!-- Right Panel: Devices & Queue -->
+    <div>
+      <!-- Device Selection -->
+      <div class="device-panel">
+        <div class="panel-title">AVAILABLE DEVICES</div>
+        <div class="device-list" id="deviceList">
+          {% if devices %}
+            {% for device in devices %}
+              <div class="device-item {% if device.is_active %}active{% endif %}" 
+                   data-device-id="{{ device.id }}"
+                   onclick="transferPlayback('{{ device.id }}')">
+                <span class="device-icon">
+                  {% if device.type == 'Computer' %}[C]
+                  {% elif device.type == 'Smartphone' %}[M]
+                  {% elif device.type == 'Speaker' %}[S]
+                  {% else %}[D]
+                  {% endif %}
+                </span>
+                {{ device.name }}
+                {% if device.is_active %}<span style="float: right;">[*]</span>{% endif %}
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="queue-empty">NO DEVICES AVAILABLE</div>
+          {% endif %}
+        </div>
+
+        <!-- Queue Section -->
+        <div class="queue-section">
+          <div class="panel-title">QUEUE</div>
+          {% if queue and queue.queue_tracks %}
+            <div style="font-size: 0.9rem; font-weight: 700; color: #666;">
+              {{ queue.queue_tracks|length }} TRACKS IN QUEUE
+            </div>
+          {% else %}
+            <div class="queue-empty">QUEUE IS EMPTY</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="nav-buttons" style="margin-top: 3rem;">
+    <a href="{% url 'music:dashboard' %}" class="brutalist-nav-btn">
+      BACK TO DASHBOARD
+    </a>
+    <a href="{% url 'music:stats_dashboard' %}" class="brutalist-nav-btn">
+      VIEW STATS
+    </a>
+  </div>
+</div>
+
+<script>
+  // Helper function to format time (mm:ss)
+  function formatTime(ms) {
+    const seconds = Math.floor((ms / 1000) % 60);
+    const minutes = Math.floor((ms / 1000 / 60) % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  // Color extraction function using Canvas API
+  function extractColorFromImage(img) {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      
+      // Sample colors from the image
+      let r = 0, g = 0, b = 0;
+      const sampleSize = 5;
+      let count = 0;
+      
+      for (let i = 0; i < data.length; i += 4 * sampleSize) {
+        r += data[i];
+        g += data[i + 1];
+        b += data[i + 2];
+        count++;
+      }
+      
+      r = Math.floor(r / count);
+      g = Math.floor(g / count);
+      b = Math.floor(b / count);
+      
+      return { r, g, b };
+    } catch (error) {
+      console.error('Error extracting color:', error);
+      return { r: 255, g: 255, b: 255 };
+    }
+  }
+
+  // Apply dynamic colors to player
+  function applyDynamicColors() {
+    const albumArt = document.getElementById('albumArt');
+    const mainPlayer = document.getElementById('mainPlayer');
+
+    if (albumArt && mainPlayer) {
+      albumArt.onload = function() {
+        const color = extractColorFromImage(albumArt);
+
+        // Lighten the color for background
+        const bgColor = `rgb(${Math.min(color.r + 100, 255)}, ${Math.min(color.g + 100, 255)}, ${Math.min(color.b + 100, 255)})`;
+
+        // Get multiple colors for gradient
+        const colors = extractGradientColors(albumArt);
+        const gradientCss = colors.length > 1
+          ? `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 50%, ${colors[2] || colors[0]} 100%)`
+          : bgColor;
+
+        // Apply smooth gradient transition
+        mainPlayer.style.transition = 'background 3s ease-in-out';
+        mainPlayer.style.background = gradientCss;
+
+        // Adjust text color based on brightness
+        const brightness = (color.r * 299 + color.g * 587 + color.b * 114) / 1000;
+        const textColor = brightness > 128 ? '#000000' : '#ffffff';
+        mainPlayer.style.color = textColor;
+
+        console.log('Dynamic gradient applied:', gradientCss);
+      };
+
+      // If image is already loaded, trigger manually
+      if (albumArt.complete) {
+        albumArt.onload();
+      }
+    }
+  }
+
+  // Extract gradient colors from image
+  function extractGradientColors(image) {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = 50;
+      canvas.height = 50;
+
+      ctx.drawImage(image, 0, 0, 50, 50);
+      const imageData = ctx.getImageData(0, 0, 50, 50).data;
+
+      const colors = {};
+      for (let i = 0; i < imageData.length; i += 4) {
+        const r = imageData[i];
+        const g = imageData[i + 1];
+        const b = imageData[i + 2];
+        const hex = `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+        colors[hex] = (colors[hex] || 0) + 1;
+      }
+
+      // Get most frequent colors
+      const colorArray = Object.entries(colors)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([color]) => color);
+
+      // Return colors or fallback
+      return colorArray.length >= 2
+        ? colorArray
+        : ['#FF6B6B', '#FFC107', '#4CAF50'];
+    } catch (e) {
+      console.error('Error extracting gradient colors:', e);
+      return ['#FF6B6B', '#FFC107', '#4CAF50'];
+    }
+  }
+
+  // Auto-update playback state
+  function updatePlaybackState() {
+    fetch('{% url "music:playback_state" %}')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const duration = data.duration_ms;
+          const progress = data.progress_ms;
+          const percentage = duration > 0 ? (progress / duration * 100) : 0;
+
+          // Update progress bar
+          document.getElementById('progressFill').style.width = percentage + '%';
+          document.getElementById('currentTime').textContent = formatTime(progress);
+          document.getElementById('duration').textContent = formatTime(duration);
+          document.getElementById('playPauseBtn').textContent = data.is_playing ? '||' : '►';
+
+          // Update track information
+          const trackNameEl = document.querySelector('.track-name');
+          const artistEl = document.querySelector('.artist-album-info');
+          const albumEl = document.querySelector('.album-info');
+          const albumArtEl = document.getElementById('albumArt');
+
+          if (trackNameEl) trackNameEl.textContent = data.track_name || 'No track playing';
+          if (artistEl) artistEl.textContent = data.artist_name || '';
+          if (albumEl) albumEl.textContent = data.album_name || '';
+
+          // Update album art if URL available
+          if (albumArtEl && data.album_image_url) {
+            albumArtEl.src = data.album_image_url;
+            applyDynamicColors(); // Re-apply colors for new image
+          }
+        }
+      })
+      .catch(error => console.error('Error:', error));
+  }
+
+  // Get active device ID
+  function getActiveDeviceId() {
+    const activeDevice = document.querySelector('.device-item.active');
+    return activeDevice ? activeDevice.getAttribute('data-device-id') : null;
+  }
+
+  // Playback control functions
+  function togglePlayPause() {
+    const deviceId = getActiveDeviceId();
+
+    fetch('{% url "music:play_pause" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `device_id=${deviceId || ''}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        updatePlaybackState();
+      }
+    });
+  }
+
+  function nextTrack() {
+    const deviceId = getActiveDeviceId();
+
+    fetch('{% url "music:next_track" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `device_id=${deviceId || ''}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        setTimeout(() => {
+          updatePlaybackState();
+          applyDynamicColors();
+        }, 500);
+      }
+    });
+  }
+
+  function previousTrack() {
+    const deviceId = getActiveDeviceId();
+
+    fetch('{% url "music:previous_track" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `device_id=${deviceId || ''}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        setTimeout(() => {
+          updatePlaybackState();
+          applyDynamicColors();
+        }, 500);
+      }
+    });
+  }
+
+  function setVolume(volume) {
+    document.getElementById('volumeValue').textContent = volume + '%';
+    const deviceId = getActiveDeviceId();
+
+    fetch('{% url "music:set_volume" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `volume=${volume}&device_id=${deviceId || ''}`
+    });
+  }
+
+  function transferPlayback(deviceId) {
+    fetch('{% url "music:transfer_playback" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `device_id=${deviceId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        document.querySelectorAll('.device-item').forEach(item => {
+          item.classList.remove('active');
+        });
+        event.target.closest('.device-item').classList.add('active');
+      }
+    });
+  }
+
+  function toggleShuffle() {
+    const btn = document.getElementById('shuffleBtn');
+    const isActive = btn.classList.contains('active');
+    const deviceId = getActiveDeviceId();
+
+    fetch('{% url "music:set_shuffle" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `state=${!isActive}&device_id=${deviceId || ''}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        btn.classList.toggle('active');
+      }
+    });
+  }
+
+  function toggleRepeat() {
+    const btn = document.getElementById('repeatBtn');
+    const currentMode = btn.getAttribute('data-repeat-mode') || 'off';
+    const modes = ['off', 'context', 'track'];
+    const nextMode = modes[(modes.indexOf(currentMode) + 1) % modes.length];
+    const deviceId = getActiveDeviceId();
+
+    fetch('{% url "music:set_repeat" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `mode=${nextMode}&device_id=${deviceId || ''}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        btn.setAttribute('data-repeat-mode', nextMode);
+        btn.classList.toggle('active', nextMode !== 'off');
+      }
+    });
+  }
+
+  // Progress bar seek
+  document.getElementById('progressBar')?.addEventListener('click', function(e) {
+    const rect = this.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    const durationText = document.getElementById('duration').textContent.split(':');
+    const duration = (parseInt(durationText[0]) * 60 + parseInt(durationText[1])) * 1000;
+    const positionMs = percent * duration;
+    const deviceId = getActiveDeviceId();
+
+    fetch('{% url "music:seek" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `position_ms=${Math.floor(positionMs)}&device_id=${deviceId || ''}`
+    });
+  });
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    applyDynamicColors();
+    updatePlaybackState();
+    
+    // Update playback state every 2 seconds
+    setInterval(updatePlaybackState, 2000);
+
+    // Setup player search functionality
+    setupPlayerSearch();
+
+    // Initialize Spotify Web Playback SDK
+    initializeSpotifyPlayer();
+  });
+
+  // Player Search Functionality
+  function setupPlayerSearch() {
+    const searchInput = document.getElementById('playerSearchInput');
+    const resultsDiv = document.getElementById('playerSearchResults');
+
+    // Debounce search
+    let searchTimeout;
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(performPlayerSearch, 300);
+    }
+
+    searchInput.addEventListener('keyup', debounceSearch);
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        clearTimeout(searchTimeout);
+        performPlayerSearch();
+      }
+    });
+
+    function performPlayerSearch() {
+      const query = searchInput.value.trim();
+      resultsDiv.innerHTML = '';
+
+      if (query.length < 2) return;
+
+      resultsDiv.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">Searching...</div>';
+
+      fetch(`/music/search/?q=${encodeURIComponent(query)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.songs || data.songs.length === 0) {
+            resultsDiv.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">No songs found</div>';
+            return;
+          }
+
+          let html = '';
+          data.songs.forEach(song => {
+            html += `
+              <div style="padding: 0.75rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 600;">${escapeHtml(song.title)}</div>
+                  <div style="font-size: 0.85rem; color: #999;">${escapeHtml(song.album.artist.name)} • ${escapeHtml(song.album.title)}</div>
+                </div>
+                <button
+                  class="control-btn"
+                  style="padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; margin-left: 1rem;"
+                  onclick="playTrack('spotify:track:${song.spotify_id}', {name: '${song.title.replace(/'/g, '\\'')}'', artist: '${song.album.artist.name.replace(/'/g, '\\'')}'});"
+                >▶ PLAY</button>
+              </div>
+            `;
+          });
+
+          resultsDiv.innerHTML = html;
+        })
+        .catch(error => {
+          console.error('Search error:', error);
+          resultsDiv.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">Search failed</div>';
+        });
+    }
+  }
+
+  // Spotify Web Playback SDK Integration
+  let player;
+  let deviceId;
+
+  function initializeSpotifyPlayer() {
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const token = '{{ spotify_user.access_token }}';
+      
+      if (!token) {
+        console.log('No access token available');
+        return;
+      }
+
+      player = new Spotify.Player({
+        name: 'Syro Web Player',
+        getOAuthToken: cb => { cb(token); },
+        volume: 0.5
+      });
+
+      // Error handling
+      player.addListener('initialization_error', ({ message }) => {
+        console.error('Initialization Error:', message);
+      });
+
+      player.addListener('authentication_error', ({ message }) => {
+        console.error('Authentication Error:', message);
+      });
+
+      player.addListener('account_error', ({ message }) => {
+        console.error('Account Error:', message);
+      });
+
+      player.addListener('playback_error', ({ message }) => {
+        console.error('Playback Error:', message);
+      });
+
+      // Playback status updates
+      player.addListener('player_state_changed', state => {
+        if (!state) return;
+
+        console.log('Player state changed:', state);
+        
+        // Update UI based on player state
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        if (playPauseBtn) {
+          playPauseBtn.textContent = state.paused ? '►' : '||';
+        }
+
+        // Update progress
+        const progressMs = state.position;
+        const durationMs = state.duration;
+        const percentage = durationMs > 0 ? (progressMs / durationMs * 100) : 0;
+        
+        const progressFill = document.getElementById('progressFill');
+        const currentTime = document.getElementById('currentTime');
+        const duration = document.getElementById('duration');
+        
+        if (progressFill) progressFill.style.width = percentage + '%';
+        if (currentTime) currentTime.textContent = formatTime(progressMs);
+        if (duration) duration.textContent = formatTime(durationMs);
+      });
+
+      // Ready
+      player.addListener('ready', ({ device_id }) => {
+        console.log('Ready with Device ID', device_id);
+        deviceId = device_id;
+        
+        // Show notification
+        const notification = document.createElement('div');
+        notification.textContent = 'WEB PLAYER READY! TRANSFER PLAYBACK TO "SYRO WEB PLAYER"';
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: black; color: white; padding: 1rem 2rem; border: 3px solid #000; box-shadow: 6px 6px 0 0 #000; z-index: 1000; font-weight: 900; text-transform: uppercase;';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      });
+
+      // Not Ready
+      player.addListener('not_ready', ({ device_id }) => {
+        console.log('Device ID has gone offline', device_id);
+      });
+
+      // Connect to the player
+      player.connect().then(success => {
+        if (success) {
+          console.log('The Web Playback SDK successfully connected to Spotify!');
+        }
+      });
+    };
+  }
+</script>
+{% endblock content %}

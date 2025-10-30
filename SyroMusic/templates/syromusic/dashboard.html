@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Syro{% endblock title %}
+
+{% block content %}
+{% if spotify_user and spotify_user.is_connected %}
+  <!-- Spotify Connected Profile -->
+  <div class="glass rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 to-accent/10 p-8 md:p-12 mb-8 text-center">
+    {% if spotify_user.profile_image_url %}
+      <img src="{{ spotify_user.profile_image_url }}" 
+           alt="{{ spotify_user.spotify_display_name }}"
+           class="w-32 h-32 md:w-40 md:h-40 rounded-full mx-auto mb-6 border-4 border-primary/50 hover:scale-105 transition-transform">
+    {% else %}
+      <div class="w-32 h-32 md:w-40 md:h-40 rounded-full mx-auto mb-6 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center border-4 border-primary/50">
+        <i data-lucide="user" class="h-16 w-16 text-primary"></i>
+      </div>
+    {% endif %}
+    
+    <h1 class="text-4xl font-bold mb-2 gradient-text">{{ spotify_user.spotify_display_name }}</h1>
+    <p class="text-muted-foreground text-lg mb-4">@{{ spotify_user.spotify_username }}</p>
+    
+    <div class="flex items-center justify-center gap-4 flex-wrap">
+      <a href="{{ spotify_user.spotify_profile_url }}" target="_blank" 
+         class="inline-flex items-center text-primary hover:text-accent transition-colors">
+        <i data-lucide="external-link" class="h-4 w-4 mr-2"></i>
+        View on Spotify
+      </a>
+      <span class="flex items-center text-muted-foreground">
+        <i data-lucide="users" class="h-4 w-4 mr-2"></i>
+        {{ spotify_user.followers_count }} followers
+      </span>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="mb-8">
+    <h2 class="text-2xl font-bold mb-6 flex items-center">
+      <i data-lucide="bar-chart-3" class="h-6 w-6 mr-2 text-primary"></i>
+      Your Music Stats
+    </h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
+        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="list-music" class="h-6 w-6 text-primary"></i>
+        </div>
+        <div class="text-3xl font-bold gradient-text mb-1">{{ listening_stats.total_playlists }}</div>
+        <div class="text-sm text-muted-foreground uppercase tracking-wide">Playlists</div>
+      </div>
+      
+      <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
+        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="heart" class="h-6 w-6 text-primary"></i>
+        </div>
+        <div class="text-3xl font-bold gradient-text mb-1">{{ listening_stats.total_saved_tracks }}</div>
+        <div class="text-sm text-muted-foreground uppercase tracking-wide">Saved Tracks</div>
+      </div>
+      
+      <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
+        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="mic-2" class="h-6 w-6 text-primary"></i>
+        </div>
+        <div class="text-3xl font-bold gradient-text mb-1">{{ listening_stats.total_artists_followed }}</div>
+        <div class="text-sm text-muted-foreground uppercase tracking-wide">Following</div>
+      </div>
+      
+      <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
+        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="clock" class="h-6 w-6 text-primary"></i>
+        </div>
+        <div class="text-sm font-semibold text-primary mb-1">
+          {% if listening_stats.last_synced %}
+            {{ listening_stats.last_synced|date:"M d, Y" }}
+          {% else %}
+            Not yet
+          {% endif %}
+        </div>
+        <div class="text-sm text-muted-foreground uppercase tracking-wide">Last Synced</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disconnect Option -->
+  <div class="glass rounded-xl p-6 border border-border mb-8">
+    <div class="flex items-start justify-between">
+      <div>
+        <h3 class="text-lg font-semibold mb-2 flex items-center">
+          <i data-lucide="link" class="h-5 w-5 mr-2 text-primary"></i>
+          Account Connection
+        </h3>
+        <p class="text-muted-foreground">Your Spotify account is connected to Syro.</p>
+      </div>
+      <form method="post" action="{% url 'music:spotify_disconnect' %}" class="inline">
+        {% csrf_token %}
+        <button type="submit" 
+                onclick="return confirm('Are you sure you want to disconnect your Spotify account?');"
+                class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/50 hover:border-red-500 transition-colors">
+          <i data-lucide="unlink" class="h-4 w-4 mr-2"></i>
+          Disconnect
+        </button>
+      </form>
+    </div>
+  </div>
+
+{% else %}
+  <!-- No Spotify Connection -->
+  <div class="glass rounded-2xl p-8 md:p-12 border border-yellow-500/20 bg-yellow-500/5 mb-8">
+    <div class="flex items-start space-x-4">
+      <div class="h-12 w-12 rounded-lg bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+        <i data-lucide="alert-circle" class="h-6 w-6 text-yellow-500"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-xl font-bold mb-3">Connect Your Spotify Account</h3>
+        <p class="text-muted-foreground mb-4">
+          To get the most out of Syro, connect your Spotify account. You'll be able to:
+        </p>
+        <ul class="space-y-2 mb-6">
+          <li class="flex items-center text-sm">
+            <i data-lucide="check" class="h-4 w-4 mr-2 text-primary flex-shrink-0"></i>
+            <span>View your top artists and tracks</span>
+          </li>
+          <li class="flex items-center text-sm">
+            <i data-lucide="check" class="h-4 w-4 mr-2 text-primary flex-shrink-0"></i>
+            <span>Create and manage playlists</span>
+          </li>
+          <li class="flex items-center text-sm">
+            <i data-lucide="check" class="h-4 w-4 mr-2 text-primary flex-shrink-0"></i>
+            <span>Track your listening statistics</span>
+          </li>
+          <li class="flex items-center text-sm">
+            <i data-lucide="check" class="h-4 w-4 mr-2 text-primary flex-shrink-0"></i>
+            <span>Discover personalized recommendations</span>
+          </li>
+          <li class="flex items-center text-sm">
+            <i data-lucide="check" class="h-4 w-4 mr-2 text-primary flex-shrink-0"></i>
+            <span>Stream music directly in the app</span>
+          </li>
+        </ul>
+        <a href="{% url 'music:spotify_login' %}" 
+           class="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold bg-gradient-to-r from-primary to-accent text-black hover-glow">
+          <i data-lucide="music-2" class="h-5 w-5 mr-2"></i>
+          Connect Spotify Now
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center py-12">
+    <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-6">
+      <i data-lucide="music-4" class="h-10 w-10 text-primary"></i>
+    </div>
+    <h2 class="text-3xl font-bold mb-3">Welcome to Syro!</h2>
+    <p class="text-muted-foreground text-lg max-w-md mx-auto">
+      Connect your Spotify account to start exploring your music in a whole new way.
+    </p>
+  </div>
+{% endif %}
+
+<!-- Quick Links -->
+<div class="glass rounded-xl p-8 border border-border">
+  <h2 class="text-2xl font-bold mb-6 flex items-center">
+    <i data-lucide="zap" class="h-6 w-6 mr-2 text-primary"></i>
+    Quick Access
+  </h2>
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <a href="{% url 'music:artist_list' %}" 
+       class="glass rounded-lg p-6 border border-border hover-glow hover:scale-105 transition-all group">
+      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <i data-lucide="mic-2" class="h-5 w-5 text-primary"></i>
+      </div>
+      <h3 class="font-semibold mb-2 gradient-text">Browse Artists</h3>
+      <p class="text-sm text-muted-foreground">Explore your favorite artists</p>
+    </a>
+    
+    <a href="{% url 'music:album_list' %}" 
+       class="glass rounded-lg p-6 border border-border hover-glow hover:scale-105 transition-all group">
+      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <i data-lucide="disc-3" class="h-5 w-5 text-primary"></i>
+      </div>
+      <h3 class="font-semibold mb-2 gradient-text">Browse Albums</h3>
+      <p class="text-sm text-muted-foreground">Check out complete albums</p>
+    </a>
+    
+    <a href="{% url 'music:song_list' %}" 
+       class="glass rounded-lg p-6 border border-border hover-glow hover:scale-105 transition-all group">
+      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <i data-lucide="music" class="h-5 w-5 text-primary"></i>
+      </div>
+      <h3 class="font-semibold mb-2 gradient-text">Browse Songs</h3>
+      <p class="text-sm text-muted-foreground">Find individual songs</p>
+    </a>
+    
+    <a href="{% url 'music:playlist_list' %}" 
+       class="glass rounded-lg p-6 border border-border hover-glow hover:scale-105 transition-all group">
+      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <i data-lucide="list-music" class="h-5 w-5 text-primary"></i>
+      </div>
+      <h3 class="font-semibold mb-2 gradient-text">Your Playlists</h3>
+      <p class="text-sm text-muted-foreground">Manage your playlists</p>
+    </a>
+  </div>
+</div>
+
+<script>
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+</script>
+{% endblock content %}

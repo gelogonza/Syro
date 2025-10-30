@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ playlist.title }} - Syro{% endblock title %}
+
+{% block extra_css %}
+<style>
+  .playlist-header {
+    background: linear-gradient(135deg, #663399, #bd70f4);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  .playlist-cover {
+    width: 150px;
+    height: 150px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    flex-shrink: 0;
+  }
+
+  .playlist-info h1 {
+    margin: 0 0 0.5rem 0;
+    color: white;
+  }
+
+  .playlist-info p {
+    margin: 0.25rem 0;
+    opacity: 0.95;
+  }
+
+  .playlist-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .playlist-actions a,
+  .playlist-actions button {
+    padding: 0.5rem 1rem;
+    background: white;
+    color: #663399;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .playlist-actions a:hover,
+  .playlist-actions button:hover {
+    background: rgba(255,255,255,0.9);
+  }
+
+  .tracklist {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .track-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+  }
+
+  .track-item:hover {
+    background-color: #f9f9f9;
+  }
+
+  .track-item:last-child {
+    border-bottom: none;
+  }
+
+  .track-info {
+    flex: 1;
+  }
+
+  .track-name {
+    font-weight: 600;
+  }
+
+  .track-artist {
+    font-size: 0.85rem;
+    color: #999;
+    margin-top: 0.25rem;
+  }
+
+  .track-remove {
+    padding: 0.5rem 1rem;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+  }
+
+  .track-remove:hover {
+    background: #d32f2f;
+  }
+
+  .empty-playlist {
+    text-align: center;
+    padding: 2rem;
+    color: #999;
+  }
+
+  .playlist-search-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .playlist-search-section h3 {
+    margin: 0 0 1rem 0;
+    color: #333;
+    font-size: 1.1rem;
+  }
+
+  .search-input-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  #playlistSearchInput {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+  }
+
+  #playlistSearchInput:focus {
+    outline: none;
+    border-color: #663399;
+    box-shadow: 0 0 0 2px rgba(102, 51, 153, 0.1);
+  }
+
+  .search-results {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .search-result-item {
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+    transition: all 0.2s;
+  }
+
+  .search-result-item:hover {
+    background: #f0f0f0;
+    border-color: #ccc;
+  }
+
+  .search-result-info {
+    flex: 1;
+  }
+
+  .search-result-name {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .search-result-artist {
+    font-size: 0.85rem;
+    color: #999;
+    margin-top: 0.25rem;
+  }
+
+  .add-song-btn {
+    padding: 0.5rem 1rem;
+    background: #663399;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+    margin-left: 1rem;
+  }
+
+  .add-song-btn:hover:not(:disabled) {
+    background: #5a2d88;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .add-song-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .loading-message {
+    text-align: center;
+    color: #999;
+    padding: 1rem;
+  }
+
+  .no-results-message {
+    text-align: center;
+    color: #999;
+    padding: 1rem;
+  }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container">
+  <div class="playlist-header">
+    <div style="flex: 1;">
+      <div class="playlist-cover">P</div>
+    </div>
+    <div class="playlist-info" style="flex: 1;">
+      <h1>{{ playlist.title }}</h1>
+      {% if playlist.description %}
+        <p>{{ playlist.description }}</p>
+      {% endif %}
+      <p>{{ playlist.songs.count }} songs • Created on {{ playlist.created_at|date:"SHORT_DATE_FORMAT" }}</p>
+      <div class="playlist-actions">
+        <a href="{% url 'music:update_playlist' playlist.id %}">Edit</a>
+        <a href="{% url 'music:delete_playlist' playlist.id %}">Delete</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Songs Section -->
+  <div class="playlist-search-section">
+    <h3>Add Songs to Playlist</h3>
+    <div class="search-input-wrapper">
+      <input
+        type="text"
+        id="playlistSearchInput"
+        placeholder="Search for songs to add..."
+        autocomplete="off"
+      >
+    </div>
+    <div id="searchResults" class="search-results"></div>
+    <input type="hidden" id="playlistId" value="{{ playlist.id }}">
+  </div>
+
+  <h2 style="margin: 2rem 0 1rem 0;">Tracks</h2>
+
+  {% if songs %}
+    <div class="tracklist">
+      {% for song in songs %}
+        <div class="track-item">
+          <div class="track-info">
+            <a href="{% url 'music:song_detail' song.id %}" style="text-decoration: none; color: inherit;">
+              <div class="track-name">{{ song.title }}</div>
+              <div class="track-artist">{{ song.album.artist.name }} • {{ song.album.title }}</div>
+            </a>
+          </div>
+          <form method="post" action="{% url 'music:remove_song_from_playlist' %}" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="playlist_id" value="{{ playlist.id }}">
+            <input type="hidden" name="song_id" value="{{ song.id }}">
+            <button type="submit" class="track-remove" onclick="return confirm('Remove this track?');">Remove</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-playlist">
+      <p style="font-size: 1.1rem; margin-bottom: 1rem;">This playlist is empty</p>
+      <p>Add songs from the <a href="{% url 'music:song_list' %}">song catalog</a> to get started</p>
+    </div>
+  {% endif %}
+
+  <div style="text-align: center; margin-top: 3rem;">
+    <a href="{% url 'music:playlist_list' %}" class="btn" style="background-color: #663399;">
+      Back to Playlists
+    </a>
+  </div>
+</div>
+
+<script>
+// Debounce for search input
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Get existing songs in playlist
+function getPlaylistSongs() {
+  const songs = new Set();
+  document.querySelectorAll('.track-item').forEach(item => {
+    const name = item.querySelector('.track-name')?.textContent.trim();
+    if (name) songs.add(name);
+  });
+  return songs;
+}
+
+// Search for songs
+function searchSongsPlaylist() {
+  const query = document.getElementById('playlistSearchInput').value.trim();
+  const resultsDiv = document.getElementById('searchResults');
+
+  if (query.length < 2) {
+    resultsDiv.innerHTML = '';
+    return;
+  }
+
+  resultsDiv.innerHTML = '<div class="loading-message">Searching...</div>';
+
+  // Search using existing search endpoint
+  fetch(`/music/search/?q=${encodeURIComponent(query)}`)
+    .then(response => response.json())
+    .then(data => {
+      displayPlaylistSearchResults(data, query);
+    })
+    .catch(error => {
+      console.error('Search error:', error);
+      resultsDiv.innerHTML = '<div class="no-results-message">Search failed. Try again.</div>';
+    });
+}
+
+function displayPlaylistSearchResults(data, query) {
+  const resultsDiv = document.getElementById('searchResults');
+  const playlistId = document.getElementById('playlistId').value;
+  const playlistSongs = getPlaylistSongs();
+
+  if (!data.songs || data.songs.length === 0) {
+    resultsDiv.innerHTML = '<div class="no-results-message">No songs found. Try a different search.</div>';
+    return;
+  }
+
+  let html = '';
+  data.songs.forEach(song => {
+    const isAlreadyAdded = playlistSongs.has(song.title);
+    const btnText = isAlreadyAdded ? 'Already Added' : '+ Add';
+    const btnDisabled = isAlreadyAdded ? 'disabled' : '';
+
+    html += `
+      <div class="search-result-item">
+        <div class="search-result-info">
+          <div class="search-result-name">${escapeHtml(song.title)}</div>
+          <div class="search-result-artist">${escapeHtml(song.album.artist.name)} • ${escapeHtml(song.album.title)}</div>
+        </div>
+        <button
+          class="add-song-btn"
+          onclick="addSongToPlaylist(${song.id}, ${playlistId}, this)"
+          ${btnDisabled}
+        >${btnText}</button>
+      </div>
+    `;
+  });
+
+  resultsDiv.innerHTML = html;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function addSongToPlaylist(songId, playlistId, button) {
+  button.disabled = true;
+  button.textContent = 'Adding...';
+
+  fetch('/music/api/playlists/add-song/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `song_id=${songId}&playlist_id=${playlistId}`
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      button.textContent = 'Added!';
+      button.style.background = '#4CAF50';
+
+      // Show toast notification
+      showToast('Song added to playlist!', 'success');
+
+      // Reload page after delay to show updated playlist
+      setTimeout(() => {
+        location.reload();
+      }, 1500);
+    } else {
+      button.disabled = false;
+      button.textContent = '+ Add';
+      showToast(data.message || 'Failed to add song', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    button.disabled = false;
+    button.textContent = '+ Add';
+    showToast('Error adding song', 'error');
+  });
+}
+
+// Setup search listener with debounce
+const debouncedSearch = debounce(searchSongsPlaylist, 300);
+document.getElementById('playlistSearchInput').addEventListener('keyup', debouncedSearch);
+
+// Allow Enter key to trigger search
+document.getElementById('playlistSearchInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    searchSongsPlaylist();
+  }
+});
+</script>
+{% endblock content %}
