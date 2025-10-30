@@ -30,16 +30,17 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    transition: background 2s cubic-bezier(0.4, 0.0, 0.2, 1);
-    filter: blur(80px);
-    opacity: 0.7;
+    transition: background 3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    filter: blur(120px);
+    opacity: 0.9;
+    transform: scale(1.2);
   }
 
   .dynamic-bg-overlay {
     position: absolute;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.6) 100%);
+    background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.4) 100%);
     z-index: 1;
   }
 
@@ -141,13 +142,20 @@
 
   /* Player Card */
   .player-card {
-    background: rgba(17, 17, 17, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(255, 255, 255, 0.05);
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.03),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .player-card:hover {
+    background: rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.12);
   }
 
   /* Track Info */
@@ -291,35 +299,37 @@
   .device-item {
     padding: 0.875rem 1rem;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
   }
 
   .device-item:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     border-color: rgba(16, 185, 129, 0.5);
     transform: translateX(4px);
   }
 
   .device-item.active {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(34, 197, 94, 0.2) 100%);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(34, 197, 94, 0.15) 100%);
     border-color: #10b981;
     color: #10b981;
   }
 
   /* Search Section */
   .search-input {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 0.875rem 1rem;
     color: #ffffff;
     font-weight: 500;
     transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
   }
 
   .search-input:focus {
@@ -335,9 +345,10 @@
 
   .search-result-item {
     padding: 0.875rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     transition: all 0.2s ease;
     cursor: pointer;
+    backdrop-filter: blur(10px);
   }
 
   .search-result-item:hover {
@@ -589,11 +600,13 @@
             <span class="iconify mr-2" data-icon="mdi:playlist-music"></span>
             Queue
           </h2>
-          {% if queue and queue.queue_tracks %}
-            <p class="text-gray-400 text-sm">{{ queue.queue_tracks|length }} tracks in queue</p>
-          {% else %}
-            <p class="text-center text-gray-500 py-4">Queue is empty</p>
-          {% endif %}
+          <div id="queueContainer">
+            {% if queue and queue.queue_tracks %}
+              <p class="text-gray-400 text-sm">{{ queue.queue_tracks|length }} tracks in queue</p>
+            {% else %}
+              <p class="text-center text-gray-500 py-4">Queue is empty</p>
+            {% endif %}
+          </div>
         </div>
 
         <!-- Navigation -->
@@ -675,17 +688,28 @@
       // Sort by frequency and get top colors
       const sortedColors = Object.entries(colorMap)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, numColors * 3)
+        .slice(0, numColors * 4)
         .filter(([color]) => {
           const [r, g, b] = color.split(',').map(Number);
-          // Filter out too bright or too dark colors
+          // Filter out too bright or too dark colors, but allow more range
           const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-          return brightness > 20 && brightness < 200;
+          const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+          // Prefer more saturated colors
+          return brightness > 15 && brightness < 220 && saturation > 10;
         })
         .slice(0, numColors)
         .map(([color]) => {
           const [r, g, b] = color.split(',').map(Number);
-          return `rgb(${r}, ${g}, ${b})`;
+          // Boost saturation for more vibrant colors
+          const max = Math.max(r, g, b);
+          const min = Math.min(r, g, b);
+          const boost = 1.3;
+          
+          const newR = Math.min(255, Math.round(r + (r - min) * (boost - 1)));
+          const newG = Math.min(255, Math.round(g + (g - min) * (boost - 1)));
+          const newB = Math.min(255, Math.round(b + (b - min) * (boost - 1)));
+          
+          return `rgb(${newR}, ${newG}, ${newB})`;
         });
 
       return sortedColors.length > 0 ? sortedColors : ['rgb(26, 26, 46)', 'rgb(22, 33, 62)', 'rgb(15, 52, 96)'];
@@ -702,13 +726,18 @@
     if (!albumArt || !dynamicBg) return;
 
     const updateBackground = () => {
-      const colors = extractDominantColors(albumArt, 3);
+      const colors = extractDominantColors(albumArt, 4);
 
-      // Create smooth gradient
-      const gradient = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 50%, ${colors[2] || colors[0]} 100%)`;
+      // Create vibrant multi-stop gradient with more variation
+      const gradient = `
+        radial-gradient(circle at 20% 80%, ${colors[0]} 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, ${colors[1]} 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, ${colors[2] || colors[0]} 0%, transparent 50%),
+        linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 50%, ${colors[2] || colors[0]} 100%)
+      `;
 
       dynamicBg.style.background = gradient;
-      console.log('Dynamic background updated:', colors);
+      console.log('Dynamic background updated with colors:', colors);
     };
 
     if (albumArt.complete) {
@@ -955,12 +984,28 @@
     const resultsDiv = document.getElementById('playerSearchResults');
 
     let searchTimeout;
+    let abortController = null;
+
     function debounceSearch() {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(performPlayerSearch, 300);
     }
 
-    searchInput.addEventListener('keyup', debounceSearch);
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+
+      if (query.length === 0) {
+        resultsDiv.innerHTML = '';
+        if (abortController) {
+          abortController.abort();
+          abortController = null;
+        }
+        return;
+      }
+
+      debounceSearch();
+    });
+
     searchInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         clearTimeout(searchTimeout);
@@ -970,48 +1015,338 @@
 
     function performPlayerSearch() {
       const query = searchInput.value.trim();
-      resultsDiv.innerHTML = '';
 
-      if (query.length < 2) return;
+      if (query.length < 2) {
+        resultsDiv.innerHTML = '';
+        return;
+      }
 
-      resultsDiv.innerHTML = '<div class="text-center py-4 text-gray-400">Searching...</div>';
+      if (abortController) {
+        abortController.abort();
+      }
+      abortController = new AbortController();
 
-      fetch(`/music/api/search/?q=${encodeURIComponent(query)}`)
-        .then(r => r.json())
+      resultsDiv.innerHTML = `
+        <div class="text-center py-8">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mb-2"></div>
+          <div class="text-gray-400">Searching...</div>
+        </div>
+      `;
+
+      fetch(`/music/api/search/?q=${encodeURIComponent(query)}`, {
+        signal: abortController.signal
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: Search failed`);
+          }
+          return response.json();
+        })
         .then(data => {
-          if (!data.songs || data.songs.length === 0) {
-            resultsDiv.innerHTML = '<div class="text-center py-4 text-gray-400">No songs found</div>';
+          abortController = null;
+
+          if (!data || typeof data !== 'object') {
+            throw new Error('Invalid response format');
+          }
+
+          renderSearchResults(data);
+        })
+        .catch(error => {
+          if (error.name === 'AbortError') {
             return;
           }
 
-          let html = '';
-          data.songs.forEach(song => {
-            html += `
-              <div class="search-result-item">
-                <div class="flex justify-between items-center">
-                  <div class="flex-1 min-w-0 mr-4">
-                    <div class="font-semibold text-white truncate">${escapeHtml(song.title)}</div>
-                    <div class="text-sm text-gray-400 truncate">${escapeHtml(song.album.artist.name)} • ${escapeHtml(song.album.title)}</div>
-                  </div>
-                  <button
-                    class="control-btn flex-shrink-0"
-                    onclick="playTrack('spotify:track:${song.spotify_id}');"
-                    title="Play"
-                  >
-                    <span class="iconify text-xl" data-icon="mdi:play"></span>
-                  </button>
-                </div>
-              </div>
-            `;
-          });
-
-          resultsDiv.innerHTML = html;
-        })
-        .catch(error => {
           console.error('Search error:', error);
-          resultsDiv.innerHTML = '<div class="text-center py-4 text-gray-400">Search failed</div>';
+          resultsDiv.innerHTML = `
+            <div class="text-center py-8">
+              <span class="iconify text-4xl text-red-400 mb-2" data-icon="mdi:alert-circle"></span>
+              <div class="text-gray-400">Search failed. Please try again.</div>
+              <div class="text-sm text-gray-500 mt-1">${escapeHtml(error.message || 'Unknown error')}</div>
+            </div>
+          `;
         });
     }
+
+    function renderSearchResults(data) {
+      const songs = Array.isArray(data?.songs) ? data.songs.filter(Boolean) : [];
+      const artists = Array.isArray(data?.artists) ? data.artists.filter(Boolean) : [];
+      const albums = Array.isArray(data?.albums) ? data.albums.filter(Boolean) : [];
+
+      const totalResults = songs.length + artists.length + albums.length;
+
+      if (totalResults === 0) {
+        resultsDiv.innerHTML = `
+          <div class="text-center py-8">
+            <span class="iconify text-4xl text-gray-500 mb-2" data-icon="mdi:music-note-off"></span>
+            <div class="text-gray-400">No results found</div>
+            <div class="text-sm text-gray-500 mt-1">Try a different search term</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+
+      if (songs.length > 0) {
+        html += `
+          <div class="search-section mb-4">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider px-4 py-2 bg-white/5">
+              Songs (${songs.length})
+            </h3>
+            <div class="search-section-items">
+              ${songs.map(song => {
+                try {
+                  return renderSongResult(song);
+                } catch (e) {
+                  console.error('Error rendering song:', song, e);
+                  return '';
+                }
+              }).filter(Boolean).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (artists.length > 0) {
+        html += `
+          <div class="search-section mb-4">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider px-4 py-2 bg-white/5">
+              Artists (${artists.length})
+            </h3>
+            <div class="search-section-items">
+              ${artists.map(artist => {
+                try {
+                  return renderArtistResult(artist);
+                } catch (e) {
+                  console.error('Error rendering artist:', artist, e);
+                  return '';
+                }
+              }).filter(Boolean).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (albums.length > 0) {
+        html += `
+          <div class="search-section mb-4">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider px-4 py-2 bg-white/5">
+              Albums (${albums.length})
+            </h3>
+            <div class="search-section-items">
+              ${albums.map(album => {
+                try {
+                  return renderAlbumResult(album);
+                } catch (e) {
+                  console.error('Error rendering album:', album, e);
+                  return '';
+                }
+              }).filter(Boolean).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      resultsDiv.innerHTML = html;
+    }
+
+    function renderSongResult(song) {
+      if (!song || typeof song !== 'object') {
+        return '';
+      }
+
+      const title = String(song.title || 'Unknown Song').trim();
+      const spotifyId = String(song.spotify_id || '').trim();
+      let trackUri = String(song.uri || '').trim();
+
+      if (!trackUri && spotifyId) {
+        trackUri = `spotify:track:${spotifyId}`;
+      }
+
+      if (!trackUri) {
+        console.warn('Song missing valid URI:', song);
+        return '';
+      }
+
+      const artistName = String(
+        (song.artist && song.artist.name) ||
+        (song.album && song.album.artist && song.album.artist.name) ||
+        'Unknown Artist'
+      ).trim();
+
+      const albumTitle = String(
+        (song.album && song.album.title) || 'Unknown Album'
+      ).trim();
+
+      const albumCover = String(
+        (song.album && song.album.cover_url) || ''
+      ).trim();
+
+      const safeUri = escapeHtml(trackUri);
+      const safeTitle = escapeHtml(title);
+      const safeArtist = escapeHtml(artistName);
+      const safeAlbum = escapeHtml(albumTitle);
+      const safeCover = escapeHtml(albumCover);
+
+      return `
+        <div class="search-result-item song-result">
+          <div class="flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors" onclick="playTrackFromSearch('${safeUri}')">
+            ${albumCover ? `
+              <img
+                src="${safeCover}"
+                alt="${safeAlbum}"
+                class="w-12 h-12 rounded flex-shrink-0 object-cover"
+                onerror="this.style.display='none'"
+                loading="lazy"
+              />
+            ` : `
+              <div class="w-12 h-12 rounded flex-shrink-0 bg-white/10 flex items-center justify-center flex-shrink-0">
+                <span class="iconify text-xl text-gray-500" data-icon="mdi:music"></span>
+              </div>
+            `}
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-white truncate">${safeTitle}</div>
+              <div class="text-sm text-gray-400 truncate">${safeArtist} • ${safeAlbum}</div>
+            </div>
+            <div class="flex gap-2 flex-shrink-0">
+              <button
+                class="control-btn"
+                onclick="event.stopPropagation(); playTrackFromSearch('${safeUri}');"
+                title="Play"
+                type="button"
+              >
+                <span class="iconify text-xl" data-icon="mdi:play"></span>
+              </button>
+              <button
+                class="control-btn"
+                onclick="event.stopPropagation(); addToQueueFromSearch('${safeUri}', {title: '${escapeHtml(title)}', artist: '${safeArtist}', album: '${safeAlbum}'});"
+                title="Add to Queue"
+                type="button"
+              >
+                <span class="iconify text-xl" data-icon="mdi:playlist-plus"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderArtistResult(artist) {
+      if (!artist || typeof artist !== 'object') {
+        return '';
+      }
+
+      const name = String(artist.name || 'Unknown Artist').trim();
+      const imageUrl = String(artist.image_url || '').trim();
+
+      if (!name) {
+        return '';
+      }
+
+      const safeName = escapeHtml(name);
+      const safeImage = escapeHtml(imageUrl);
+
+      return `
+        <div class="search-result-item artist-result">
+          <div class="flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors">
+            ${imageUrl ? `
+              <img
+                src="${safeImage}"
+                alt="${safeName}"
+                class="w-12 h-12 rounded-full flex-shrink-0 object-cover"
+                onerror="this.style.display='none'"
+                loading="lazy"
+              />
+            ` : `
+              <div class="w-12 h-12 rounded-full flex-shrink-0 bg-white/10 flex items-center justify-center">
+                <span class="iconify text-xl text-gray-500" data-icon="mdi:account-music"></span>
+              </div>
+            `}
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-white truncate">${safeName}</div>
+              <div class="text-sm text-gray-400">Artist</div>
+            </div>
+            <span class="iconify text-xl text-gray-500 flex-shrink-0" data-icon="mdi:chevron-right"></span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAlbumResult(album) {
+      if (!album || typeof album !== 'object') {
+        return '';
+      }
+
+      const title = String(album.title || 'Unknown Album').trim();
+      const artistName = String(
+        (album.artist && album.artist.name) ||
+        album.artist ||
+        'Unknown Artist'
+      ).trim();
+      const coverUrl = String(album.cover_url || album.image_url || '').trim();
+
+      let releaseYear = '';
+      if (album.release_date) {
+        try {
+          releaseYear = new Date(album.release_date).getFullYear();
+        } catch (e) {
+          console.warn('Invalid release date:', album.release_date);
+        }
+      }
+
+      if (!title) {
+        return '';
+      }
+
+      const safeTitle = escapeHtml(title);
+      const safeArtist = escapeHtml(artistName);
+      const safeCover = escapeHtml(coverUrl);
+
+      return `
+        <div class="search-result-item album-result">
+          <div class="flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors">
+            ${coverUrl ? `
+              <img
+                src="${safeCover}"
+                alt="${safeTitle}"
+                class="w-12 h-12 rounded flex-shrink-0 object-cover"
+                onerror="this.style.display='none'"
+                loading="lazy"
+              />
+            ` : `
+              <div class="w-12 h-12 rounded flex-shrink-0 bg-white/10 flex items-center justify-center">
+                <span class="iconify text-xl text-gray-500" data-icon="mdi:album"></span>
+              </div>
+            `}
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-white truncate">${safeTitle}</div>
+              <div class="text-sm text-gray-400 truncate">
+                ${safeArtist}${releaseYear ? ` • ${releaseYear}` : ''}
+              </div>
+            </div>
+            <span class="iconify text-xl text-gray-500 flex-shrink-0" data-icon="mdi:chevron-right"></span>
+          </div>
+        </div>
+      `;
+    }
+
+    window.playTrackFromSearch = function(trackUri) {
+      if (!trackUri || typeof trackUri !== 'string' || trackUri.trim() === '') {
+        console.error('Invalid track URI provided:', trackUri);
+        showNotification('Invalid track selected', 'error');
+        return;
+      }
+      playTrack(trackUri);
+    };
+
+    window.addToQueueFromSearch = function(trackUri, trackInfo) {
+      if (!trackUri || typeof trackUri !== 'string' || trackUri.trim() === '') {
+        console.error('Invalid track URI provided:', trackUri);
+        showNotification('Invalid track selected', 'error');
+        return;
+      }
+      addToQueue(trackUri, trackInfo || {});
+    };
   }
 
   function playTrack(trackUri) {
@@ -1037,6 +1372,142 @@
         }, 500);
       }
     });
+  }
+
+  function addToQueue(trackUri, trackInfo = {}) {
+    fetch('{% url "music:add_to_queue" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        track_uri: trackUri,
+        track_info: trackInfo
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        // Show success message
+        showNotification(data.message, 'success');
+        // Update queue display
+        updateQueueDisplay();
+      } else {
+        showNotification(data.message || 'Failed to add to queue', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Add to queue error:', error);
+      showNotification('Failed to add to queue', 'error');
+    });
+  }
+
+  function updateQueueDisplay() {
+    fetch('{% url "music:get_queue" %}')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const queueContainer = document.getElementById('queueContainer');
+          const queueLength = data.queue_length || 0;
+          
+          if (queueLength > 0) {
+            queueContainer.innerHTML = `
+              <div class="space-y-2">
+                <div class="flex justify-between items-center mb-2">
+                  <p class="text-gray-400 text-sm">${queueLength} track${queueLength !== 1 ? 's' : ''} in queue</p>
+                  <button 
+                    onclick="clearQueue()"
+                    class="text-xs text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    Clear Queue
+                  </button>
+                </div>
+                <div class="max-h-60 overflow-y-auto space-y-2">
+                  ${data.queue.slice(0, 10).map((track, index) => `
+                    <div class="flex items-center gap-2 p-2 rounded bg-white/5 hover:bg-white/10 transition-colors">
+                      ${track.album_image ? `
+                        <img src="${escapeHtml(track.album_image)}" alt="" class="w-10 h-10 rounded flex-shrink-0" />
+                      ` : `
+                        <div class="w-10 h-10 rounded flex-shrink-0 bg-white/10 flex items-center justify-center">
+                          <span class="iconify text-gray-500" data-icon="mdi:music"></span>
+                        </div>
+                      `}
+                      <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-white truncate">${escapeHtml(track.name)}</div>
+                        <div class="text-xs text-gray-400 truncate">${escapeHtml(track.artists)}</div>
+                      </div>
+                      <span class="text-xs text-gray-500">${formatTime(track.duration_ms)}</span>
+                    </div>
+                  `).join('')}
+                  ${queueLength > 10 ? `
+                    <div class="text-center text-xs text-gray-500 py-2">
+                      +${queueLength - 10} more track${queueLength - 10 !== 1 ? 's' : ''}
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          } else {
+            queueContainer.innerHTML = '<p class="text-center text-gray-500 py-4">Queue is empty</p>';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Get queue error:', error);
+      });
+  }
+
+  function clearQueue() {
+    if (!confirm('Are you sure you want to clear the queue?')) {
+      return;
+    }
+
+    fetch('{% url "music:clear_queue" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        showNotification('Queue cleared', 'success');
+        updateQueueDisplay();
+      }
+    })
+    .catch(error => {
+      console.error('Clear queue error:', error);
+      showNotification('Failed to clear queue', 'error');
+    });
+  }
+
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 ${
+      type === 'success' ? 'bg-green-500' :
+      type === 'error' ? 'bg-red-500' :
+      'bg-blue-500'
+    } text-white font-medium`;
+    notification.textContent = message;
+    notification.style.transform = 'translateX(400px)';
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+      notification.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Animate out and remove
+    setTimeout(() => {
+      notification.style.transform = 'translateX(400px)';
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 3000);
   }
 
   // ==================== Spotify Web Playback SDK ====================
@@ -1107,8 +1578,14 @@
     // Update playback state
     updatePlaybackState();
 
+    // Update queue display
+    updateQueueDisplay();
+
     // Update playback state every 2 seconds
     setInterval(updatePlaybackState, 2000);
+
+    // Update queue display every 10 seconds
+    setInterval(updateQueueDisplay, 10000);
 
     // Setup search functionality
     setupPlayerSearch();

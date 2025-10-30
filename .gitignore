@@ -46,71 +46,140 @@ db.sqlite3-journal
 *.sublime-project
 *.sublime-workspace
 
-# Environment variables
+# Environment variables and Sensitive Data
 .env
 .env.local
 .env.*.local
+*.env
+.env.production
+.env.development
+.env.test
+settings_local.py
+secrets.py
+config/secrets.json
+
+# Spotify and API Credentials
+spotify_credentials.json
+credentials.json
+client_secret*.json
+token.json
+refresh_token.json
+
+# Security
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+private_key*
+public_key*
+secret_key*
+api_key*
+*.secret
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+db.sqlite3
 
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
-
-# Sensitive files
-secrets/
-credentials.json
-*.pem
-*.key
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Celery
-celerybeat-schedule
-dump.rdb
-
-# Redis
-*.rdb
-
-# Node (if using any frontend tools)
-node_modules/
-npm-debug.log
-yarn-error.log
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
 
 # Backup files
 *.bak
 *.backup
 *.tmp
+*.swp
+*~
 
-# IDE-specific
-.vscode/settings.json
-.vscode/launch.json
-.vscode/tasks.json
+# Celery
+celerybeat-schedule
+celerybeat.pid
+dump.rdb
 
-# OS-specific
+# Redis
+*.rdb
+redis.conf
+
+# Node (if using any frontend tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# OS
+.DS_Store
+Thumbs.db
 ._*
 .localized
+.Spotlight-V100
+.Trashes
+
+# IDE-specific
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
 # Documentation (auto-generated during sessions)
 *.md
 !README.md
 !CONTRIBUTING.md
+!LICENSE.md
+!CHANGELOG.md
+!NEXT_STEPS.md
+!FUTURE_FEATURES.md
+!SESSION_SUMMARY.md
 
-# Claude Code
+# Claude/AI Code Sessions
 .claude/
+.anthropic/
+.ai-sessions/
 
 # Cache files
 .cache
 __pycache__/
 *.pyc
 *.pyo
+.Python
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
-# Sensitive information
-.env
-.env.local
-.env.*.local
-credentials.json
-secrets.json
-private_key.pem
-spotify_credentials.json
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# User uploaded content (configure based on your needs)
+/media/uploads/private/
+user_files/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Session data
+sessions/
+
+# Django migrations (optional - uncomment if needed)
+# */migrations/*.py
+# !*/migrations/__init__.py
