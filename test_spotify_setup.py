@@ -41,9 +41,9 @@ for name, value in checks:
             display = value[:10] + "..." + value[-5:]
         else:
             display = value
-        print(f"✅ {name}: {display}")
+        print(f"[PASS] {name}: {display}")
     else:
-        print(f"❌ {name}: NOT SET")
+        print(f"[FAIL] {name}: NOT SET")
         sys.exit(1)
 
 print()
@@ -54,7 +54,7 @@ print("-" * 70)
 
 try:
     auth_url = SpotifyService.get_authorization_url()
-    print(f"✅ Auth URL generated successfully")
+    print(f"[PASS] Auth URL generated successfully")
     print(f"   Length: {len(auth_url)} characters")
 
     # Extract scopes from URL
@@ -65,11 +65,11 @@ try:
 
     print(f"   Scopes: {len(scopes)} total")
     for scope in scopes:
-        print(f"      ✅ {scope}")
+        print(f"      [PASS] {scope}")
 
     print()
 except Exception as e:
-    print(f"❌ Error: {e}")
+    print(f"[FAIL] Error: {e}")
     sys.exit(1)
 
 # Test 3: Check SpotifyUser database
@@ -78,11 +78,11 @@ print("-" * 70)
 
 spotify_users = SpotifyUser.objects.all()
 if spotify_users.exists():
-    print(f"✅ Found {spotify_users.count()} Spotify user(s):")
+    print(f"[PASS] Found {spotify_users.count()} Spotify user(s):")
     for su in spotify_users:
         print(f"   - {su.user.username}: is_connected={su.is_connected}")
 else:
-    print(f"ℹ️  No Spotify users yet (this is OK - they'll be created on first auth)")
+    print(f"[INFO]  No Spotify users yet (this is OK - they'll be created on first auth)")
 
 print()
 
@@ -92,13 +92,13 @@ print("-" * 70)
 
 users = User.objects.all()
 if users.exists():
-    print(f"✅ Found {users.count()} user(s):")
+    print(f"[PASS] Found {users.count()} user(s):")
     for user in users:
         has_spotify = hasattr(user, 'spotify_user')
-        status = "✅ Has Spotify" if has_spotify else "⚠️  No Spotify yet"
+        status = "[PASS] Has Spotify" if has_spotify else "[WARN]  No Spotify yet"
         print(f"   - {user.username}: {status}")
 else:
-    print(f"❌ No users found - need to create users first")
+    print(f"[FAIL] No users found - need to create users first")
 
 print()
 
@@ -127,7 +127,7 @@ When you click "Connect with Spotify":
 
 5. Backend exchanges code for tokens
 
-6. You're logged in! ✅
+6. You're logged in! [PASS]
 """)
 
 print()
@@ -145,7 +145,7 @@ all_good = (
 )
 
 if all_good:
-    print("✅ SETUP IS CORRECT!")
+    print("[PASS] SETUP IS CORRECT!")
     print()
     print("Next steps:")
     print("1. Go to: http://localhost:8000/music/dashboard/")
@@ -156,7 +156,7 @@ if all_good:
     print("5. Go to search and try playing a song!")
     print()
 else:
-    print("❌ SETUP HAS ISSUES - See errors above")
+    print("[FAIL] SETUP HAS ISSUES - See errors above")
     sys.exit(1)
 
 print("=" * 70)

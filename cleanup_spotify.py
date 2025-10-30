@@ -22,7 +22,7 @@ print()
 users_with_spotify = User.objects.filter(spotify_user__isnull=False)
 
 if not users_with_spotify:
-    print("✅ No Spotify accounts found. You're all set to reconnect!")
+    print("[PASS] No Spotify accounts found. You're all set to reconnect!")
     exit(0)
 
 print(f"Found {users_with_spotify.count()} user(s) with Spotify accounts:")
@@ -30,7 +30,7 @@ print()
 
 for user in users_with_spotify:
     spotify_user = user.spotify_user
-    print(f"  👤 {user.username}")
+    print(f"  [USER] {user.username}")
     print(f"     Spotify ID: {spotify_user.spotify_id}")
     print(f"     Is Connected: {spotify_user.is_connected}")
     print(f"     Token Expires: {spotify_user.token_expires_at}")
@@ -40,7 +40,7 @@ for user in users_with_spotify:
 confirm = input("Delete all Spotify connections to allow fresh reconnect? (yes/no): ").strip().lower()
 
 if confirm != 'yes':
-    print("❌ Cancelled. No changes made.")
+    print("[FAIL] Cancelled. No changes made.")
     exit(0)
 
 # Delete all Spotify connections
@@ -48,7 +48,7 @@ count = SpotifyUser.objects.count()
 SpotifyUser.objects.all().delete()
 
 print()
-print(f"✅ Successfully deleted {count} Spotify connection(s)")
+print(f"[PASS] Successfully deleted {count} Spotify connection(s)")
 print()
 print("Next steps:")
 print("1. Go to: http://localhost:8000/music/dashboard/")
