@@ -32,15 +32,15 @@
   </div>
 </div>
 
-{% if artists %}
+{% if page_obj.object_list %}
   <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-    {% for artist in artists %}
+    {% for artist in page_obj.object_list %}
       <div class="glass rounded-xl border border-border hover-glow hover:scale-105 transition-all group overflow-hidden">
         <!-- Artist Avatar -->
         <div class="aspect-square bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center relative overflow-hidden">
           <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 group-hover:scale-110 transition-transform"></div>
           <i data-lucide="mic-2" class="h-20 w-20 text-primary/50 relative z-10"></i>
-          
+
           <!-- Play Button Overlay -->
           <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <button class="h-14 w-14 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center hover-glow">
@@ -48,7 +48,7 @@
             </button>
           </div>
         </div>
-        
+
         <!-- Artist Info -->
         <div class="p-6">
           <h3 class="text-xl font-semibold mb-3 line-clamp-1 group-hover:text-primary transition-colors">
@@ -57,9 +57,9 @@
           <p class="text-sm text-muted-foreground mb-4 line-clamp-3">
             {{ artist.biography|truncatewords:20|default:"Talented artist creating amazing music" }}
           </p>
-          
+
           <!-- Action Button -->
-          <a href="{% url 'music:artist_detail' artist.id %}" 
+          <a href="{% url 'music:artist_detail' artist.id %}"
              class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-secondary hover:bg-secondary/80 border border-border w-full group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-accent group-hover:text-black transition-all">
             <i data-lucide="user" class="h-4 w-4 mr-2"></i>
             View Profile
@@ -68,6 +68,31 @@
       </div>
     {% endfor %}
   </div>
+
+  <!-- Pagination Controls -->
+  {% if page_obj.has_other_pages %}
+  <div class="flex justify-center items-center gap-2 mt-12">
+    {% if page_obj.has_previous %}
+      <a href="?page=1" class="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors">First</a>
+      <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors">Previous</a>
+    {% endif %}
+
+    <div class="flex gap-1">
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <span class="px-3 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-semibold">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a href="?page={{ num }}" class="px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors">Next</a>
+      <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors">Last</a>
+    {% endif %}
+  </div>
+  {% endif %}
 {% else %}
   <!-- Empty State -->
   <div class="glass rounded-2xl p-12 border border-border text-center">

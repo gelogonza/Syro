@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',  # Compress responses
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -228,6 +229,15 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+    # API Rate Limiting
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour'
+    }
 }
 
 # ============================================================
@@ -236,6 +246,34 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000').split(',')
 
 CORS_ALLOW_CREDENTIALS = True
+
+# ============================================================
+# Caching Configuration
+# ============================================================
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'syromusic-cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 10000
+        }
+    }
+}
+
+# Configure Redis caching if available (production recommended)
+# To use Redis: pip install redis django-redis
+# Then set: CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#             'CONNECTION_POOL_KWARGS': {'max_connections': 50}
+#         }
+#     }
+# }
+
+CACHE_TIMEOUT = 300  # 5 minutes default cache timeout
 
 # ============================================================
 # Security Headers (for production)

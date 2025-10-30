@@ -8,6 +8,8 @@ from django.contrib import messages
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.cache import cache_page
+from django.core.paginator import Paginator
 from datetime import timedelta
 
 from .models import (
@@ -17,17 +19,23 @@ from .models import (
 from .services import SpotifyService, TokenManager
 
 
+@cache_page(60 * 15)  # Cache for 15 minutes
 def artist_list(request):
     """Display list of all artists."""
     artists = Artist.objects.all()
-    return render(request, 'SyroMusic/artist_list.html', {'artists': artists})
+    # Pagination for performance
+    paginator = Paginator(artists, 25)  # 25 artists per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'SyroMusic/artist_list.html', {'page_obj': page_obj})
 
 
 def artist_detail(request, artist_id):
     """Display detailed view of a specific artist."""
     try:
-        artist = Artist.objects.get(id=artist_id)
-        albums = artist.albums.select_related('artist').all()
+        # Optimize with prefetch_related for albums and songs
+        artist = Artist.objects.prefetch_related('albums__songs').get(id=artist_id)
+        albums = artist.albums.all()
 
         context = {
             'artist': artist,
@@ -39,10 +47,15 @@ def artist_detail(request, artist_id):
         return redirect('music:artist_list')
 
 
+@cache_page(60 * 15)  # Cache for 15 minutes
 def album_list(request):
     """Display list of all albums."""
     albums = Album.objects.select_related('artist').all()
-    return render(request, 'SyroMusic/album_list.html', {'albums': albums})
+    # Pagination for performance
+    paginator = Paginator(albums, 25)  # 25 albums per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'SyroMusic/album_list.html', {'page_obj': page_obj})
 
 
 def album_detail(request, album_id):
@@ -61,10 +74,15 @@ def album_detail(request, album_id):
         return redirect('music:album_list')
 
 
+@cache_page(60 * 15)  # Cache for 15 minutes
 def song_list(request):
     """Display list of all songs."""
     songs = Song.objects.select_related('album', 'album__artist').all()
-    return render(request, 'SyroMusic/song_list.html', {'songs': songs})
+    # Pagination for performance
+    paginator = Paginator(songs, 50)  # 50 songs per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'SyroMusic/song_list.html', {'page_obj': page_obj})
 
 
 def song_detail(request, song_id):
@@ -81,15 +99,17 @@ def song_detail(request, song_id):
         return redirect('music:song_list')
 
 
+@login_required(login_url='login')
 def playlist_list(request):
-    """Display list of all playlists or user's playlists if authenticated."""
-    if request.user.is_authenticated:
-        playlists = Playlist.objects.filter(user=request.user).prefetch_related(
-            'songs', 'songs__album', 'songs__album__artist'
-        )
-    else:
-        playlists = Playlist.objects.none()
-    return render(request, 'SyroMusic/playlist_list.html', {'playlists': playlists})
+    """Display list of user's playlists."""
+    playlists = Playlist.objects.filter(user=request.user).prefetch_related(
+        'songs', 'songs__album', 'songs__album__artist'
+    ).all()
+    # Pagination for performance
+    paginator = Paginator(playlists, 20)  # 20 playlists per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'SyroMusic/playlist_list.html', {'page_obj': page_obj})
 
 
 def signup(request):
