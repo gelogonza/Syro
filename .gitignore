@@ -135,22 +135,18 @@ Thumbs.db
 .settings/
 *.sublime-workspace
 
-# Documentation (auto-generated during sessions)
+# Documentation (essential only)
 *.md
 !README.md
 !CONTRIBUTING.md
 !LICENSE.md
 !CHANGELOG.md
-!NEXT_STEPS.md
-!FUTURE_FEATURES.md
-!SESSION_SUMMARY.md
 !QUICK_START_GUIDE.md
-!DOCUMENTATION_INDEX.md
-!SECURITY_AUDIT.md
-!GIT_SECURITY_SUMMARY.md
-!QUESTIONS_ANSWERED.md
-!REDIS_SETUP.md
-!ERROR_FIX_SUMMARY.md
+!DOCUMENTATION_CLEANUP_PLAN.md
+
+# Allow .docs folder for archived documentation
+!.docs/
+!.docs/**/*.md
 
 # Claude/AI Code Sessions
 .claude/
