@@ -4,649 +4,781 @@
 
 {% block extra_css %}
 <style>
-  .player-container {
-    display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 2rem;
-    margin: 2rem 0;
-    min-height: calc(100vh - 250px);
+  /* Dark Theme Override for Player Page */
+  body {
+    background: #0a0a0a !important;
+    color: #ffffff !important;
   }
 
-  .main-player {
-    background: white;
-    border: 4px solid #000000;
-    box-shadow: 8px 8px 0 0 #000000;
-    padding: 2rem;
-    color: black;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: background-color 0.3s ease;
+  body::before {
+    display: none;
   }
 
-  .now-playing-display {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    margin-bottom: 2rem;
+  /* Dynamic Background Container */
+  .dynamic-bg-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
   }
 
-  .album-art {
-    width: 250px;
-    height: 250px;
-    border: 4px solid #000000;
-    box-shadow: 6px 6px 0 0 #000000;
+  .dynamic-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    transition: background 2s cubic-bezier(0.4, 0.0, 0.2, 1);
+    filter: blur(80px);
+    opacity: 0.7;
+  }
+
+  .dynamic-bg-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.6) 100%);
+    z-index: 1;
+  }
+
+  /* Content wrapper to sit above dynamic background */
+  .content-wrapper {
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Vinyl Record Styles */
+  .vinyl-container {
+    position: relative;
+    width: 360px;
+    height: 360px;
+    margin: 0 auto;
+  }
+
+  .vinyl-record {
+    position: relative;
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #2a2a2a 0%, #1a1a1a 40%, #0a0a0a 100%);
+    box-shadow:
+      0 0 0 8px #0a0a0a,
+      0 20px 60px rgba(0,0,0,0.8),
+      inset 0 0 30px rgba(0,0,0,0.5);
+    animation: spin 4s linear infinite paused;
+    transform-origin: center;
+  }
+
+  .vinyl-record.playing {
+    animation-play-state: running;
+  }
+
+  /* Vinyl grooves effect */
+  .vinyl-grooves {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: repeating-radial-gradient(
+      circle at center,
+      transparent 0px,
+      transparent 2px,
+      rgba(255,255,255,0.02) 2px,
+      rgba(255,255,255,0.02) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* Center label with album art */
+  .vinyl-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 4px #1a1a1a,
+      0 0 0 8px #0a0a0a,
+      0 8px 24px rgba(0,0,0,0.6);
+    background: #1a1a1a;
+  }
+
+  .vinyl-label img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    margin-bottom: 2rem;
   }
 
-  .album-placeholder {
-    width: 250px;
-    height: 250px;
-    background: #f5f5f5;
-    border: 4px solid #000000;
-    box-shadow: 6px 6px 0 0 #000000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    font-weight: 900;
-    margin-bottom: 2rem;
+  /* Center hole */
+  .vinyl-hole {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+    box-shadow:
+      inset 0 2px 8px rgba(0,0,0,0.8),
+      0 0 0 2px #2a2a2a;
+    z-index: 10;
   }
 
-  .track-info {
-    margin-bottom: 1.5rem;
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
+  /* Player Card */
+  .player-card {
+    background: rgba(17, 17, 17, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  /* Track Info */
   .track-name {
-    font-size: 2rem;
-    font-weight: 900;
-    margin-bottom: 0.5rem;
-    word-wrap: break-word;
-    text-transform: uppercase;
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
     letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .artist-album-info {
-    font-size: 1.1rem;
-    font-weight: 700;
+  .artist-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
     margin-bottom: 0.25rem;
   }
 
-  .album-info {
-    font-size: 0.95rem;
-    font-weight: 600;
+  .album-name {
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
   }
 
   /* Progress Bar */
   .progress-container {
-    margin-bottom: 2rem;
-  }
-
-  .progress-bar {
+    position: relative;
     width: 100%;
     height: 8px;
-    background: #e5e5e5;
-    border: 2px solid #000000;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
     cursor: pointer;
-    margin-bottom: 0.5rem;
     overflow: hidden;
+    transition: height 0.2s ease;
   }
 
-  .progress {
+  .progress-container:hover {
+    height: 10px;
+  }
+
+  .progress-fill {
     height: 100%;
-    background: black;
+    background: linear-gradient(90deg, #10b981 0%, #22c55e 100%);
+    border-radius: 4px;
     transition: width 0.1s linear;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
   }
 
   .time-display {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    font-variant-numeric: tabular-nums;
   }
 
-  /* Player Controls */
-  .player-controls {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-  }
-
+  /* Control Buttons */
   .control-btn {
-    background: white;
-    color: black;
-    border: 3px solid #000000;
-    box-shadow: 4px 4px 0 0 #000000;
-    padding: 1rem;
-    width: 60px;
-    height: 60px;
-    cursor: pointer;
-    font-size: 1.2rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s ease;
-    font-weight: 900;
-    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
   }
 
   .control-btn:hover {
-    background: black;
-    color: white;
-  }
-
-  .control-btn.small {
-    width: 50px;
-    height: 50px;
-    font-size: 0.7rem;
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
   }
 
   .control-btn.active {
-    background: black;
-    color: white;
+    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+    border-color: #10b981;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
   }
 
-  .play-pause-btn {
-    width: 70px;
-    height: 70px;
-    font-size: 1.5rem;
+  .control-btn-lg {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+    border-color: transparent;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
   }
 
-  /* Volume Control */
-  .volume-control {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
+  .control-btn-lg:hover {
+    background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+    transform: scale(1.1);
+    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.6);
   }
 
+  /* Volume Slider */
   .volume-slider {
+    -webkit-appearance: none;
     width: 100%;
-    height: 8px;
-    background: #e5e5e5;
-    border: 2px solid #000000;
-    cursor: pointer;
-    accent-color: black;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    transition: all 0.2s ease;
   }
 
-  .volume-value {
-    min-width: 50px;
-    text-align: right;
-    font-size: 0.9rem;
-    font-weight: 700;
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+    transition: all 0.2s ease;
+  }
+
+  .volume-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.6);
+  }
+
+  .volume-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
   }
 
   /* Device Panel */
-  .device-panel {
-    background: white;
-    border: 4px solid #000000;
-    box-shadow: 6px 6px 0 0 #000000;
-    padding: 1.5rem;
-  }
-
-  .panel-title {
-    font-size: 1.1rem;
-    font-weight: 900;
-    margin-bottom: 1rem;
-    color: #000000;
-    text-transform: uppercase;
-    letter-spacing: -0.02em;
-  }
-
-  .device-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-height: 300px;
-    overflow-y: auto;
-  }
-
   .device-item {
-    padding: 0.75rem;
-    border: 3px solid #000000;
-    box-shadow: 3px 3px 0 0 #000000;
+    padding: 0.875rem 1rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
-    transition: all 0.15s ease;
-    font-size: 0.95rem;
-    font-weight: 700;
-    background: white;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
   }
 
   .device-item:hover {
-    background: black;
-    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(16, 185, 129, 0.5);
+    transform: translateX(4px);
   }
 
   .device-item.active {
-    background: black;
-    color: white;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(34, 197, 94, 0.2) 100%);
+    border-color: #10b981;
+    color: #10b981;
   }
 
-  .device-icon {
-    margin-right: 0.5rem;
-    font-weight: 900;
+  /* Search Section */
+  .search-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    color: #ffffff;
+    font-weight: 500;
+    transition: all 0.2s ease;
   }
 
-  /* Queue Section */
-  .queue-section {
-    margin-top: 1.5rem;
+  .search-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
   }
 
-  .queue-section .panel-title {
-    margin-bottom: 0.75rem;
+  .search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
   }
 
-  .queue-empty {
-    text-align: center;
-    padding: 1rem;
-    color: #666;
-    font-size: 0.9rem;
-    font-weight: 700;
+  .search-result-item {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+    cursor: pointer;
   }
 
-  /* Loading State */
-  .loading {
-    text-align: center;
-    padding: 2rem;
+  .search-result-item:hover {
+    background: rgba(255, 255, 255, 0.05);
   }
 
-  .spinner {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    border: 4px solid #e5e5e5;
-    border-top-color: #000000;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* No Playback State */
-  .no-playback {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    padding: 3rem;
-  }
-
-  .no-playback-icon {
-    font-size: 4rem;
-    font-weight: 900;
-  }
-
-  .no-playback-text {
-    font-size: 1.1rem;
-    font-weight: 700;
-  }
-
-  /* Navigation Buttons */
-  .nav-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .brutalist-nav-btn {
-    background: white;
-    border: 3px solid #000000;
-    box-shadow: 4px 4px 0 0 #000000;
-    padding: 0.75rem 1.5rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: black;
-    display: inline-block;
-    transition: all 0.15s ease;
-    font-size: 0.9rem;
-    letter-spacing: -0.02em;
-  }
-
-  .brutalist-nav-btn:hover {
-    background: black;
-    color: white;
+  .search-result-item:last-child {
+    border-bottom: none;
   }
 
   /* Responsive */
-  @media (max-width: 768px) {
-    .player-container {
-      grid-template-columns: 1fr;
-      gap: 1rem;
+  @media (max-width: 1024px) {
+    .vinyl-container {
+      width: 300px;
+      height: 300px;
     }
 
-    .album-art, .album-placeholder {
-      width: 200px;
-      height: 200px;
-      margin-bottom: 1rem;
+    .vinyl-record {
+      width: 300px;
+      height: 300px;
+    }
+
+    .vinyl-label {
+      width: 160px;
+      height: 160px;
     }
 
     .track-name {
-      font-size: 1.5rem;
+      font-size: 2rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .vinyl-container {
+      width: 260px;
+      height: 260px;
+    }
+
+    .vinyl-record {
+      width: 260px;
+      height: 260px;
+    }
+
+    .vinyl-label {
+      width: 140px;
+      height: 140px;
+    }
+
+    .track-name {
+      font-size: 1.75rem;
+    }
+
+    .artist-name {
+      font-size: 1rem;
     }
 
     .control-btn {
-      width: 50px;
-      height: 50px;
-      padding: 0.75rem;
+      width: 48px;
+      height: 48px;
     }
 
-    .play-pause-btn {
-      width: 60px;
-      height: 60px;
-      font-size: 1.3rem;
+    .control-btn-lg {
+      width: 64px;
+      height: 64px;
     }
+  }
 
-    .main-player {
-      padding: 1.5rem;
-    }
+  /* Scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
   }
 </style>
 {% endblock extra_css %}
 
 {% block content %}
-<div class="container">
-  <h1 class="text-4xl font-black text-center mb-8 uppercase" style="letter-spacing: -0.02em;">MUSIC PLAYER</h1>
+<!-- Dynamic Background -->
+<div class="dynamic-bg-container">
+  <div class="dynamic-bg" id="dynamicBg"></div>
+  <div class="dynamic-bg-overlay"></div>
+</div>
 
+<!-- Content Wrapper -->
+<div class="content-wrapper">
   <!-- Search Section -->
-  <div style="background: white; padding: 1.5rem; border: 2px solid #000; box-shadow: 4px 4px 0 #000; margin-bottom: 2rem;">
-    <h2 style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 900;">SEARCH & PLAY</h2>
-    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+  <div class="max-w-7xl mx-auto mb-8">
+    <div class="player-card p-6">
+      <h2 class="text-xl font-bold mb-4 text-white">Search & Play</h2>
       <input
         type="text"
         id="playerSearchInput"
-        placeholder="Search for a song..."
-        style="flex: 1; padding: 0.75rem; border: 2px solid #000; font-weight: 600;"
+        placeholder="Search for a song, artist, or album..."
+        class="search-input w-full mb-4"
         autocomplete="off"
-      >
+      />
+      <div id="playerSearchResults" class="max-h-80 overflow-y-auto rounded-lg"></div>
     </div>
-    <div id="playerSearchResults" style="max-height: 300px; overflow-y: auto;"></div>
   </div>
 
-  <div class="player-container">
-    <!-- Main Player -->
-    <div class="main-player" id="mainPlayer">
-      {% if now_playing and now_playing.track_name %}
-        <!-- Now Playing Display -->
-        <div class="now-playing-display">
-          {% if now_playing.album_image_url %}
-            <img src="{{ now_playing.album_image_url }}" 
-                 alt="Album Art" 
-                 class="album-art" 
-                 id="albumArt"
-                 crossorigin="anonymous">
-          {% else %}
-            <div class="album-placeholder">♪</div>
-          {% endif %}
+  <!-- Main Player Layout -->
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Left: Vinyl Record -->
+      <div class="lg:col-span-2">
+        <div class="player-card p-8 lg:p-12">
+          <!-- Vinyl Record -->
+          <div class="mb-8 lg:mb-12">
+            <div class="vinyl-container">
+              <div class="vinyl-record {% if now_playing and now_playing.is_playing %}playing{% endif %}" id="vinylRecord">
+                <div class="vinyl-grooves"></div>
+                <div class="vinyl-label">
+                  {% if now_playing and now_playing.album_image_url %}
+                    <img
+                      src="{{ now_playing.album_image_url }}"
+                      alt="Album Art"
+                      id="albumArt"
+                      crossorigin="anonymous"
+                    />
+                  {% else %}
+                    <div class="w-full h-full bg-gray-800 flex items-center justify-center">
+                      <span class="iconify text-6xl text-gray-600" data-icon="mdi:music"></span>
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="vinyl-hole"></div>
+              </div>
+            </div>
+          </div>
 
-          <div class="track-info">
-            <div class="track-name">{{ now_playing.track_name }}</div>
-            <div class="artist-album-info">{{ now_playing.artist_name }}</div>
-            {% if now_playing.album_name %}
-              <div class="album-info">{{ now_playing.album_name }}</div>
+          <!-- Track Info -->
+          <div class="text-center mb-8">
+            {% if now_playing and now_playing.track_name %}
+              <h1 class="track-name" id="trackName">{{ now_playing.track_name }}</h1>
+              <p class="artist-name" id="artistName">{{ now_playing.artist_name }}</p>
+              {% if now_playing.album_name %}
+                <p class="album-name" id="albumNameDisplay">{{ now_playing.album_name }}</p>
+              {% endif %}
+            {% else %}
+              <h1 class="track-name">No Track Playing</h1>
+              <p class="artist-name">Start playing music from Spotify</p>
+            {% endif %}
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="mb-6">
+            <div class="progress-container mb-2" id="progressBar">
+              <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between time-display">
+              <span id="currentTime">0:00</span>
+              <span id="duration">0:00</span>
+            </div>
+          </div>
+
+          <!-- Playback Controls -->
+          <div class="flex items-center justify-center gap-4 mb-8">
+            <button class="control-btn" id="shuffleBtn" title="Shuffle" onclick="toggleShuffle()">
+              <span class="iconify text-xl" data-icon="mdi:shuffle-variant"></span>
+            </button>
+            <button class="control-btn" onclick="previousTrack()" title="Previous">
+              <span class="iconify text-2xl" data-icon="mdi:skip-previous"></span>
+            </button>
+            <button class="control-btn control-btn-lg" id="playPauseBtn" onclick="togglePlayPause()" title="Play/Pause">
+              {% if now_playing and now_playing.is_playing %}
+                <span class="iconify text-3xl" data-icon="mdi:pause"></span>
+              {% else %}
+                <span class="iconify text-3xl" data-icon="mdi:play"></span>
+              {% endif %}
+            </button>
+            <button class="control-btn" onclick="nextTrack()" title="Next">
+              <span class="iconify text-2xl" data-icon="mdi:skip-next"></span>
+            </button>
+            <button class="control-btn" id="repeatBtn" title="Repeat" onclick="toggleRepeat()">
+              <span class="iconify text-xl" data-icon="mdi:repeat"></span>
+            </button>
+          </div>
+
+          <!-- Volume Control -->
+          <div class="flex items-center gap-4">
+            <span class="iconify text-xl text-white" data-icon="mdi:volume-high"></span>
+            <input
+              type="range"
+              id="volumeSlider"
+              class="volume-slider flex-1"
+              min="0"
+              max="100"
+              value="100"
+              onchange="setVolume(this.value)"
+            />
+            <span class="text-sm font-semibold text-white w-12 text-right" id="volumeValue">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Devices & Queue -->
+      <div class="lg:col-span-1 space-y-6">
+        <!-- Devices -->
+        <div class="player-card p-6">
+          <h2 class="text-lg font-bold mb-4 text-white flex items-center">
+            <span class="iconify mr-2" data-icon="mdi:devices"></span>
+            Available Devices
+          </h2>
+          <div class="space-y-2" id="deviceList">
+            {% if devices %}
+              {% for device in devices %}
+                <div
+                  class="device-item {% if device.is_active %}active{% endif %}"
+                  data-device-id="{{ device.id }}"
+                  onclick="transferPlayback('{{ device.id }}')"
+                >
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                      <span class="iconify mr-2" data-icon="
+                        {% if device.type == 'Computer' %}mdi:laptop
+                        {% elif device.type == 'Smartphone' %}mdi:cellphone
+                        {% elif device.type == 'Speaker' %}mdi:speaker
+                        {% else %}mdi:devices{% endif %}
+                      "></span>
+                      <span>{{ device.name }}</span>
+                    </div>
+                    {% if device.is_active %}
+                      <span class="iconify text-green-400" data-icon="mdi:check-circle"></span>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p class="text-center text-gray-500 py-4">No devices available</p>
             {% endif %}
           </div>
         </div>
 
-        <!-- Progress Bar -->
-        <div class="progress-container">
-          <div class="progress-bar" id="progressBar">
-            <div class="progress" id="progressFill" style="width: 0%"></div>
-          </div>
-          <div class="time-display">
-            <span id="currentTime">0:00</span>
-            <span id="duration">0:00</span>
-          </div>
-        </div>
-      {% else %}
-        <div class="no-playback">
-          <div class="no-playback-icon">||</div>
-          <div class="no-playback-text">NO TRACK PLAYING</div>
-          <div style="font-size: 0.9rem; font-weight: 600;">START PLAYING MUSIC FROM SPOTIFY OR SEARCH FOR A TRACK</div>
-        </div>
-      {% endif %}
-
-      <!-- Player Controls -->
-      <div class="player-controls">
-        <button class="control-btn small" id="shuffleBtn" title="Toggle Shuffle" onclick="toggleShuffle()">SH</button>
-        <button class="control-btn small" onclick="previousTrack()" title="Previous Track">◄◄</button>
-        <button class="control-btn play-pause-btn" id="playPauseBtn" title="Play/Pause" onclick="togglePlayPause()">
-          {% if current_playback and current_playback.is_playing %}||{% else %}►{% endif %}
-        </button>
-        <button class="control-btn small" onclick="nextTrack()" title="Next Track">►►</button>
-        <button class="control-btn small" id="repeatBtn" title="Toggle Repeat" onclick="toggleRepeat()">RP</button>
-      </div>
-
-      <!-- Volume Control -->
-      <div class="volume-control">
-        <span style="font-size: 1.2rem; font-weight: 900;">VOL</span>
-        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="100" onchange="setVolume(this.value)">
-        <span class="volume-value" id="volumeValue">100%</span>
-      </div>
-    </div>
-
-    <!-- Right Panel: Devices & Queue -->
-    <div>
-      <!-- Device Selection -->
-      <div class="device-panel">
-        <div class="panel-title">AVAILABLE DEVICES</div>
-        <div class="device-list" id="deviceList">
-          {% if devices %}
-            {% for device in devices %}
-              <div class="device-item {% if device.is_active %}active{% endif %}" 
-                   data-device-id="{{ device.id }}"
-                   onclick="transferPlayback('{{ device.id }}')">
-                <span class="device-icon">
-                  {% if device.type == 'Computer' %}[C]
-                  {% elif device.type == 'Smartphone' %}[M]
-                  {% elif device.type == 'Speaker' %}[S]
-                  {% else %}[D]
-                  {% endif %}
-                </span>
-                {{ device.name }}
-                {% if device.is_active %}<span style="float: right;">[*]</span>{% endif %}
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="queue-empty">NO DEVICES AVAILABLE</div>
-          {% endif %}
-        </div>
-
-        <!-- Queue Section -->
-        <div class="queue-section">
-          <div class="panel-title">QUEUE</div>
+        <!-- Queue Info -->
+        <div class="player-card p-6">
+          <h2 class="text-lg font-bold mb-4 text-white flex items-center">
+            <span class="iconify mr-2" data-icon="mdi:playlist-music"></span>
+            Queue
+          </h2>
           {% if queue and queue.queue_tracks %}
-            <div style="font-size: 0.9rem; font-weight: 700; color: #666;">
-              {{ queue.queue_tracks|length }} TRACKS IN QUEUE
-            </div>
+            <p class="text-gray-400 text-sm">{{ queue.queue_tracks|length }} tracks in queue</p>
           {% else %}
-            <div class="queue-empty">QUEUE IS EMPTY</div>
+            <p class="text-center text-gray-500 py-4">Queue is empty</p>
           {% endif %}
+        </div>
+
+        <!-- Navigation -->
+        <div class="player-card p-6">
+          <h2 class="text-lg font-bold mb-4 text-white">Quick Links</h2>
+          <div class="space-y-2">
+            <a
+              href="{% url 'music:dashboard' %}"
+              class="device-item block text-center"
+            >
+              <span class="iconify mr-2" data-icon="mdi:view-dashboard"></span>
+              Dashboard
+            </a>
+            <a
+              href="{% url 'music:stats_dashboard' %}"
+              class="device-item block text-center"
+            >
+              <span class="iconify mr-2" data-icon="mdi:chart-bar"></span>
+              Stats
+            </a>
+            <a
+              href="{% url 'music:search' %}"
+              class="device-item block text-center"
+            >
+              <span class="iconify mr-2" data-icon="mdi:magnify"></span>
+              Search
+            </a>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Navigation -->
-  <div class="nav-buttons" style="margin-top: 3rem;">
-    <a href="{% url 'music:dashboard' %}" class="brutalist-nav-btn">
-      BACK TO DASHBOARD
-    </a>
-    <a href="{% url 'music:stats_dashboard' %}" class="brutalist-nav-btn">
-      VIEW STATS
-    </a>
   </div>
 </div>
 
 <script>
-  // Helper function to format time (mm:ss)
+  // ==================== Utility Functions ====================
+
   function formatTime(ms) {
     const seconds = Math.floor((ms / 1000) % 60);
     const minutes = Math.floor((ms / 1000 / 60) % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
-  // Color extraction function using Canvas API
-  function extractColorFromImage(img) {
-    try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = img.naturalWidth || img.width;
-      canvas.height = img.naturalHeight || img.height;
-      
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-      
-      // Sample colors from the image
-      let r = 0, g = 0, b = 0;
-      const sampleSize = 5;
-      let count = 0;
-      
-      for (let i = 0; i < data.length; i += 4 * sampleSize) {
-        r += data[i];
-        g += data[i + 1];
-        b += data[i + 2];
-        count++;
-      }
-      
-      r = Math.floor(r / count);
-      g = Math.floor(g / count);
-      b = Math.floor(b / count);
-      
-      return { r, g, b };
-    } catch (error) {
-      console.error('Error extracting color:', error);
-      return { r: 255, g: 255, b: 255 };
-    }
+  function escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
   }
 
-  // Apply dynamic colors to player
-  function applyDynamicColors() {
-    const albumArt = document.getElementById('albumArt');
-    const mainPlayer = document.getElementById('mainPlayer');
+  // ==================== Color Extraction ====================
 
-    if (albumArt && mainPlayer) {
-      albumArt.onload = function() {
-        const color = extractColorFromImage(albumArt);
-
-        // Lighten the color for background
-        const bgColor = `rgb(${Math.min(color.r + 100, 255)}, ${Math.min(color.g + 100, 255)}, ${Math.min(color.b + 100, 255)})`;
-
-        // Get multiple colors for gradient
-        const colors = extractGradientColors(albumArt);
-        const gradientCss = colors.length > 1
-          ? `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 50%, ${colors[2] || colors[0]} 100%)`
-          : bgColor;
-
-        // Apply smooth gradient transition
-        mainPlayer.style.transition = 'background 3s ease-in-out';
-        mainPlayer.style.background = gradientCss;
-
-        // Adjust text color based on brightness
-        const brightness = (color.r * 299 + color.g * 587 + color.b * 114) / 1000;
-        const textColor = brightness > 128 ? '#000000' : '#ffffff';
-        mainPlayer.style.color = textColor;
-
-        console.log('Dynamic gradient applied:', gradientCss);
-      };
-
-      // If image is already loaded, trigger manually
-      if (albumArt.complete) {
-        albumArt.onload();
-      }
-    }
-  }
-
-  // Extract gradient colors from image
-  function extractGradientColors(image) {
+  function extractDominantColors(img, numColors = 3) {
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
-      canvas.width = 50;
-      canvas.height = 50;
+      // Reduce image size for faster processing
+      canvas.width = 100;
+      canvas.height = 100;
 
-      ctx.drawImage(image, 0, 0, 50, 50);
-      const imageData = ctx.getImageData(0, 0, 50, 50).data;
+      ctx.drawImage(img, 0, 0, 100, 100);
+      const imageData = ctx.getImageData(0, 0, 100, 100).data;
 
-      const colors = {};
+      // Color quantization - sample colors
+      const colorMap = {};
       for (let i = 0; i < imageData.length; i += 4) {
-        const r = imageData[i];
-        const g = imageData[i + 1];
-        const b = imageData[i + 2];
-        const hex = `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
-        colors[hex] = (colors[hex] || 0) + 1;
+        const r = Math.floor(imageData[i] / 32) * 32;
+        const g = Math.floor(imageData[i + 1] / 32) * 32;
+        const b = Math.floor(imageData[i + 2] / 32) * 32;
+        const key = `${r},${g},${b}`;
+        colorMap[key] = (colorMap[key] || 0) + 1;
       }
 
-      // Get most frequent colors
-      const colorArray = Object.entries(colors)
+      // Sort by frequency and get top colors
+      const sortedColors = Object.entries(colorMap)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
-        .map(([color]) => color);
+        .slice(0, numColors * 3)
+        .filter(([color]) => {
+          const [r, g, b] = color.split(',').map(Number);
+          // Filter out too bright or too dark colors
+          const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+          return brightness > 20 && brightness < 200;
+        })
+        .slice(0, numColors)
+        .map(([color]) => {
+          const [r, g, b] = color.split(',').map(Number);
+          return `rgb(${r}, ${g}, ${b})`;
+        });
 
-      // Return colors or fallback
-      return colorArray.length >= 2
-        ? colorArray
-        : ['#FF6B6B', '#FFC107', '#4CAF50'];
-    } catch (e) {
-      console.error('Error extracting gradient colors:', e);
-      return ['#FF6B6B', '#FFC107', '#4CAF50'];
+      return sortedColors.length > 0 ? sortedColors : ['rgb(26, 26, 46)', 'rgb(22, 33, 62)', 'rgb(15, 52, 96)'];
+    } catch (error) {
+      console.error('Color extraction error:', error);
+      return ['rgb(26, 26, 46)', 'rgb(22, 33, 62)', 'rgb(15, 52, 96)'];
     }
   }
 
-  // Auto-update playback state
+  function applyDynamicBackground() {
+    const albumArt = document.getElementById('albumArt');
+    const dynamicBg = document.getElementById('dynamicBg');
+
+    if (!albumArt || !dynamicBg) return;
+
+    const updateBackground = () => {
+      const colors = extractDominantColors(albumArt, 3);
+
+      // Create smooth gradient
+      const gradient = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 50%, ${colors[2] || colors[0]} 100%)`;
+
+      dynamicBg.style.background = gradient;
+      console.log('Dynamic background updated:', colors);
+    };
+
+    if (albumArt.complete) {
+      updateBackground();
+    } else {
+      albumArt.onload = updateBackground;
+    }
+  }
+
+  // ==================== Playback State Management ====================
+
   function updatePlaybackState() {
     fetch('{% url "music:playback_state" %}')
       .then(response => response.json())
       .then(data => {
         if (data.status === 'success') {
-          const duration = data.duration_ms;
-          const progress = data.progress_ms;
+          // Update progress
+          const duration = data.duration_ms || 0;
+          const progress = data.progress_ms || 0;
           const percentage = duration > 0 ? (progress / duration * 100) : 0;
 
-          // Update progress bar
           document.getElementById('progressFill').style.width = percentage + '%';
           document.getElementById('currentTime').textContent = formatTime(progress);
           document.getElementById('duration').textContent = formatTime(duration);
-          document.getElementById('playPauseBtn').textContent = data.is_playing ? '||' : '►';
 
-          // Update track information
-          const trackNameEl = document.querySelector('.track-name');
-          const artistEl = document.querySelector('.artist-album-info');
-          const albumEl = document.querySelector('.album-info');
-          const albumArtEl = document.getElementById('albumArt');
+          // Update play/pause button
+          const playPauseBtn = document.getElementById('playPauseBtn');
+          const vinylRecord = document.getElementById('vinylRecord');
 
-          if (trackNameEl) trackNameEl.textContent = data.track_name || 'No track playing';
-          if (artistEl) artistEl.textContent = data.artist_name || '';
-          if (albumEl) albumEl.textContent = data.album_name || '';
+          if (data.is_playing) {
+            playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:pause"></span>';
+            vinylRecord.classList.add('playing');
+          } else {
+            playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:play"></span>';
+            vinylRecord.classList.remove('playing');
+          }
 
-          // Update album art if URL available
-          if (albumArtEl && data.album_image_url) {
-            albumArtEl.src = data.album_image_url;
-            applyDynamicColors(); // Re-apply colors for new image
+          // Update track info if changed
+          const trackName = document.getElementById('trackName');
+          const artistName = document.getElementById('artistName');
+          const albumNameDisplay = document.getElementById('albumNameDisplay');
+          const albumArt = document.getElementById('albumArt');
+
+          if (trackName && data.track_name) {
+            trackName.textContent = data.track_name;
+          }
+          if (artistName && data.artist_name) {
+            artistName.textContent = data.artist_name;
+          }
+          if (albumNameDisplay && data.album_name) {
+            albumNameDisplay.textContent = data.album_name;
+          }
+
+          // Update album art if URL changed
+          if (albumArt && data.album_image_url && albumArt.src !== data.album_image_url) {
+            albumArt.src = data.album_image_url;
+            setTimeout(() => applyDynamicBackground(), 100);
           }
         }
       })
-      .catch(error => console.error('Error:', error));
+      .catch(error => console.error('Playback state error:', error));
   }
 
-  // Get active device ID
+  // ==================== Playback Controls ====================
+
   function getActiveDeviceId() {
     const activeDevice = document.querySelector('.device-item.active');
     return activeDevice ? activeDevice.getAttribute('data-device-id') : null;
   }
 
-  // Playback control functions
   function togglePlayPause() {
     const deviceId = getActiveDeviceId();
 
@@ -682,7 +814,7 @@
       if (data.status === 'success') {
         setTimeout(() => {
           updatePlaybackState();
-          applyDynamicColors();
+          applyDynamicBackground();
         }, 500);
       }
     });
@@ -704,7 +836,7 @@
       if (data.status === 'success') {
         setTimeout(() => {
           updatePlaybackState();
-          applyDynamicColors();
+          applyDynamicBackground();
         }, 500);
       }
     });
@@ -785,6 +917,13 @@
       if (data.status === 'success') {
         btn.setAttribute('data-repeat-mode', nextMode);
         btn.classList.toggle('active', nextMode !== 'off');
+
+        // Update icon based on mode
+        if (nextMode === 'track') {
+          btn.innerHTML = '<span class="iconify text-xl" data-icon="mdi:repeat-once"></span>';
+        } else {
+          btn.innerHTML = '<span class="iconify text-xl" data-icon="mdi:repeat"></span>';
+        }
       }
     });
   }
@@ -805,30 +944,16 @@
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: `position_ms=${Math.floor(positionMs)}&device_id=${deviceId || ''}`
-    });
+    })
+    .then(() => updatePlaybackState());
   });
 
-  // Initialize
-  document.addEventListener('DOMContentLoaded', function() {
-    applyDynamicColors();
-    updatePlaybackState();
-    
-    // Update playback state every 2 seconds
-    setInterval(updatePlaybackState, 2000);
+  // ==================== Search Functionality ====================
 
-    // Setup player search functionality
-    setupPlayerSearch();
-
-    // Initialize Spotify Web Playback SDK
-    initializeSpotifyPlayer();
-  });
-
-  // Player Search Functionality
   function setupPlayerSearch() {
     const searchInput = document.getElementById('playerSearchInput');
     const resultsDiv = document.getElementById('playerSearchResults');
 
-    // Debounce search
     let searchTimeout;
     function debounceSearch() {
       clearTimeout(searchTimeout);
@@ -849,29 +974,33 @@
 
       if (query.length < 2) return;
 
-      resultsDiv.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">Searching...</div>';
+      resultsDiv.innerHTML = '<div class="text-center py-4 text-gray-400">Searching...</div>';
 
       fetch(`/music/api/search/?q=${encodeURIComponent(query)}`)
         .then(r => r.json())
         .then(data => {
           if (!data.songs || data.songs.length === 0) {
-            resultsDiv.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">No songs found</div>';
+            resultsDiv.innerHTML = '<div class="text-center py-4 text-gray-400">No songs found</div>';
             return;
           }
 
           let html = '';
           data.songs.forEach(song => {
             html += `
-              <div style="padding: 0.75rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <div style="font-weight: 600;">${escapeHtml(song.title)}</div>
-                  <div style="font-size: 0.85rem; color: #999;">${escapeHtml(song.album.artist.name)} • ${escapeHtml(song.album.title)}</div>
+              <div class="search-result-item">
+                <div class="flex justify-between items-center">
+                  <div class="flex-1 min-w-0 mr-4">
+                    <div class="font-semibold text-white truncate">${escapeHtml(song.title)}</div>
+                    <div class="text-sm text-gray-400 truncate">${escapeHtml(song.album.artist.name)} • ${escapeHtml(song.album.title)}</div>
+                  </div>
+                  <button
+                    class="control-btn flex-shrink-0"
+                    onclick="playTrack('spotify:track:${song.spotify_id}');"
+                    title="Play"
+                  >
+                    <span class="iconify text-xl" data-icon="mdi:play"></span>
+                  </button>
                 </div>
-                <button
-                  class="control-btn"
-                  style="padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; margin-left: 1rem;"
-                  onclick="playTrack('spotify:track:${song.spotify_id}', {name: '${song.title.replace(/'/g, '\\'')}'', artist: '${song.album.artist.name.replace(/'/g, '\\'')}'});"
-                >▶ PLAY</button>
               </div>
             `;
           });
@@ -880,19 +1009,45 @@
         })
         .catch(error => {
           console.error('Search error:', error);
-          resultsDiv.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">Search failed</div>';
+          resultsDiv.innerHTML = '<div class="text-center py-4 text-gray-400">Search failed</div>';
         });
     }
   }
 
-  // Spotify Web Playback SDK Integration
+  function playTrack(trackUri) {
+    const deviceId = getActiveDeviceId();
+
+    fetch('{% url "music:play_track" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        track_uri: trackUri,
+        device_id: deviceId
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        setTimeout(() => {
+          updatePlaybackState();
+          applyDynamicBackground();
+        }, 500);
+      }
+    });
+  }
+
+  // ==================== Spotify Web Playback SDK ====================
+
   let player;
   let deviceId;
 
   function initializeSpotifyPlayer() {
     window.onSpotifyWebPlaybackSDKReady = () => {
       const token = '{{ spotify_user.access_token }}';
-      
+
       if (!token) {
         console.log('No access token available');
         return;
@@ -924,48 +1079,14 @@
       // Playback status updates
       player.addListener('player_state_changed', state => {
         if (!state) return;
-
         console.log('Player state changed:', state);
-        
-        // Update UI based on player state
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        if (playPauseBtn) {
-          playPauseBtn.textContent = state.paused ? '►' : '||';
-        }
-
-        // Update progress
-        const progressMs = state.position;
-        const durationMs = state.duration;
-        const percentage = durationMs > 0 ? (progressMs / durationMs * 100) : 0;
-        
-        const progressFill = document.getElementById('progressFill');
-        const currentTime = document.getElementById('currentTime');
-        const duration = document.getElementById('duration');
-        
-        if (progressFill) progressFill.style.width = percentage + '%';
-        if (currentTime) currentTime.textContent = formatTime(progressMs);
-        if (duration) duration.textContent = formatTime(durationMs);
+        updatePlaybackState();
       });
 
       // Ready
       player.addListener('ready', ({ device_id }) => {
         console.log('Ready with Device ID', device_id);
         deviceId = device_id;
-        
-        // Show notification
-        const notification = document.createElement('div');
-        notification.textContent = 'WEB PLAYER READY! TRANSFER PLAYBACK TO "SYRO WEB PLAYER"';
-        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: black; color: white; padding: 1rem 2rem; border: 3px solid #000; box-shadow: 6px 6px 0 0 #000; z-index: 1000; font-weight: 900; text-transform: uppercase;';
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-          notification.remove();
-        }, 5000);
-      });
-
-      // Not Ready
-      player.addListener('not_ready', ({ device_id }) => {
-        console.log('Device ID has gone offline', device_id);
       });
 
       // Connect to the player
@@ -976,5 +1097,24 @@
       });
     };
   }
+
+  // ==================== Initialization ====================
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Apply dynamic background on load
+    applyDynamicBackground();
+
+    // Update playback state
+    updatePlaybackState();
+
+    // Update playback state every 2 seconds
+    setInterval(updatePlaybackState, 2000);
+
+    // Setup search functionality
+    setupPlayerSearch();
+
+    // Initialize Spotify Web Playback SDK
+    initializeSpotifyPlayer();
+  });
 </script>
 {% endblock content %}

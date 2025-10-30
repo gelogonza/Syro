@@ -74,6 +74,11 @@
   .device-option-icon {
     font-size: 1.2rem;
     font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
   }
 
   .device-option-name {
@@ -221,11 +226,11 @@
     deviceOptions.innerHTML = '';
 
     devices.forEach((device) => {
-      const deviceIcon = getDeviceIcon(device.type);
+      const deviceIconClass = getDeviceIcon(device.type);
       const option = document.createElement('div');
       option.className = 'device-option';
       option.innerHTML = `
-        <span class="device-option-icon">${deviceIcon}</span>
+        <span class="device-option-icon iconify" data-icon="${deviceIconClass}"></span>
         <div>
           <div class="device-option-name">${device.name}</div>
           <div class="device-option-type">${device.type}</div>
@@ -233,6 +238,10 @@
       `;
       option.onclick = () => selectDevice(device);
       deviceOptions.appendChild(option);
+      // Refresh Iconify to render the new icon
+      if (window.Iconify) {
+        window.Iconify.scan(option);
+      }
     });
 
     document.getElementById('deviceModal').classList.add('active');
@@ -284,19 +293,19 @@
   /**
    * Get device icon based on type
    * @param {string} type - Device type
-   * @returns {string} Icon character
+   * @returns {string} Iconify icon name
    */
   function getDeviceIcon(type) {
     const typeMap = {
-      'Computer': '🖥️',
-      'Smartphone': '📱',
-      'Speaker': '🔊',
-      'TV': '📺',
-      'AVR': '🎛️',
-      'STR_RECEIVER': '🎛️',
-      'Unknown': '🎵'
+      'Computer': 'mdi:monitor',
+      'Smartphone': 'mdi:smartphone',
+      'Speaker': 'mdi:speaker',
+      'TV': 'mdi:television',
+      'AVR': 'mdi:amplifier',
+      'STR_RECEIVER': 'mdi:amplifier',
+      'Unknown': 'mdi:music'
     };
-    return typeMap[type] || '🎵';
+    return typeMap[type] || 'mdi:music';
   }
 
   /**

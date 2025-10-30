@@ -37,7 +37,7 @@
         <!-- Playlist Info -->
         <div class="p-5">
           <h3 class="text-lg font-semibold mb-2 line-clamp-1 group-hover:text-primary transition-colors">
-            {{ playlist.name }}
+            {{ playlist.title }}
           </h3>
           <p class="text-sm text-muted-foreground mb-4 line-clamp-2">
             {{ playlist.description|default:"No description" }}
@@ -62,7 +62,7 @@
               <i data-lucide="eye" class="h-4 w-4 mr-2"></i>
               View
             </a>
-            <a href="{% url 'music:edit_playlist' playlist.id %}" 
+            <a href="{% url 'music:update_playlist' playlist.id %}"
                class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-muted border border-border">
               <i data-lucide="edit" class="h-4 w-4"></i>
             </a>
