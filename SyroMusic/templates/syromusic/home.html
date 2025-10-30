@@ -2,26 +2,265 @@
 
 {% block title %}Home - Syro{% endblock title %}
 
+{% block extra_css %}
+<style>
+  /* Pure Black Background */
+  .hero-gradient {
+    background: #000000;
+  }
+  
+  /* Liquid Glass Morphic Cards (Raycast-style) */
+  .liquid-glass-card {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    box-shadow: 
+      0 8px 32px 0 rgba(0, 0, 0, 0.37),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+      0 0 0 1px rgba(0, 0, 0, 0.5);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .liquid-glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+  
+  .liquid-glass-card:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.04) 100%
+    );
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+      0 16px 48px 0 rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+      0 0 0 1px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Icon container with glass effect */
+  .icon-bubble {
+    background: linear-gradient(
+      135deg,
+      rgba(16, 185, 129, 0.15) 0%,
+      rgba(16, 185, 129, 0.05) 100%
+    );
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    box-shadow: 
+      0 4px 16px 0 rgba(16, 185, 129, 0.1),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .liquid-glass-card:hover .icon-bubble {
+    background: linear-gradient(
+      135deg,
+      rgba(16, 185, 129, 0.25) 0%,
+      rgba(16, 185, 129, 0.1) 100%
+    );
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: scale(1.1) rotate(-5deg);
+  }
+  
+  /* CTA Card with enhanced glass effect */
+  .liquid-glass-cta {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 32px;
+    box-shadow: 
+      0 12px 40px 0 rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .liquid-glass-cta:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.09) 0%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 
+      0 20px 60px 0 rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+  }
+  
+  /* Shiny Gradient Animation for Text */
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  /* Floating Animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+  
+  .float-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  /* Pulse Animation */
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
+    }
+  }
+  
+  .pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+  
+  /* Audio Visualizer Canvas */
+  .geometric-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  
+  #audioVisualizerCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  
+  /* Fade In Animations */
+  .fade-in-up {
+    animation: fadeInUp 1s ease-out;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .delay-100 { animation-delay: 0.1s; animation-fill-mode: both; }
+  .delay-200 { animation-delay: 0.2s; animation-fill-mode: both; }
+  .delay-300 { animation-delay: 0.3s; animation-fill-mode: both; }
+  .delay-400 { animation-delay: 0.4s; animation-fill-mode: both; }
+  
+  /* Book Flip Animation for Feature Cards */
+  @keyframes bookFlip {
+    0% {
+      transform: perspective(1000px) rotateY(-90deg);
+      opacity: 0;
+    }
+    100% {
+      transform: perspective(1000px) rotateY(0deg);
+      opacity: 1;
+    }
+  }
+  
+  .book-flip {
+    animation: bookFlip 0.8s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+    transform-origin: left center;
+    opacity: 0;
+  }
+  
+  .book-flip-1 { animation-delay: 0.1s; }
+  .book-flip-2 { animation-delay: 0.3s; }
+  .book-flip-3 { animation-delay: 0.5s; }
+  .book-flip-4 { animation-delay: 0.7s; }
+  
+  /* Add perspective to container */
+  .feature-cards-container {
+    perspective: 2000px;
+  }
+  
+  /* Enhanced card hover effect */
+  .feature-card {
+    transition: all 0.3s ease;
+    transform-style: preserve-3d;
+  }
+  
+  .feature-card:hover {
+    transform: perspective(1000px) rotateY(5deg) translateY(-10px);
+  }
+</style>
+{% endblock extra_css %}
+
 {% block content %}
-<!-- Hero Section -->
-<section class="relative overflow-hidden py-24 md:py-32">
+<!-- Hero Section with Animated Background -->
+<section class="relative overflow-hidden py-32 md:py-40 hero-gradient">
+  <!-- Audio-Reactive Background Elements (Cava-style) -->
+  <div class="geometric-bg">
+    <!-- Audio Visualizer Bars (Cava-style) -->
+    <canvas id="audioVisualizerCanvas" class="absolute inset-0 w-full h-full opacity-30"></canvas>
+  </div>
+  
   <div class="relative z-10 container mx-auto px-4 text-center">
-    <h1 class="text-6xl md:text-8xl font-bold mb-6 gradient-text leading-none">
+    <!-- Audio Status Indicator -->
+    <div id="audioStatus" class="fixed top-4 right-4 z-50 px-4 py-2 rounded-lg bg-gray-800/80 backdrop-blur-sm border border-gray-700 text-sm text-gray-300 hidden">
+      <span id="audioStatusText">Audio: Simulated</span>
+      <button id="enableAudioBtn" class="ml-2 px-2 py-1 bg-primary/20 hover:bg-primary/30 rounded text-xs text-primary transition-colors hidden">
+        Enable Mic
+      </button>
+    </div>
+    
+    <h1 class="text-6xl md:text-8xl font-bold mb-12 pb-4 leading-normal fade-in-up" style="background: linear-gradient(135deg, #ffffff 0%, #10b981 25%, #22c55e 50%, #059669 75%, #ffffff 100%); background-size: 200% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradient-shift 3s ease infinite, fadeInUp 1s ease-out; text-shadow: 0 0 30px rgba(16, 185, 129, 0.5);">
       Syro
     </h1>
     
-    <p class="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+    <p class="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed fade-in-up delay-100">
       Discover the latest music releases, explore artist profiles, and create personalized playlists
     </p>
     
-    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 fade-in-up delay-200">
       <a href="{% url 'music:search' %}" 
-         class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold bg-gradient-to-r from-primary to-accent text-white hover-glow transition-all shadow-lg">
+         class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold bg-gradient-to-r from-primary to-accent text-white hover-glow transition-all shadow-lg pulse-glow">
         <span class="iconify h-5 w-5 mr-2" data-icon="mdi:magnify"></span>
         Explore Music
       </a>
       <a href="{% url 'music:artist_list' %}" 
-         class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold border border-border hover:bg-secondary transition-all">
+         class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold border border-primary/50 hover:bg-primary/10 transition-all backdrop-blur-sm">
         <span class="iconify h-5 w-5 mr-2" data-icon="mdi:account-group"></span>
         Browse Artists
       </a>
@@ -30,109 +269,385 @@
 </section>
 
 <!-- Features Section -->
-<section class="py-16">
+<section class="py-16 relative bg-black">
   <div class="container mx-auto px-4">
-    <div class="text-center mb-12">
-      <h2 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">Discover Amazing Features</h2>
-      <p class="text-muted-foreground text-lg">Everything you need to enjoy your music</p>
+    <div class="text-center mb-12 fade-in-up">
+      <h2 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Discover Amazing Features</h2>
+      <p class="text-gray-400 text-lg">Everything you need to enjoy your music</p>
     </div>
     
-    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 feature-cards-container">
       <a href="{% url 'music:song_list' %}" 
-         class="card p-6 hover-glow transition-all group">
-        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-          <span class="iconify h-6 w-6 text-primary" data-icon="mdi:music"></span>
+         class="liquid-glass-card p-6 transition-all group feature-card book-flip book-flip-1">
+        <div class="icon-bubble h-14 w-14 rounded-2xl flex items-center justify-center mb-4 transition-all">
+          <span class="iconify h-7 w-7 text-primary" data-icon="mdi:music"></span>
         </div>
-        <h3 class="text-xl font-bold mb-2 group-hover:text-primary transition-colors">Browse Songs</h3>
-        <p class="text-sm text-muted-foreground">Explore millions of tracks</p>
+        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Browse Songs</h3>
+        <p class="text-sm text-gray-400">Explore millions of tracks</p>
       </a>
       
       <a href="{% url 'music:album_list' %}" 
-         class="card p-6 hover-glow transition-all group">
-        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-          <span class="iconify h-6 w-6 text-primary" data-icon="mdi:album"></span>
+         class="liquid-glass-card p-6 transition-all group feature-card book-flip book-flip-2">
+        <div class="icon-bubble h-14 w-14 rounded-2xl flex items-center justify-center mb-4 transition-all">
+          <span class="iconify h-7 w-7 text-primary" data-icon="mdi:album"></span>
         </div>
-        <h3 class="text-xl font-bold mb-2 group-hover:text-primary transition-colors">Albums</h3>
-        <p class="text-sm text-muted-foreground">Discover complete albums</p>
+        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Albums</h3>
+        <p class="text-sm text-gray-400">Discover complete albums</p>
       </a>
       
       <a href="{% url 'music:artist_list' %}" 
-         class="card p-6 hover-glow transition-all group">
-        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-          <span class="iconify h-6 w-6 text-primary" data-icon="mdi:microphone"></span>
+         class="liquid-glass-card p-6 transition-all group feature-card book-flip book-flip-3">
+        <div class="icon-bubble h-14 w-14 rounded-2xl flex items-center justify-center mb-4 transition-all">
+          <span class="iconify h-7 w-7 text-primary" data-icon="mdi:microphone"></span>
         </div>
-        <h3 class="text-xl font-bold mb-2 group-hover:text-primary transition-colors">Artists</h3>
-        <p class="text-sm text-muted-foreground">Follow your favorite musicians</p>
+        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Artists</h3>
+        <p class="text-sm text-gray-400">Follow your favorite musicians</p>
       </a>
       
       <a href="{% url 'music:playlist_list' %}" 
-         class="card p-6 hover-glow transition-all group">
-        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-          <span class="iconify h-6 w-6 text-primary" data-icon="mdi:playlist-music"></span>
+         class="liquid-glass-card p-6 transition-all group feature-card book-flip book-flip-4">
+        <div class="icon-bubble h-14 w-14 rounded-2xl flex items-center justify-center mb-4 transition-all">
+          <span class="iconify h-7 w-7 text-primary" data-icon="mdi:playlist-music"></span>
         </div>
-        <h3 class="text-xl font-bold mb-2 group-hover:text-primary transition-colors">Playlists</h3>
-        <p class="text-sm text-muted-foreground">Create custom playlists</p>
+        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Playlists</h3>
+        <p class="text-sm text-gray-400">Create custom playlists</p>
       </a>
-    </div>
-  </div>
-</section>
-
-<!-- About Section -->
-<section class="py-16">
-  <div class="container mx-auto px-4">
-    <div class="glass rounded-2xl p-8 md:p-12 border border-primary/20">
-      <div class="max-w-3xl mx-auto text-center">
-        <div class="inline-flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-6">
-          <span class="iconify h-8 w-8 text-primary" data-icon="mdi:heart"></span>
-        </div>
-        
-        <h2 class="text-4xl font-bold mb-6 gradient-text">About Syro</h2>
-        
-        <p class="text-lg text-muted-foreground mb-6 leading-relaxed">
-          Syro is your one-stop destination for discovering and enjoying the latest music releases, artist profiles, and more.
-        </p>
-        
-        <p class="text-lg text-muted-foreground leading-relaxed">
-          Explore our vast collection of artists, albums, and songs. Create your own playlists and share them with friends.
-        </p>
-        
-        <div class="mt-10 flex flex-wrap items-center justify-center gap-6">
-          <div class="flex items-center space-x-2">
-            <span class="iconify h-5 w-5 text-primary" data-icon="mdi:check-circle"></span>
-            <span class="text-sm font-medium">Unlimited Streaming</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="iconify h-5 w-5 text-primary" data-icon="mdi:check-circle"></span>
-            <span class="text-sm font-medium">HD Audio Quality</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="iconify h-5 w-5 text-primary" data-icon="mdi:check-circle"></span>
-            <span class="text-sm font-medium">Offline Playback</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="iconify h-5 w-5 text-primary" data-icon="mdi:check-circle"></span>
-            <span class="text-sm font-medium">Cross-Platform</span>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
 
 <!-- CTA Section -->
-<section class="py-16">
+<section class="py-16 bg-black">
   <div class="container mx-auto px-4">
-    <div class="glass rounded-2xl p-8 md:p-12 border border-border text-center hover-glow transition-all">
-      <h2 class="text-4xl font-bold mb-4 gradient-text">Ready to Start Your Musical Journey?</h2>
-      <p class="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-        Connect your Spotify account and unlock unlimited access to millions of songs
+    <div class="liquid-glass-cta p-8 md:p-12 text-center transition-all">
+      <div class="icon-bubble inline-flex items-center justify-center h-16 w-16 rounded-full mb-6 transition-all">
+        <span class="iconify h-8 w-8 text-primary" data-icon="mdi:spotify"></span>
+      </div>
+      <h2 class="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Connect with Spotify</h2>
+      <p class="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+        Link your Spotify account to unlock unlimited access to millions of songs and sync your playlists
       </p>
       <a href="{% url 'music:spotify_login' %}" 
          class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold bg-gradient-to-r from-primary to-accent text-white hover-glow transition-all shadow-lg">
         <span class="iconify h-5 w-5 mr-2" data-icon="mdi:spotify"></span>
-        Connect with Spotify
+        Connect Now
       </a>
     </div>
   </div>
 </section>
+
+<script>
+// Audio-Reactive Visualization (Cava-style)
+document.addEventListener('DOMContentLoaded', function() {
+  const canvas = document.getElementById('audioVisualizerCanvas');
+  const audioStatus = document.getElementById('audioStatus');
+  const audioStatusText = document.getElementById('audioStatusText');
+  const enableAudioBtn = document.getElementById('enableAudioBtn');
+  
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  let audioContext, analyser, dataArray, bufferLength;
+  let animationId;
+  let isAudioInitialized = false;
+  let useRealAudio = false;
+  
+  // Show audio status indicator
+  if (audioStatus) {
+    audioStatus.classList.remove('hidden');
+  }
+  
+  // Set canvas size with proper pixel ratio for crisp rendering
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    
+    // Set actual size in memory (scaled to account for extra pixel density)
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    
+    // Normalize coordinate system to use CSS pixels
+    ctx.scale(dpr, dpr);
+    
+    console.log(`Canvas resized: ${rect.width}x${rect.height} (DPR: ${dpr})`);
+  }
+  
+  resizeCanvas();
+  
+  // Debounce resize for better performance
+  let resizeTimeout;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(resizeCanvas, 100);
+  });
+  
+  // Update status display
+  function updateStatus(text, showButton = false) {
+    if (audioStatusText) {
+      audioStatusText.textContent = text;
+    }
+    if (enableAudioBtn) {
+      if (showButton) {
+        enableAudioBtn.classList.remove('hidden');
+      } else {
+        enableAudioBtn.classList.add('hidden');
+      }
+    }
+  }
+  
+  // Initialize audio context
+  async function initAudio() {
+    if (isAudioInitialized) return;
+    
+    console.log('Attempting to initialize audio...');
+    updateStatus('Audio: Initializing...', false);
+    
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+      bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+      
+      console.log('Audio context created, requesting microphone access...');
+      
+      // Request microphone access
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }, 
+          video: false 
+        });
+        
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        useRealAudio = true;
+        isAudioInitialized = true;
+        updateStatus('Audio: Live Microphone', false);
+        console.log('Microphone access granted! Visualizer is now reactive to audio.');
+        
+        // Show success message briefly
+        setTimeout(() => {
+          if (audioStatus && useRealAudio) {
+            audioStatus.style.opacity = '0';
+            setTimeout(() => audioStatus.style.display = 'none', 300);
+          }
+        }, 3000);
+        
+      } catch (err) {
+        console.log('Microphone access denied or unavailable:', err.name, err.message);
+        isAudioInitialized = true;
+        useRealAudio = false;
+        
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          updateStatus('Audio: Simulated (Mic Denied)', false);
+        } else if (err.name === 'NotFoundError') {
+          updateStatus('Audio: Simulated (No Mic Found)', false);
+        } else {
+          updateStatus('Audio: Simulated', true);
+        }
+      }
+    } catch (error) {
+      console.error('Audio initialization failed:', error);
+      isAudioInitialized = true;
+      useRealAudio = false;
+      updateStatus('Audio: Simulated', true);
+    }
+  }
+  
+  // Button click handler for manual audio init
+  if (enableAudioBtn) {
+    enableAudioBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!isAudioInitialized) {
+        await initAudio();
+      } else if (audioContext && audioContext.state === 'suspended') {
+        await audioContext.resume();
+        updateStatus('Audio: Resumed', false);
+      }
+    });
+  }
+  
+  // Main animation loop
+  function animate() {
+    animationId = requestAnimationFrame(animate);
+    
+    if (useRealAudio && analyser) {
+      drawRealAudio();
+    } else {
+      drawSimulatedAudio();
+    }
+  }
+  
+  // Draw with real audio data
+  function drawRealAudio() {
+    analyser.getByteFrequencyData(dataArray);
+    
+    const rect = canvas.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    
+    // Clear canvas with fade effect for trail
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.fillRect(0, 0, width, height);
+    
+    // Draw bars (Cava-style)
+    const barCount = Math.min(60, Math.floor(width / 15)); // Responsive bar count
+    const barWidth = width / barCount;
+    const centerY = height / 2;
+    const time = Date.now() * 0.001;
+    
+    for (let i = 0; i < barCount; i++) {
+      const dataIndex = Math.floor(i * bufferLength / barCount);
+      const value = dataArray[dataIndex] || 0;
+      
+      // Enhanced bar height with minimum threshold
+      const normalizedValue = value / 255;
+      
+      // Add subtle wave motion even with real audio
+      const waveOffset = Math.sin(time * 2 + i * 0.2) * 0.1;
+      const barHeight = Math.max((normalizedValue + waveOffset) * centerY * 0.8, 5);
+      
+      const x = i * barWidth;
+      
+      // Create gradient for bars (vibrant green theme)
+      const gradient = ctx.createLinearGradient(0, centerY - barHeight, 0, centerY + barHeight);
+      const alpha = Math.max(normalizedValue, 0.4);
+      gradient.addColorStop(0, `rgba(16, 185, 129, ${alpha})`);
+      gradient.addColorStop(0.5, `rgba(34, 197, 94, ${Math.min(alpha + 0.2, 1)})`);
+      gradient.addColorStop(1, `rgba(5, 150, 105, ${alpha})`);
+      
+      ctx.fillStyle = gradient;
+      
+      // Draw mirrored bars with rounded corners
+      const radius = Math.min(2, barWidth / 4);
+      drawRoundedRect(x + 1, centerY - barHeight, barWidth - 2, barHeight, radius);
+      drawRoundedRect(x + 1, centerY, barWidth - 2, barHeight, radius);
+      
+      // Add glow effect based on intensity
+      if (normalizedValue > 0.3) {
+        ctx.shadowBlur = 15 * normalizedValue;
+        ctx.shadowColor = `rgba(16, 185, 129, ${normalizedValue})`;
+      }
+    }
+    
+    ctx.shadowBlur = 0;
+  }
+  
+  // Simulated audio visualization with more dynamic movement
+  function drawSimulatedAudio() {
+    const rect = canvas.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    
+    // Clear canvas with fade effect for smooth trails
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(0, 0, width, height);
+    
+    const barCount = Math.min(60, Math.floor(width / 15)); // Responsive bar count
+    const barWidth = width / barCount;
+    const centerY = height / 2;
+    const time = Date.now() * 0.001;
+    
+    for (let i = 0; i < barCount; i++) {
+      // Multiple overlapping sine waves for complex, fluid motion
+      const wave1 = Math.sin(time * 1.5 + i * 0.25);
+      const wave2 = Math.sin(time * 0.9 - i * 0.18);
+      const wave3 = Math.cos(time * 1.8 + i * 0.12);
+      const wave4 = Math.cos(time * 0.6 + i * 0.3);
+      
+      // Combine waves for rich, organic movement
+      const combined = (wave1 + wave2 * 0.6 + wave3 * 0.4 + wave4 * 0.3) / 2.9;
+      const amplitude = Math.abs(combined);
+      
+      // Add bass emphasis for lower bars + pulsing effect
+      const bassBoost = i < barCount / 3 ? 1.4 : 1.0;
+      const pulse = Math.sin(time * 3) * 0.1 + 0.9; // Global pulse
+      const barHeight = Math.max(amplitude * centerY * 0.65 * bassBoost * pulse, 5);
+      
+      const x = i * barWidth;
+      
+      // Create gradient with varying opacity based on movement
+      const gradient = ctx.createLinearGradient(0, centerY - barHeight, 0, centerY + barHeight);
+      const alpha = amplitude * 0.75 + 0.25;
+      gradient.addColorStop(0, `rgba(16, 185, 129, ${alpha * 0.85})`);
+      gradient.addColorStop(0.5, `rgba(34, 197, 94, ${alpha})`);
+      gradient.addColorStop(1, `rgba(5, 150, 105, ${alpha * 0.85})`);
+      
+      ctx.fillStyle = gradient;
+      
+      // Draw mirrored bars with rounded corners
+      const radius = Math.min(2, barWidth / 4);
+      drawRoundedRect(x + 1, centerY - barHeight, barWidth - 2, barHeight, radius);
+      drawRoundedRect(x + 1, centerY, barWidth - 2, barHeight, radius);
+      
+      // Dynamic glow based on amplitude
+      if (amplitude > 0.4) {
+        ctx.shadowBlur = 12 * amplitude;
+        ctx.shadowColor = `rgba(16, 185, 129, ${amplitude * 0.7})`;
+      }
+    }
+    
+    ctx.shadowBlur = 0;
+  }
+  
+  // Helper function to draw rounded rectangles
+  function drawRoundedRect(x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+  
+  // Start animation immediately
+  animate();
+  
+  // Try to initialize audio on various user interactions
+  let audioInitAttempted = false;
+  const tryInitAudio = async function() {
+    if (!audioInitAttempted) {
+      audioInitAttempted = true;
+      console.log('User interaction detected, attempting audio initialization...');
+      await initAudio();
+    }
+  };
+  
+  // Multiple event listeners to catch user interaction
+  document.addEventListener('click', tryInitAudio, { once: true });
+  document.addEventListener('touchstart', tryInitAudio, { once: true });
+  document.addEventListener('keydown', tryInitAudio, { once: true });
+  
+  // Also try after a short delay (some browsers allow this)
+  setTimeout(() => {
+    if (!audioInitAttempted) {
+      console.log('Auto-attempting audio initialization...');
+      tryInitAudio();
+    }
+  }, 1000);
+  
+  // Cleanup
+  window.addEventListener('beforeunload', function() {
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+    }
+    if (audioContext) {
+      audioContext.close();
+    }
+  });
+});
+</script>
 {% endblock content %}
