@@ -5,12 +5,19 @@
 
 {% block extra_css %}
 <style>
-  /* Hide Spotify Web Playback SDK Modal */
+  /* Hide Spotify Web Playback SDK Modal and Now Playing Widget */
   iframe[src*="spotify"],
   div[class*="spotify"],
   div[id*="spotify-player"],
-  div[class*="now-playing-widget"],
-  body > div[style*="position: fixed"][style*="z-index"] {
+  div[class*="now-playing"],
+  div[id*="now-playing"],
+  div[class*="now_playing"],
+  div[id*="now_playing"],
+  div[data-testid*="now-playing"],
+  div[class*="spotify-widget"],
+  div[id*="spotify-widget"],
+  body > div[style*="position: fixed"][style*="z-index"],
+  body > iframe {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -1694,6 +1701,9 @@
     // Setup search functionality
     setupPlayerSearch();
 
+    // Remove any Spotify SDK elements that might appear
+    removeSpotifySDKElements();
+
     // Initialize Spotify Web Playback SDK
     // DISABLED: Creates unwanted "Now Playing" modal window
     // initializeSpotifyPlayer();
@@ -1704,18 +1714,40 @@
 
   // ==================== Remove Spotify SDK Elements ====================
   function removeSpotifySDKElements() {
-    // Remove any iframes from Spotify
-    document.querySelectorAll('iframe[src*="spotify"]').forEach(el => el.remove());
-    
-    // Remove any divs that might be the Spotify player
+    // Remove all Spotify iframes
+    document.querySelectorAll('iframe[src*="spotify"], iframe[src*="now-playing"]').forEach(el => {
+      console.log('Removing Spotify iframe:', el);
+      el.remove();
+    });
+
+    // Remove divs with Spotify/Now Playing in class or id
+    document.querySelectorAll(
+      'div[class*="spotify"], div[id*="spotify"], ' +
+      'div[class*="now-playing"], div[id*="now-playing"], ' +
+      'div[class*="now_playing"], div[id*="now_playing"], ' +
+      'div[class*="spotify-widget"], div[id*="spotify-widget"]'
+    ).forEach(el => {
+      console.log('Removing Spotify element:', el);
+      el.remove();
+    });
+
+    // Remove any fixed/modal divs that might be Spotify players
     document.querySelectorAll('body > div').forEach(el => {
       const style = window.getComputedStyle(el);
-      if (style.position === 'fixed' && 
-          (style.zIndex > 9000 || el.className.includes('spotify') || el.id.includes('spotify'))) {
-        console.log('Removing Spotify element:', el);
+      const zIndex = parseInt(style.zIndex) || 0;
+      if (style.position === 'fixed' && zIndex > 100) {
+        console.log('Removing fixed element with high z-index:', el, 'z-index:', zIndex);
         el.remove();
       }
     });
+
+    // Remove any remaining body-level iframes
+    document.querySelectorAll('body > iframe').forEach(el => {
+      console.log('Removing body iframe:', el);
+      el.remove();
+    });
+
+    console.log('Spotify SDK elements removal complete');
   }
 
   /* ==================== Advanced Features Initialization ==================== */
