@@ -12,7 +12,9 @@ from django.contrib.auth.models import User
 
 from .models import (
     Artist, Album, Song, Playlist,
-    SpotifyUser, UserListeningStats, UserListeningActivity
+    SpotifyUser, UserListeningStats, UserListeningActivity,
+    SearchHistory, UserFollowing, PlaylistCollaborator, PlaylistShare,
+    PlaybackHistoryAnalytics, QueueItem, TrackLyrics, UserProfile, PlaybackQueue
 )
 from .serializers import (
     ArtistSerializer, AlbumSerializer, SongSerializer, PlaylistSerializer,
@@ -447,5 +449,295 @@ def get_stats_detailed_api(request):
                 'status': 'error',
                 'message': f'Error retrieving stats: {str(e)}',
             },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def search_history_api(request):
+    """Search history endpoints."""
+    if request.method == 'GET':
+        limit = request.query_params.get('limit', 20)
+        history = SearchHistory.objects.filter(user=request.user).values('query', 'search_type', 'created_at').distinct()[:int(limit)]
+        return Response({
+            'status': 'success',
+            'data': list(history)
+        })
+
+    elif request.method == 'POST':
+        query = request.data.get('query', '').strip()
+        search_type = request.data.get('search_type', 'all')
+
+        if not query or len(query) < 2:
+            return Response(
+                {'status': 'error', 'message': 'Query must be at least 2 characters'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        SearchHistory.objects.create(
+            user=request.user,
+            query=query,
+            search_type=search_type
+        )
+
+        return Response({'status': 'success', 'message': 'Search saved'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def clear_search_history_api(request):
+    """Clear all search history for user."""
+    SearchHistory.objects.filter(user=request.user).delete()
+    return Response({'status': 'success', 'message': 'Search history cleared'})
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def user_profile_api(request):
+    """Get or update user profile."""
+    try:
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+        if request.method == 'GET':
+            data = {
+                'username': request.user.username,
+                'email': request.user.email,
+                'bio': profile.bio,
+                'profile_image': profile.profile_image,
+                'favorite_genre': profile.favorite_genre,
+                'is_public': profile.is_public,
+                'follower_count': profile.user.followers.count(),
+                'following_count': profile.user.following.count(),
+            }
+            return Response({'status': 'success', 'data': data})
+
+        elif request.method == 'POST':
+            profile.bio = request.data.get('bio', profile.bio)
+            profile.profile_image = request.data.get('profile_image', profile.profile_image)
+            profile.favorite_genre = request.data.get('favorite_genre', profile.favorite_genre)
+            profile.is_public = request.data.get('is_public', profile.is_public)
+            profile.save()
+
+            return Response({'status': 'success', 'message': 'Profile updated'})
+
+    except Exception as e:
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def follow_user_api(request):
+    """Follow another user."""
+    try:
+        username = request.data.get('username')
+        target_user = get_object_or_404(User, username=username)
+
+        if target_user == request.user:
+            return Response(
+                {'status': 'error', 'message': 'Cannot follow yourself'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        UserFollowing.objects.get_or_create(
+            follower=request.user,
+            following=target_user
+        )
+
+        return Response({'status': 'success', 'message': f'Following {username}'})
+
+    except User.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'User not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unfollow_user_api(request):
+    """Unfollow another user."""
+    try:
+        username = request.data.get('username')
+        target_user = get_object_or_404(User, username=username)
+
+        UserFollowing.objects.filter(
+            follower=request.user,
+            following=target_user
+        ).delete()
+
+        return Response({'status': 'success', 'message': f'Unfollowed {username}'})
+
+    except User.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'User not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def share_playlist_api(request):
+    """Share a playlist with another user."""
+    try:
+        playlist_id = request.data.get('playlist_id')
+        username = request.data.get('username')
+        message = request.data.get('message', '')
+
+        playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
+        shared_with_user = get_object_or_404(User, username=username)
+
+        if shared_with_user == request.user:
+            return Response(
+                {'status': 'error', 'message': 'Cannot share with yourself'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        PlaylistShare.objects.get_or_create(
+            playlist=playlist,
+            shared_by=request.user,
+            shared_with=shared_with_user,
+            defaults={'message': message}
+        )
+
+        return Response({'status': 'success', 'message': 'Playlist shared'})
+
+    except Playlist.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'Playlist not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_playlist_collaborator_api(request):
+    """Add collaborator to playlist."""
+    try:
+        playlist_id = request.data.get('playlist_id')
+        username = request.data.get('username')
+        permission_level = request.data.get('permission_level', 'view')
+
+        playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
+        collaborator = get_object_or_404(User, username=username)
+
+        PlaylistCollaborator.objects.update_or_create(
+            playlist=playlist,
+            user=collaborator,
+            defaults={'permission_level': permission_level}
+        )
+
+        return Response({'status': 'success', 'message': f'{username} added as collaborator'})
+
+    except (Playlist.DoesNotExist, User.DoesNotExist):
+        return Response(
+            {'status': 'error', 'message': 'Playlist or user not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def queue_reorder_api(request):
+    """Get queue items for reordering."""
+    try:
+        queue = get_object_or_404(PlaybackQueue, user=request.user)
+        items = QueueItem.objects.filter(queue=queue).order_by('position').values('id', 'track_data', 'position')
+
+        return Response({
+            'status': 'success',
+            'data': list(items)
+        })
+
+    except PlaybackQueue.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'Queue not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def queue_reorder_update_api(request):
+    """Update queue item positions for drag-and-drop."""
+    try:
+        queue = get_object_or_404(PlaybackQueue, user=request.user)
+        items = request.data.get('items', [])
+
+        for idx, item_id in enumerate(items):
+            QueueItem.objects.filter(id=item_id, queue=queue).update(position=idx)
+
+        return Response({'status': 'success', 'message': 'Queue reordered'})
+
+    except PlaybackQueue.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'Queue not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def playback_analytics_api(request):
+    """Get detailed playback analytics."""
+    try:
+        analytics, created = PlaybackHistoryAnalytics.objects.get_or_create(user=request.user)
+
+        data = {
+            'listening_streak': analytics.listening_streak,
+            'last_listened_date': analytics.last_listened_date,
+            'most_active_hour': analytics.most_active_hour,
+            'most_active_day_of_week': analytics.most_active_day_of_week,
+            'total_listening_minutes': analytics.total_listening_minutes,
+            'unique_artists_heard': analytics.unique_artists_heard,
+            'unique_tracks_heard': analytics.unique_tracks_heard,
+            'monthly_summary': analytics.monthly_summary,
+        }
+
+        return Response({'status': 'success', 'data': data})
+
+    except Exception as e:
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def track_lyrics_api(request):
+    """Get lyrics for a track."""
+    try:
+        spotify_track_id = request.query_params.get('spotify_track_id')
+
+        if not spotify_track_id:
+            return Response(
+                {'status': 'error', 'message': 'spotify_track_id required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        lyrics = TrackLyrics.objects.filter(spotify_track_id=spotify_track_id).first()
+
+        if lyrics:
+            return Response({
+                'status': 'success',
+                'data': {
+                    'lyrics': lyrics.lyrics,
+                    'source': lyrics.lyrics_source,
+                    'is_explicit': lyrics.is_explicit,
+                }
+            })
+        else:
+            return Response(
+                {'status': 'not_found', 'message': 'Lyrics not available'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    except Exception as e:
+        return Response(
+            {'status': 'error', 'message': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

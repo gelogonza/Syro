@@ -1,6 +1,6 @@
 """URL configuration for Syro app."""
 from django.urls import path
-from . import views, playback_views, search_views
+from . import views, playback_views, search_views, api_views
 
 app_name = 'music'
 
@@ -59,4 +59,23 @@ urlpatterns = [
     # Track Management
     path('tracks/<int:song_id>/save/', search_views.save_track, name='save_track'),
     path('tracks/<int:song_id>/unsave/', search_views.unsave_track, name='unsave_track'),
+
+    # Search History
+    path('api/search-history/', api_views.search_history_api, name='search_history'),
+    path('api/search-history/clear/', api_views.clear_search_history_api, name='clear_search_history'),
+
+    # User Profile & Social Features
+    path('api/profile/', api_views.user_profile_api, name='user_profile'),
+    path('api/follow/', api_views.follow_user_api, name='follow_user'),
+    path('api/unfollow/', api_views.unfollow_user_api, name='unfollow_user'),
+    path('api/share-playlist/', api_views.share_playlist_api, name='share_playlist'),
+    path('api/collaborator/', api_views.add_playlist_collaborator_api, name='add_collaborator'),
+
+    # Queue Management
+    path('api/queue/reorder/', api_views.queue_reorder_api, name='queue_reorder'),
+    path('api/queue/reorder/update/', api_views.queue_reorder_update_api, name='queue_reorder_update'),
+
+    # Analytics & Lyrics
+    path('api/analytics/', api_views.playback_analytics_api, name='playback_analytics'),
+    path('api/lyrics/', api_views.track_lyrics_api, name='track_lyrics'),
 ]

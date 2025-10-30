@@ -116,8 +116,10 @@ class Playlist(models.Model):
 class UserProfile(models.Model):
     """Extended user profile model for additional user information."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    bio = models.TextField(blank=True, null=True)
+    bio = models.TextField(blank=True, null=True, max_length=500)
+    profile_image = models.URLField(blank=True, null=True)
     favorite_genre = models.CharField(max_length=100, blank=True, null=True)
+    is_public = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
@@ -349,3 +351,153 @@ class PlaybackQueue(models.Model):
 
     class Meta:
         ordering = ['-last_updated']
+
+
+class SearchHistory(models.Model):
+    """Model to track user search history."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='search_history')
+    query = models.CharField(max_length=255, db_index=True)
+    search_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('all', 'All'),
+            ('artist', 'Artist'),
+            ('album', 'Album'),
+            ('track', 'Track'),
+            ('playlist', 'Playlist'),
+        ],
+        default='all'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    def __str__(self):
+        return f"{self.user.username} searched for {self.query}"
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+        ]
+
+
+class UserFollowing(models.Model):
+    """Model for user following relationships."""
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.follower.username} follows {self.following.username}"
+
+    class Meta:
+        unique_together = ['follower', 'following']
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['follower', '-created_at']),
+            models.Index(fields=['following', '-created_at']),
+        ]
+
+
+class PlaylistCollaborator(models.Model):
+    """Model for playlist collaboration."""
+    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name='collaborators')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='collaborated_playlists')
+    permission_level = models.CharField(
+        max_length=20,
+        choices=[
+            ('view', 'View Only'),
+            ('edit', 'Can Edit'),
+            ('admin', 'Admin'),
+        ],
+        default='view'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.playlist.title} ({self.permission_level})"
+
+    class Meta:
+        unique_together = ['playlist', 'user']
+        ordering = ['-created_at']
+
+
+class PlaylistShare(models.Model):
+    """Model for sharing playlists with users."""
+    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name='shares')
+    shared_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='playlist_shares')
+    shared_with = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shared_playlists')
+    message = models.TextField(blank=True, null=True, max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.shared_by.username} shared {self.playlist.title} with {self.shared_with.username}"
+
+    class Meta:
+        unique_together = ['playlist', 'shared_by', 'shared_with']
+        ordering = ['-created_at']
+
+
+class PlaybackHistoryAnalytics(models.Model):
+    """Model to store aggregated playback analytics."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='playback_analytics')
+
+    listening_streak = models.IntegerField(default=0)
+    last_listened_date = models.DateField(auto_now=True)
+
+    most_active_hour = models.IntegerField(default=0)
+    most_active_day_of_week = models.IntegerField(default=0)
+
+    total_listening_minutes = models.IntegerField(default=0)
+    unique_artists_heard = models.IntegerField(default=0)
+    unique_tracks_heard = models.IntegerField(default=0)
+
+    monthly_summary = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Analytics for {self.user.username}"
+
+    class Meta:
+        ordering = ['-updated_at']
+
+
+class QueueItem(models.Model):
+    """Model for managing individual queue items with drag-and-drop support."""
+    queue = models.ForeignKey(PlaybackQueue, on_delete=models.CASCADE, related_name='items')
+    track_data = models.JSONField()
+    position = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        track_name = self.track_data.get('name', 'Unknown')
+        return f"{self.queue.user.username}'s queue - {track_name}"
+
+    class Meta:
+        ordering = ['position']
+        unique_together = ['queue', 'track_data']
+        indexes = [
+            models.Index(fields=['queue', 'position']),
+        ]
+
+
+class TrackLyrics(models.Model):
+    """Model to cache track lyrics."""
+    spotify_track_id = models.CharField(max_length=255, unique=True, db_index=True)
+    track_name = models.CharField(max_length=255)
+    artist_name = models.CharField(max_length=255)
+    lyrics = models.TextField()
+    lyrics_source = models.CharField(max_length=100, default='genius')
+    is_explicit = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.track_name} by {self.artist_name}"
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['spotify_track_id']),
+        ]

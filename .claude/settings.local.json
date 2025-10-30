@@ -18,7 +18,9 @@
       "Bash(redis-cli ping:*)",
       "Bash(redis-server:*)",
       "Bash(git check-ignore:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git merge:*)",
+      "Bash(source:*)"
     ],
     "deny": [],
     "ask": []

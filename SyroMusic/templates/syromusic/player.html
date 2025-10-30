@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Music Player - Syro{% endblock title %}
 
@@ -1656,6 +1657,56 @@
 
     // Initialize Spotify Web Playback SDK
     initializeSpotifyPlayer();
+
+    // Initialize new features
+    initializeAdvancedFeatures();
   });
+
+  /* ==================== Advanced Features Initialization ==================== */
+  function initializeAdvancedFeatures() {
+    // Search history on search
+    const searchForm = document.querySelector('form[action*="search"]');
+    if (searchForm) {
+      searchForm.addEventListener('submit', function() {
+        const query = this.querySelector('input[name="q"]').value;
+        SearchHistory.save(query);
+      });
+    }
+
+    // Track lyrics button
+    const lyricsButton = document.querySelector('#lyrics-button');
+    if (lyricsButton) {
+      lyricsButton.addEventListener('click', async function() {
+        const trackId = document.querySelector('[data-spotify-track-id]')?.dataset.spotifyTrackId;
+        const trackName = document.querySelector('#current-track-name')?.textContent;
+        if (trackId && trackName) {
+          await TrackLyrics.showModal(trackName, trackId);
+        }
+      });
+    }
+
+    // Visualizer style selector
+    const visualizerSelect = document.querySelector('#visualizer-style');
+    if (visualizerSelect) {
+      visualizerSelect.addEventListener('change', function() {
+        AudioVisualizer.setStyle(this.value);
+      });
+    }
+
+    // Analytics dashboard
+    const analyticsContainer = document.querySelector('#analytics-dashboard');
+    if (analyticsContainer) {
+      PlaybackAnalytics.displayDashboard('analytics-dashboard');
+    }
+
+    // Queue reordering
+    const queueContainer = document.querySelector('#queue-container');
+    if (queueContainer) {
+      SmartQueue.renderQueue('queue-container');
+    }
+
+    console.log('Advanced features initialized');
+  }
 </script>
+<script src="{% static 'js/features.js' %}"></script>
 {% endblock content %}
