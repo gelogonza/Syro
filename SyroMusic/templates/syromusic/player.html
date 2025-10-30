@@ -851,7 +851,7 @@
 
       resultsDiv.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">Searching...</div>';
 
-      fetch(`/music/search/?q=${encodeURIComponent(query)}`)
+      fetch(`/music/api/search/?q=${encodeURIComponent(query)}`)
         .then(r => r.json())
         .then(data => {
           if (!data.songs || data.songs.length === 0) {

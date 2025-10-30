@@ -41,6 +41,7 @@ urlpatterns = [
 
     # Search & Discovery
     path('search/', search_views.search, name='search'),
+    path('api/search/', search_views.search_json_api, name='search_json'),
     path('recommendations/', search_views.recommendations, name='recommendations'),
     path('browse/genres/', search_views.browse_by_genre, name='browse_genres'),
 

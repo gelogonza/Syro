@@ -338,8 +338,8 @@ function searchSongsPlaylist() {
 
   resultsDiv.innerHTML = '<div class="loading-message">Searching...</div>';
 
-  // Search using existing search endpoint
-  fetch(`/music/search/?q=${encodeURIComponent(query)}`)
+  // Search using JSON API endpoint for smart search
+  fetch(`/music/api/search/?q=${encodeURIComponent(query)}`)
     .then(response => response.json())
     .then(data => {
       displayPlaylistSearchResults(data, query);

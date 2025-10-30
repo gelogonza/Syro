@@ -88,6 +88,91 @@ def search(request):
     return render(request, 'SyroMusic/search.html', context)
 
 
+def search_json_api(request):
+    """
+    JSON API endpoint for smart search.
+    Used by AJAX for real-time search in player and playlists.
+    Returns songs in JSON format with full metadata.
+    """
+    query = request.GET.get('q', '').strip()
+
+    if not query or len(query) < 2:
+        return JsonResponse({
+            'status': 'success',
+            'songs': [],
+            'message': 'Query too short'
+        })
+
+    try:
+        # Search local database first
+        local_songs = Song.objects.filter(
+            Q(title__icontains=query) | Q(album__artist__name__icontains=query)
+        )[:15]
+
+        songs_data = []
+        for song in local_songs:
+            songs_data.append({
+                'id': song.id,
+                'title': song.title,
+                'spotify_id': song.spotify_id,
+                'album': {
+                    'id': song.album.id,
+                    'title': song.album.title,
+                    'artist': {
+                        'id': song.album.artist.id,
+                        'name': song.album.artist.name,
+                    },
+                    'cover_url': song.album.cover_url,
+                },
+            })
+
+        # If user is authenticated, also search Spotify
+        if request.user.is_authenticated and len(songs_data) < 10:
+            try:
+                spotify_user = SpotifyUser.objects.filter(user=request.user).first()
+                if spotify_user:
+                    access_token = TokenManager.refresh_user_token(spotify_user)
+                    if access_token:
+                        sp = SpotifyService(access_token=access_token)
+                        spotify_results = sp.search(query, 'track', limit=10)
+
+                        if spotify_results and 'tracks' in spotify_results:
+                            for track in spotify_results['tracks']:
+                                # Check if we already have this song
+                                existing = any(s['spotify_id'] == track.get('id') for s in songs_data)
+                                if not existing and len(songs_data) < 20:
+                                    artist = track.get('artists', [{}])[0] if track.get('artists') else {}
+                                    album = track.get('album', {})
+                                    songs_data.append({
+                                        'id': track.get('id'),
+                                        'title': track.get('name', ''),
+                                        'spotify_id': track.get('id'),
+                                        'album': {
+                                            'id': album.get('id'),
+                                            'title': album.get('name', ''),
+                                            'artist': {
+                                                'id': artist.get('id'),
+                                                'name': artist.get('name', ''),
+                                            },
+                                            'cover_url': album.get('images', [{}])[0].get('url', '') if album.get('images') else '',
+                                        },
+                                    })
+            except Exception as e:
+                # If Spotify search fails, just use local results
+                pass
+
+        return JsonResponse({
+            'status': 'success',
+            'songs': songs_data[:20],
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
 @login_required(login_url='login')
 def recommendations(request):
     """Personalized recommendations based on user's top tracks/artists."""
