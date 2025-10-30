@@ -493,18 +493,15 @@
           </div>
 
           <!-- Track Info -->
+          {% if now_playing and now_playing.track_name %}
           <div class="text-center mb-8">
-            {% if now_playing and now_playing.track_name %}
-              <h1 class="track-name" id="trackName">{{ now_playing.track_name }}</h1>
-              <p class="artist-name" id="artistName">{{ now_playing.artist_name }}</p>
-              {% if now_playing.album_name %}
-                <p class="album-name" id="albumNameDisplay">{{ now_playing.album_name }}</p>
-              {% endif %}
-            {% else %}
-              <h1 class="track-name">No Track Playing</h1>
-              <p class="artist-name">Start playing music from Spotify</p>
+            <h1 class="track-name" id="trackName">{{ now_playing.track_name }}</h1>
+            <p class="artist-name" id="artistName">{{ now_playing.artist_name }}</p>
+            {% if now_playing.album_name %}
+              <p class="album-name" id="albumNameDisplay">{{ now_playing.album_name }}</p>
             {% endif %}
           </div>
+          {% endif %}
 
           <!-- Progress Bar -->
           <div class="mb-6">
