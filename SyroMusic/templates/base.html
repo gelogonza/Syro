@@ -25,17 +25,17 @@
             foreground: '#ffffff',
             card: '#1a1a1a',
             'card-foreground': '#ffffff',
-            primary: '#10b981',
+            primary: '#ff6b9d',
             'primary-foreground': '#ffffff',
             secondary: '#2a2a2a',
             'secondary-foreground': '#ffffff',
             muted: '#404040',
             'muted-foreground': '#a0a0a0',
-            accent: '#22c55e',
-            'accent-foreground': '#000000',
+            accent: '#45b7d1',
+            'accent-foreground': '#ffffff',
             border: '#333333',
             input: '#1a1a1a',
-            ring: '#10b981',
+            ring: '#ff6b9d',
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -130,7 +130,7 @@
     
     /* Gradient Text */
     .gradient-text {
-      background: linear-gradient(135deg, #10b981, #22c55e);
+      background: linear-gradient(135deg, #ff6b9d, #ffd93d, #45b7d1, #a78bfa);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -153,7 +153,7 @@
     
     /* Hover Glow Effect */
     .hover-glow:hover {
-      box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+      box-shadow: 0 8px 32px rgba(255, 107, 157, 0.4);
     }
     
     /* Smooth transitions */
@@ -169,13 +169,13 @@
       left: 50%;
       width: 0;
       height: 2px;
-      background: linear-gradient(90deg, #10b981, #22c55e);
+      background: linear-gradient(90deg, #ff6b9d, #45b7d1);
       transform: translateX(-50%);
       transition: width 0.3s ease;
     }
-    
+
     .nav-link:hover {
-      color: #10b981;
+      color: #ff6b9d;
     }
     
     .nav-link:hover::after {
