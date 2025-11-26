@@ -945,7 +945,7 @@ def sonic_aura_api(request):
         top_genres = sorted(genre_counts.items(), key=lambda x: x[1], reverse=True)[:5]
         top_genre = top_genres[0][0] if top_genres else 'Unknown'
 
-        return Response({
+        response = Response({
             'status': 'success',
             'data': {
                 'vibe_score': vibe_score,
@@ -959,6 +959,9 @@ def sonic_aura_api(request):
                 'track_count': len(recently_played),
             }
         })
+        # Cache response for 5 minutes per user
+        response['Cache-Control'] = 'private, max-age=300'
+        return response
 
     except SpotifyUser.DoesNotExist:
         return Response(

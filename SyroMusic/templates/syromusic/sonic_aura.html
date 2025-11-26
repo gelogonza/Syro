@@ -2,20 +2,154 @@
 
 {% block title %}Sonic Aura - Your Music Vibe {% endblock title %}
 
-{% block content %}
-<div class="mb-8">
-  <h1 class="text-4xl font-bold mb-2 gradient-text">Sonic Aura</h1>
-  <p class="text-muted-foreground text-lg">Discover your music vibe and share your sonic personality</p>
-</div>
+{% block extra_css %}
+<style>
+  /* Premium Sonic Aura Styling */
+  .sonic-aura-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
 
-<!-- Loading State -->
-<div id="loadingState" class="glass rounded-2xl p-12 border border-primary/20 text-center">
-  <div class="inline-block mb-6">
-    <div class="w-16 h-16 rounded-full border-4 border-primary border-t-accent animate-spin"></div>
+  .sonic-aura-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+  }
+
+  .sonic-aura-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 40px;
+  }
+
+  /* Vibe Receipt Card Premium Styling */
+  #vibeReceipt {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .vibe-score-circle {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.3));
+    }
+    50% {
+      filter: drop-shadow(0 0 40px rgba(16, 185, 129, 0.6));
+    }
+  }
+
+  /* Action Buttons Premium Style */
+  .vibe-action-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 600;
+    border-radius: 12px;
+  }
+
+  .vibe-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .vibe-action-btn.primary {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    color: #0a0a0a;
+  }
+
+  .vibe-action-btn.secondary {
+    background: transparent;
+    border: 2px solid #10b981;
+    color: #10b981;
+  }
+
+  .vibe-action-btn.secondary:hover {
+    background: rgba(16, 185, 129, 0.1);
+  }
+
+  /* Share Modal Premium */
+  #shareModal {
+    animation: fade-in 0.3s ease-in-out;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      backdrop-filter: blur(0px);
+    }
+    to {
+      opacity: 1;
+      backdrop-filter: blur(4px);
+    }
+  }
+
+  .share-option-btn {
+    transition: all 0.2s ease;
+  }
+
+  .share-option-btn:hover {
+    transform: translateX(4px);
+  }
+
+  /* Stats Bars Premium */
+  .stat-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+  }
+
+  .stat-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+    border-radius: 4px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Loading State Enhancement */
+  .loading-spinner {
+    animation: spin 2s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Error State Enhancement */
+  .error-icon {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="sonic-aura-container">
+  <div class="mb-12">
+    <h1 class="sonic-aura-title">Sonic Aura</h1>
+    <p class="sonic-aura-subtitle">Discover your music vibe and share your sonic personality</p>
   </div>
-  <h2 class="text-2xl font-bold mb-2">Analyzing your music...</h2>
-  <p class="text-muted-foreground">Processing your last 50 tracks</p>
-</div>
+
+  <!-- Loading State -->
+  <div id="loadingState" class="glass rounded-2xl p-12 border border-primary/20 text-center">
+    <div class="inline-block mb-6">
+      <div class="loading-spinner w-16 h-16 rounded-full border-4 border-primary border-t-accent"></div>
+    </div>
+    <h2 class="text-2xl font-bold mb-2">Analyzing your music...</h2>
+    <p class="text-muted-foreground">Processing your last 50 tracks</p>
+  </div>
 
 <!-- Vibe Receipt Card -->
 <div id="vibeCard" class="hidden">
@@ -27,7 +161,7 @@
 
       <!-- Vibe Score Display -->
       <div class="flex items-center justify-center mb-8">
-        <div class="relative w-32 h-32">
+        <div class="relative w-32 h-32 vibe-score-circle">
           <svg class="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
             <!-- Background circle -->
             <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"/>
@@ -76,11 +210,11 @@
 
   <!-- Action Buttons -->
   <div class="max-w-md mx-auto mb-8 flex gap-4">
-    <button onclick="downloadVibeReceipt()" class="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-semibold hover-glow transition-all">
+    <button onclick="downloadVibeReceipt()" class="vibe-action-btn primary flex-1 px-6 py-3">
       <span class="iconify h-5 w-5 mr-2 inline" data-icon="mdi:download"></span>
       Download
     </button>
-    <button onclick="shareVibeReceipt()" class="flex-1 px-6 py-3 rounded-lg border-2 border-primary text-primary font-semibold hover:bg-primary/10 transition-all">
+    <button onclick="shareVibeReceipt()" class="vibe-action-btn secondary flex-1 px-6 py-3">
       <span class="iconify h-5 w-5 mr-2 inline" data-icon="mdi:share-variant"></span>
       Share
     </button>
@@ -92,15 +226,15 @@
       <h3 class="text-2xl font-bold mb-4">Share Your Sonic Aura</h3>
 
       <div class="space-y-3 mb-6">
-        <button onclick="shareToTwitter()" class="w-full px-4 py-3 rounded-lg bg-blue-500/20 text-blue-400 font-medium hover:bg-blue-500/30 transition-all flex items-center justify-center gap-2">
+        <button onclick="shareToTwitter()" class="share-option-btn w-full px-4 py-3 rounded-lg bg-blue-500/20 text-blue-400 font-medium hover:bg-blue-500/30 transition-all flex items-center justify-center gap-2">
           <span class="iconify h-5 w-5" data-icon="mdi:twitter"></span>
           Share on Twitter
         </button>
-        <button onclick="shareToInstagram()" class="w-full px-4 py-3 rounded-lg bg-pink-500/20 text-pink-400 font-medium hover:bg-pink-500/30 transition-all flex items-center justify-center gap-2">
+        <button onclick="shareToInstagram()" class="share-option-btn w-full px-4 py-3 rounded-lg bg-pink-500/20 text-pink-400 font-medium hover:bg-pink-500/30 transition-all flex items-center justify-center gap-2">
           <span class="iconify h-5 w-5" data-icon="mdi:instagram"></span>
           Share on Instagram
         </button>
-        <button onclick="copyToClipboard()" class="w-full px-4 py-3 rounded-lg bg-green-500/20 text-green-400 font-medium hover:bg-green-500/30 transition-all flex items-center justify-center gap-2">
+        <button onclick="copyToClipboard()" class="share-option-btn w-full px-4 py-3 rounded-lg bg-green-500/20 text-green-400 font-medium hover:bg-green-500/30 transition-all flex items-center justify-center gap-2">
           <span class="iconify h-5 w-5" data-icon="mdi:content-copy"></span>
           Copy Link
         </button>
@@ -122,8 +256,8 @@
             <span class="text-muted-foreground text-sm">Energy Level</span>
             <span class="text-white font-semibold" id="energyFullDisplay">0.00</span>
           </div>
-          <div class="w-full h-2 bg-border rounded-full overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full" id="energyBar" style="width: 0%;"></div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill" id="energyBar" style="width: 0%;"></div>
           </div>
         </div>
         <div>
@@ -131,8 +265,8 @@
             <span class="text-muted-foreground text-sm">Danceability</span>
             <span class="text-white font-semibold" id="danceFullDisplay">0.00</span>
           </div>
-          <div class="w-full h-2 bg-border rounded-full overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full" id="danceBar" style="width: 0%;"></div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill" id="danceBar" style="width: 0%;"></div>
           </div>
         </div>
         <div>
@@ -140,8 +274,8 @@
             <span class="text-muted-foreground text-sm">Valence (Positivity)</span>
             <span class="text-white font-semibold" id="valenceFullDisplay">0.00</span>
           </div>
-          <div class="w-full h-2 bg-border rounded-full overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full" id="valenceBar" style="width: 0%;"></div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill" id="valenceBar" style="width: 0%;"></div>
           </div>
         </div>
         <div>
@@ -149,8 +283,8 @@
             <span class="text-muted-foreground text-sm">Acousticness</span>
             <span class="text-white font-semibold" id="acousticFullDisplay">0.00</span>
           </div>
-          <div class="w-full h-2 bg-border rounded-full overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full" id="acousticBar" style="width: 0%;"></div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill" id="acousticBar" style="width: 0%;"></div>
           </div>
         </div>
         <div>
@@ -158,8 +292,8 @@
             <span class="text-muted-foreground text-sm">Instrumentalness</span>
             <span class="text-white font-semibold" id="instrumentalFullDisplay">0.00</span>
           </div>
-          <div class="w-full h-2 bg-border rounded-full overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full" id="instrumentalBar" style="width: 0%;"></div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill" id="instrumentalBar" style="width: 0%;"></div>
           </div>
         </div>
       </div>
@@ -223,8 +357,10 @@
 
     try {
       const response = await fetch('/music/api/sonic-aura/', {
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
         }
       });
 
@@ -294,43 +430,86 @@
     document.getElementById('vibeCard').classList.remove('hidden');
   }
 
-  // Generate vibe interpretation
+  // Generate detailed vibe interpretation
   function generateVibeInterpretation(data) {
-    let interpretation = '';
     const score = data.vibe_score;
     const energy = data.energy;
     const dance = data.danceability;
     const valence = data.valence;
+    const acoustic = data.acousticness;
+    const instrumental = data.instrumentalness;
+    const genre = data.top_genre;
 
+    let vibeType = '';
     if (score >= 80) {
-      interpretation = `<strong>🔥 You're a High-Vibe Listener!</strong> Your music choice is energetic and uplifting. `;
+      vibeType = '🔥 High-Vibe Listener';
     } else if (score >= 60) {
-      interpretation = `<strong>⚡ You've Got Good Energy!</strong> Your taste is balanced with both upbeat and chill vibes. `;
+      vibeType = '⚡ Balanced Energy';
     } else if (score >= 40) {
-      interpretation = `<strong>🌙 You're a Laid-Back Listener.</strong> You prefer thoughtful, mellower music. `;
+      vibeType = '🌙 Laid-Back Listener';
     } else {
-      interpretation = `<strong>🎧 You're Into Deep Listening.</strong> Your taste is introspective and atmospheric. `;
+      vibeType = '🎧 Deep Listener';
     }
 
+    let description = `<strong>${vibeType}</strong><br>`;
+
+    // Energy analysis
+    if (energy > 0.7) {
+      description += `You're drawn to powerful, driving tracks that command attention. `;
+    } else if (energy > 0.5) {
+      description += `You enjoy a balanced mix of energetic and mellow sounds. `;
+    } else {
+      description += `You prefer subtle, laid-back production with intricate details. `;
+    }
+
+    // Danceability analysis
     if (dance > 0.7) {
-      interpretation += `You love music you can move to.`;
+      description += `Your music is perfect for movement and rhythm. `;
     } else if (dance > 0.5) {
-      interpretation += `You enjoy both rhythmic and introspective tracks.`;
+      description += `You mix groovy, rhythmic tracks with more complex arrangements. `;
     } else {
-      interpretation += `You gravitate toward music with complex arrangements.`;
+      description += `You appreciate music with unconventional rhythms and structures. `;
     }
 
+    // Mood analysis
     if (valence > 0.7) {
-      interpretation += ` Your mood is consistently upbeat! 😊`;
+      description += `Your overall mood is optimistic and uplifting! 😊 `;
     } else if (valence > 0.4) {
-      interpretation += ` You enjoy a mix of happy and emotional tracks.`;
+      description += `You balance happy, feel-good tracks with deeper, emotional ones. `;
     } else {
-      interpretation += ` You're drawn to moody, introspective music.`;
+      description += `You're drawn to introspective, moody, and atmospheric music. `;
     }
 
-    interpretation += `<br><br><strong>Genre Preference:</strong> Your top genre is <em>${data.top_genre}</em>, which makes up your sonic identity. This reflects your current listening patterns over the last 50 tracks.`;
+    // Acoustic analysis
+    if (acoustic > 0.6) {
+      description += `Acoustic instruments are central to your sound—organic and intimate. `;
+    } else if (acoustic > 0.3) {
+      description += `You enjoy a mix of organic and electronic production. `;
+    } else {
+      description += `You gravitate toward produced, electronic, and synthesized sounds. `;
+    }
 
-    document.getElementById('vibeInterpretation').innerHTML = interpretation;
+    // Genre insight
+    const genreInsights = {
+      'pop': 'accessible, mainstream melodies with broad appeal',
+      'rock': 'powerful instrumentation with attitude and energy',
+      'hip-hop': 'rhythmic, lyric-driven tracks with cultural weight',
+      'electronic': 'synthesized soundscapes and digital production',
+      'indie': 'experimental, boundary-pushing, and authentic sounds',
+      'rnb': 'smooth grooves and soulful vocals',
+      'classical': 'complex arrangements and timeless compositions',
+      'jazz': 'improvisational freedom and sophisticated harmonies',
+      'country': 'storytelling and acoustic authenticity',
+      'reggae': 'relaxed vibes and infectious rhythms'
+    };
+
+    const genreLower = genre.toLowerCase();
+    const insight = Object.keys(genreInsights).find(key => genreLower.includes(key));
+    const genreDesc = insight ? genreInsights[insight] : 'eclectic and diverse sounds';
+
+    description += `<br><br><strong>Your Genre:</strong> <em>${genre}</em> brings you ${genreDesc}. This is your sonic signature.`;
+
+    document.getElementById('vibeInterpretation').innerHTML = description;
   }
 
   // Download Vibe Receipt
