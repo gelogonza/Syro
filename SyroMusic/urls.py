@@ -78,4 +78,8 @@ urlpatterns = [
     # Analytics & Lyrics
     path('api/analytics/', api_views.playback_analytics_api, name='playback_analytics'),
     path('api/lyrics/', api_views.track_lyrics_api, name='track_lyrics'),
+
+    # Color-based Discovery (Phase 2 - The Crate)
+    path('api/albums/by-color/', api_views.albums_by_color_api, name='albums_by_color'),
+    path('api/color-palette/', api_views.color_palette_api, name='color_palette'),
 ]

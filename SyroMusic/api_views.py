@@ -9,6 +9,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
+from django.db.models import Count
 
 from .models import (
     Artist, Album, Song, Playlist,
@@ -735,6 +737,103 @@ def track_lyrics_api(request):
                 {'status': 'not_found', 'message': 'Lyrics not available'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+    except Exception as e:
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+def albums_by_color_api(request):
+    """
+    Filter albums by dominant color.
+    Query params:
+    - color: hex color code (e.g., #ff0000)
+    - tolerance: color range tolerance in hex (default: f - includes +/- 15 in each channel)
+    Returns: paginated list of albums with that color
+    """
+    try:
+        from .models import Album
+
+        color = request.query_params.get('color', '').strip()
+
+        if not color or not color.startswith('#') or len(color) != 7:
+            return Response(
+                {'status': 'error', 'message': 'color parameter required (format: #rrggbb)'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Query albums by dominant color
+        albums = Album.objects.filter(
+            dominant_color__iexact=color
+        ).select_related('artist').order_by('-release_date')
+
+        # Paginate results
+        paginator = Paginator(albums, 20)
+        page_number = request.query_params.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+
+        album_data = [
+            {
+                'id': album.id,
+                'title': album.title,
+                'artist': album.artist.name,
+                'artist_id': album.artist.id,
+                'cover_url': album.cover_url,
+                'release_date': album.release_date.isoformat(),
+                'dominant_color': album.dominant_color,
+            }
+            for album in page_obj.object_list
+        ]
+
+        return Response({
+            'status': 'success',
+            'data': album_data,
+            'pagination': {
+                'count': paginator.count,
+                'total_pages': paginator.num_pages,
+                'current_page': page_obj.number,
+                'has_next': page_obj.has_next(),
+                'has_previous': page_obj.has_previous(),
+            }
+        })
+
+    except Exception as e:
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+def color_palette_api(request):
+    """
+    Get all available colors from albums.
+    Returns a list of unique dominant colors with counts.
+    """
+    try:
+        from .models import Album
+
+        # Get all unique colors with counts
+        color_stats = Album.objects.values('dominant_color').annotate(
+            count=Count('id')
+        ).order_by('-count')
+
+        colors = [
+            {
+                'color': stat['dominant_color'],
+                'count': stat['count'],
+            }
+            for stat in color_stats
+        ]
+
+        return Response({
+            'status': 'success',
+            'data': colors,
+            'total_unique_colors': len(colors),
+        })
 
     except Exception as e:
         return Response(

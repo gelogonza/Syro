@@ -177,17 +177,25 @@ def search_json_api(request):
 
         # If local results are sparse, search Spotify
         if len(results['songs']) < 8:
+            logger.info(f'Local songs < 8, attempting Spotify search for query: {query}')
             try:
                 spotify_user = SpotifyUser.objects.filter(user=request.user).first()
+                logger.info(f'SpotifyUser found: {spotify_user is not None}')
                 if spotify_user:
+                    logger.info(f'SpotifyUser connected: {spotify_user.is_connected}')
                     access_token = TokenManager.refresh_user_token(spotify_user)
+                    logger.info(f'Access token obtained: {access_token is not None}')
                     if access_token:
                         sp = SpotifyService(access_token=access_token)
 
                         # Search for tracks on Spotify
                         try:
+                            logger.info(f'Calling Spotify search for tracks with query: {query}')
                             spotify_results = sp.search(query, 'track', limit=10)
+                            logger.info(f'Spotify results received: {spotify_results is not None}')
                             if spotify_results and 'tracks' in spotify_results:
+                                track_count = len(spotify_results['tracks']['items'])
+                                logger.info(f'Found {track_count} tracks from Spotify')
                                 for track in spotify_results['tracks']['items']:
                                     # Avoid duplicates
                                     spotify_id = track.get('id', '')

@@ -249,3 +249,88 @@ def sync_all_user_data(user_id):
     except Exception as e:
         logger.error(f"Error in master sync for user {user_id}: {str(e)}")
         return False
+
+
+@shared_task
+def extract_album_colors():
+    """
+    Extract dominant colors from all album covers.
+    This task runs periodically to populate the dominant_color field.
+    Uses the same color extraction algorithm as the player.
+    """
+    from .models import Album
+    import io
+    import urllib.request
+    from PIL import Image
+
+    try:
+        logger.info("Starting album color extraction task")
+
+        # Get all albums without color or that haven't been extracted recently
+        albums = Album.objects.filter(cover_url__isnull=False).exclude(cover_url='')
+
+        extracted_count = 0
+        failed_count = 0
+
+        for album in albums:
+            try:
+                if not album.cover_url:
+                    continue
+
+                # Download album cover image
+                response = urllib.request.urlopen(album.cover_url, timeout=5)
+                img = Image.open(io.BytesIO(response.read())).convert('RGB')
+
+                # Resize for faster processing
+                img = img.resize((150, 150))
+
+                # Extract dominant color using quantization
+                pixels = list(img.getdata())
+                color_map = {}
+
+                for r, g, b in pixels:
+                    # Quantize colors to reduce noise
+                    r = (r // 25) * 25
+                    g = (g // 25) * 25
+                    b = (b // 25) * 25
+                    key = (r, g, b)
+                    color_map[key] = color_map.get(key, 0) + 1
+
+                # Find most frequent color with good brightness
+                dominant_color = '#1a1a2e'  # default
+                max_count = 0
+
+                for (r, g, b), count in color_map.items():
+                    brightness = (r * 299 + g * 587 + b * 114) / 1000
+                    # Filter out very dark or very light colors
+                    if count > max_count and 20 < brightness < 240:
+                        max_count = count
+                        dominant_color = f'#{r:02x}{g:02x}{b:02x}'
+
+                # Save color to database
+                album.dominant_color = dominant_color
+                album.color_extracted_at = timezone.now()
+                album.save(update_fields=['dominant_color', 'color_extracted_at'])
+
+                extracted_count += 1
+                logger.debug(f"Extracted color for album {album.title}: {dominant_color}")
+
+            except Exception as e:
+                failed_count += 1
+                logger.warning(f"Failed to extract color for album {album.id} ({album.title}): {str(e)}")
+                continue
+
+        logger.info(f"Color extraction complete: {extracted_count} successful, {failed_count} failed")
+        return {
+            'extracted': extracted_count,
+            'failed': failed_count,
+            'total': albums.count()
+        }
+
+    except Exception as e:
+        logger.error(f"Error in extract_album_colors task: {str(e)}")
+        return {
+            'extracted': 0,
+            'failed': 0,
+            'error': str(e)
+        }

@@ -283,3 +283,81 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
+# ============================================================
+# Email Configuration
+# ============================================================
+# Email backend - use console in development, SMTP in production
+if DEBUG:
+    # In development, print emails to console
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # In production, use SMTP
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# SMTP Configuration (for production)
+# Supports Gmail, SendGrid, Mailgun, AWS SES, and other SMTP providers
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+# Default "from" email address
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@syroapp.com')
+SERVER_EMAIL = config('SERVER_EMAIL', default='noreply@syroapp.com')
+
+# Email settings for authentication emails
+EMAIL_SUBJECT_PREFIX = '[Syro] '
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  # 'none', 'optional', or 'mandatory'
+
+# Password reset timeout (in seconds) - default 3 days
+PASSWORD_RESET_TIMEOUT = 259200
+
+"""
+EMAIL SETUP INSTRUCTIONS:
+========================
+
+For Development:
+- Emails will print to console (no setup needed)
+
+For Production (Gmail example):
+1. Create a .env file with:
+   EMAIL_HOST=smtp.gmail.com
+   EMAIL_PORT=587
+   EMAIL_USE_TLS=True
+   EMAIL_HOST_USER=your-email@gmail.com
+   EMAIL_HOST_PASSWORD=your-app-specific-password
+   DEFAULT_FROM_EMAIL=your-email@gmail.com
+
+2. For Gmail, you need an App Password:
+   - Go to Google Account settings
+   - Security → 2-Step Verification → App passwords
+   - Generate a new app password
+   - Use that password (not your regular Gmail password)
+
+For Production (SendGrid example):
+   EMAIL_HOST=smtp.sendgrid.net
+   EMAIL_PORT=587
+   EMAIL_USE_TLS=True
+   EMAIL_HOST_USER=apikey
+   EMAIL_HOST_PASSWORD=your-sendgrid-api-key
+   DEFAULT_FROM_EMAIL=your-verified-sender@domain.com
+
+For Production (Mailgun example):
+   EMAIL_HOST=smtp.mailgun.org
+   EMAIL_PORT=587
+   EMAIL_USE_TLS=True
+   EMAIL_HOST_USER=postmaster@your-domain.mailgun.org
+   EMAIL_HOST_PASSWORD=your-mailgun-password
+   DEFAULT_FROM_EMAIL=noreply@your-domain.com
+
+For Production (AWS SES example):
+   EMAIL_HOST=email-smtp.us-east-1.amazonaws.com
+   EMAIL_PORT=587
+   EMAIL_USE_TLS=True
+   EMAIL_HOST_USER=your-aws-ses-smtp-username
+   EMAIL_HOST_PASSWORD=your-aws-ses-smtp-password
+   DEFAULT_FROM_EMAIL=verified-email@your-domain.com
+"""
