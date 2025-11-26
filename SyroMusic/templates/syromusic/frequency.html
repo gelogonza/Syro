@@ -2,11 +2,234 @@
 
 {% block title %}The Frequency - Discover Music {% endblock title %}
 
+{% block extra_css %}
+<style>
+  /* Premium Frequency Styling */
+  .frequency-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .frequency-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #f97316 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+  }
+
+  .frequency-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 40px;
+  }
+
+  /* Orb Canvas Premium */
+  #orbCanvas {
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4));
+  }
+
+  /* Control Sections */
+  .control-section {
+    background: rgba(26, 26, 46, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .control-section:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(26, 26, 46, 0.8);
+  }
+
+  .control-label {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Genre Buttons */
+  .genre-btn {
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+  }
+
+  .genre-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(167, 139, 250, 0.6);
+    color: #a78bfa;
+  }
+
+  .genre-btn.active {
+    background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+    border-color: #a78bfa;
+    color: #0a0a0a;
+    font-weight: 600;
+  }
+
+  /* Color Swatch */
+  .color-swatch {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-radius: 12px;
+  }
+
+  .color-swatch:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  .color-swatch.active {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+  }
+
+  /* Find Vibe Button */
+  .find-vibe-btn {
+    background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #f97316 100%);
+    color: #0a0a0a;
+    font-size: 1.125rem;
+    font-weight: 700;
+    padding: 16px 32px;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .find-vibe-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(167, 139, 250, 0.4);
+  }
+
+  .find-vibe-btn:active {
+    transform: translateY(0);
+  }
+
+  /* Discovery Result Section */
+  .discovery-card {
+    background: rgba(26, 26, 46, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 32px;
+    animation: slide-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Stats Bars */
+  .discovery-stat-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+  }
+
+  .discovery-stat-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #a78bfa 0%, #ec4899 100%);
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Album Art */
+  .discovery-album-art {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    animation: scale-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Action Buttons */
+  .discovery-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 600;
+    border-radius: 12px;
+  }
+
+  .discovery-btn.primary {
+    background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+    color: #0a0a0a;
+  }
+
+  .discovery-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(167, 139, 250, 0.4);
+  }
+
+  .discovery-btn.secondary {
+    border: 2px solid #a78bfa;
+    color: #a78bfa;
+    background: transparent;
+  }
+
+  .discovery-btn.secondary:hover {
+    background: rgba(167, 139, 250, 0.1);
+  }
+
+  /* Loading State */
+  .loading-spinner {
+    animation: spin 2s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Notification Styles */
+  .notification {
+    animation: notify-slide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes notify-slide {
+    from {
+      opacity: 0;
+      transform: translateX(400px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+</style>
+{% endblock extra_css %}
+
 {% block content %}
-<div class="mb-8">
-  <h1 class="text-4xl font-bold mb-2 gradient-text">The Frequency</h1>
-  <p class="text-muted-foreground text-lg">I want to listen to <span id="selectedGenreDisplay" class="text-primary font-semibold">[Genre]</span> that sounds like <span id="selectedColorDisplay" class="text-primary font-semibold">[Color]</span></p>
-</div>
+<div class="frequency-container">
+  <div class="mb-12">
+    <h1 class="frequency-title">The Frequency</h1>
+    <p class="frequency-subtitle">I want to listen to <span id="selectedGenreDisplay" class="text-primary font-semibold">[Genre]</span> that sounds like <span id="selectedColorDisplay" class="text-primary font-semibold">[Color]</span></p>
+  </div>
 
 <div class="grid lg:grid-cols-2 gap-8">
   <!-- Left: 3D Orb Visualization -->
@@ -17,11 +240,11 @@
   <!-- Right: Controls and Selection -->
   <div class="space-y-6">
     <!-- Genre Selector -->
-    <div class="glass rounded-2xl p-6 border border-primary/20">
-      <label class="text-lg font-semibold mb-4 block">Choose Genre</label>
+    <div class="control-section">
+      <label class="control-label">Choose Genre</label>
       <div class="space-y-2 max-h-64 overflow-y-auto">
         <input type="text" id="genreSearch" placeholder="Search genres..."
-               class="w-full px-4 py-2 bg-background/50 border border-border rounded-lg text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary mb-4">
+               class="w-full px-4 py-2 bg-background/50 border border-border rounded-lg text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4">
         <div id="genreList" class="grid grid-cols-2 gap-2">
           <!-- Genre buttons will be populated here -->
         </div>
@@ -29,8 +252,8 @@
     </div>
 
     <!-- Color Mood Selector -->
-    <div class="glass rounded-2xl p-6 border border-primary/20">
-      <label class="text-lg font-semibold mb-4 block">Choose Mood Color</label>
+    <div class="control-section">
+      <label class="control-label">Choose Mood Color</label>
       <div id="colorGrid" class="grid grid-cols-4 gap-3">
         <!-- Color swatches will be populated here -->
       </div>
@@ -41,8 +264,7 @@
     </div>
 
     <!-- Randomize Button -->
-    <button onclick="randomizeDiscovery()"
-            class="w-full px-8 py-4 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-semibold text-lg hover-glow transition-all">
+    <button onclick="randomizeDiscovery()" class="find-vibe-btn w-full">
       <span class="iconify h-6 w-6 mr-2 inline" data-icon="mdi:dice-multiple"></span>
       Find My Vibe
     </button>
@@ -51,26 +273,24 @@
 
 <!-- Discovery Result -->
 <div id="resultSection" class="hidden mt-12">
-  <div class="glass rounded-2xl p-8 border border-primary/20">
-    <h2 class="text-2xl font-bold mb-6">Your Discovery</h2>
+  <div class="discovery-card">
+    <h2 class="text-3xl font-bold mb-8">Your Discovery 🎵</h2>
 
     <div class="grid md:grid-cols-2 gap-8">
       <!-- Track Card -->
       <div class="flex flex-col">
-        <div class="aspect-square rounded-xl overflow-hidden mb-4 shadow-2xl">
+        <div class="aspect-square mb-6 discovery-album-art">
           <img id="resultTrackImage" src="" alt="Album Art" class="w-full h-full object-cover">
         </div>
         <h3 class="text-2xl font-bold mb-2" id="resultTrackName">Track Name</h3>
         <p class="text-muted-foreground mb-4" id="resultTrackArtist">Artist Name</p>
 
         <div class="flex gap-3 mb-6">
-          <button onclick="playDiscoveredTrack()"
-                  class="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-semibold hover-glow transition-all">
+          <button onclick="playDiscoveredTrack()" class="discovery-btn primary flex-1 px-6 py-3">
             <span class="iconify h-5 w-5 mr-2 inline" data-icon="mdi:play"></span>
             Play Now
           </button>
-          <button onclick="saveToQueue()"
-                  class="flex-1 px-6 py-3 rounded-lg border-2 border-primary text-primary font-semibold hover:bg-primary/10 transition-all">
+          <button onclick="saveToQueue()" class="discovery-btn secondary flex-1 px-6 py-3">
             <span class="iconify h-5 w-5 mr-2 inline" data-icon="mdi:playlist-plus"></span>
             Add Queue
           </button>
@@ -100,8 +320,8 @@
                 <span class="text-muted-foreground">Energy</span>
                 <span class="text-white font-semibold" id="resultEnergy">0.0</span>
               </div>
-              <div class="w-full h-2 bg-border rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" id="energyBar" style="width: 0%;"></div>
+              <div class="discovery-stat-bar">
+                <div class="discovery-stat-fill" id="energyBar" style="width: 0%;"></div>
               </div>
             </div>
             <div>
@@ -109,8 +329,8 @@
                 <span class="text-muted-foreground">Danceability</span>
                 <span class="text-white font-semibold" id="resultDance">0.0</span>
               </div>
-              <div class="w-full h-2 bg-border rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" id="danceBar" style="width: 0%;"></div>
+              <div class="discovery-stat-bar">
+                <div class="discovery-stat-fill" id="danceBar" style="width: 0%;"></div>
               </div>
             </div>
             <div>
@@ -118,8 +338,8 @@
                 <span class="text-muted-foreground">Mood (Valence)</span>
                 <span class="text-white font-semibold" id="resultMood">0.0</span>
               </div>
-              <div class="w-full h-2 bg-border rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" id="moodBar" style="width: 0%;"></div>
+              <div class="discovery-stat-bar">
+                <div class="discovery-stat-fill" id="moodBar" style="width: 0%;"></div>
               </div>
             </div>
             <div>
@@ -127,8 +347,8 @@
                 <span class="text-muted-foreground">Acousticness</span>
                 <span class="text-white font-semibold" id="resultAcoustic">0.0</span>
               </div>
-              <div class="w-full h-2 bg-border rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" id="acousticBar" style="width: 0%;"></div>
+              <div class="discovery-stat-bar">
+                <div class="discovery-stat-fill" id="acousticBar" style="width: 0%;"></div>
               </div>
             </div>
           </div>
@@ -258,7 +478,7 @@
     const genreList = document.getElementById('genreList');
     genreList.innerHTML = genres.map(genre => `
       <button onclick="selectGenre('${genre}')"
-              class="px-4 py-2 rounded-lg bg-background/50 border border-border text-muted-foreground hover:border-primary hover:text-primary transition-all text-sm">
+              class="genre-btn px-4 py-2 rounded-lg bg-background/50 border border-border text-muted-foreground">
         ${genre}
       </button>
     `).join('');
@@ -279,9 +499,11 @@
 
     // Update button states
     document.querySelectorAll('#genreList button').forEach(btn => {
-      btn.classList.toggle('bg-primary', btn.textContent === genre);
-      btn.classList.toggle('text-black', btn.textContent === genre);
-      btn.classList.toggle('border-primary', btn.textContent === genre);
+      if (btn.textContent === genre) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
     });
   }
 
@@ -290,7 +512,7 @@
     const colorGrid = document.getElementById('colorGrid');
     colorGrid.innerHTML = colorPalette.map(color => `
       <button onclick="selectColor('${color}')"
-              class="w-full h-16 rounded-lg border-2 border-transparent hover:border-white transition-all shadow-lg"
+              class="color-swatch w-full h-16 border-2 border-transparent shadow-lg"
               style="background-color: ${color};"
               title="${color}"></button>
     `).join('');
@@ -310,9 +532,15 @@
 
     // Update button states
     document.querySelectorAll('#colorGrid button').forEach(btn => {
-      const matches = btn.style.backgroundColor.toLowerCase() === new THREE.Color(selectedColor).getStyle().toLowerCase();
-      btn.style.borderColor = matches ? '#ffffff' : 'transparent';
-      btn.style.borderWidth = matches ? '2px' : '2px';
+      const btnColor = new THREE.Color(btn.style.backgroundColor).getHexString();
+      const selectedHex = selectedColor.replace('#', '');
+      const matches = btnColor.toLowerCase() === selectedHex.toLowerCase();
+
+      if (matches) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
     });
 
     updateOrbColor(selectedColor);
@@ -359,11 +587,17 @@
     document.getElementById('resultAlbum').textContent = track.album;
     document.getElementById('resultGenre').textContent = data.genre;
     document.getElementById('resultColor').textContent = data.color;
-    document.getElementById('vibeDescription').textContent = data.vibe;
-    document.getElementById('spotifyLink').href = track.external_urls || '#';
 
-    // Audio features
+    // Generate smart vibe description
     const features = track.audio_features || {};
+    const smartVibe = generateVibeDescription(
+      data.genre,
+      features.energy || 0.5,
+      features.valence || 0.5,
+      features.danceability || 0.5
+    );
+    document.getElementById('vibeDescription').textContent = smartVibe;
+    document.getElementById('spotifyLink').href = track.external_urls || '#';
     const energy = features.energy || 0;
     const dance = features.danceability || 0;
     const mood = features.valence || 0;
@@ -444,13 +678,13 @@
 
   function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all transform translate-x-0 ${
-      type === 'success' ? 'bg-gradient-to-r from-primary to-accent text-black' : 'bg-red-500 text-white'
+    notification.className = `notification fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all transform translate-x-0 ${
+      type === 'success' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold' : 'bg-red-500 text-white'
     }`;
     notification.innerHTML = `
       <div class="flex items-center gap-2">
         <span class="iconify h-5 w-5" data-icon="${type === 'success' ? 'mdi:check-circle' : 'mdi:alert-circle'}"></span>
-        <span class="font-medium">${message}</span>
+        <span>${message}</span>
       </div>
     `;
     document.body.appendChild(notification);
@@ -459,6 +693,122 @@
       notification.style.transform = 'translateX(400px)';
       setTimeout(() => notification.remove(), 300);
     }, 3000);
+  }
+
+  // Generate smart vibe description based on genre and audio features
+  function generateVibeDescription(genre, energy, valence, danceability) {
+    const descriptions = {
+      'pop': [
+        'Pop perfection with infectious energy',
+        'A feel-good pop anthem ready to dominate your playlist',
+        'Fresh pop vibes that capture the zeitgeist'
+      ],
+      'rock': [
+        'Powerful rock that demands attention',
+        'A rock track with attitude and grit',
+        'Rock energy that hits hard'
+      ],
+      'hip-hop': [
+        'Hip-hop heat with lyrical flow',
+        'A rap track with undeniable swagger',
+        'Hip-hop energy that moves the crowd'
+      ],
+      'electronic': [
+        'Synth-driven electronic bliss',
+        'Electronica that pulses with energy',
+        'Digital soundscape with hypnotic rhythms'
+      ],
+      'indie': [
+        'Indie authenticity and artistic vision',
+        'A gem from the indie underground',
+        'Indie sensibilities with universal appeal'
+      ],
+      'rnb': [
+        'Smooth R&B grooves and soulful vocals',
+        'R&B rhythm with silky production',
+        'Soulful R&B that glides through speakers'
+      ]
+    };
+
+    let baseDesc = '';
+    const genreLower = genre.toLowerCase();
+    const matchingDesc = descriptions[genreLower];
+
+    if (matchingDesc) {
+      baseDesc = matchingDesc[Math.floor(Math.random() * matchingDesc.length)];
+    } else {
+      const energyDesc = energy > 0.7 ? 'energetic' : energy > 0.4 ? 'balanced' : 'laid-back';
+      const moodDesc = valence > 0.6 ? 'uplifting' : valence > 0.4 ? 'neutral' : 'moody';
+      baseDesc = `A ${energyDesc} ${moodDesc} track in the ${genre} genre`;
+    }
+
+    // Add color interpretation
+    if (selectedColor) {
+      const colorMood = getColorMood(selectedColor);
+      baseDesc += ` that matches your ${colorMood} vibe.`;
+    } else {
+      baseDesc += '.';
+    }
+
+    return baseDesc;
+  }
+
+  function getColorMood(hexColor) {
+    try {
+      const r = parseInt(hexColor.slice(1, 3), 16);
+      const g = parseInt(hexColor.slice(3, 5), 16);
+      const b = parseInt(hexColor.slice(5, 7), 16);
+
+      const hsl = rgbToHsl(r, g, b);
+
+      if (hsl.l > 70) return 'bright and optimistic';
+      if (hsl.l < 30) return 'dark and mysterious';
+      if (hsl.s < 30) return 'neutral and balanced';
+
+      if (hsl.h < 30) return 'warm and energetic';
+      if (hsl.h < 60) return 'vibrant and happy';
+      if (hsl.h < 120) return 'fresh and cool';
+      if (hsl.h < 270) return 'calm and serene';
+      if (hsl.h < 330) return 'deep and introspective';
+      return 'passionate and bold';
+    } catch (e) {
+      return 'unique';
+    }
+  }
+
+  function rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+      switch (max) {
+        case r:
+          h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+          break;
+        case g:
+          h = ((b - r) / d + 2) / 6;
+          break;
+        case b:
+          h = ((r - g) / d + 4) / 6;
+          break;
+      }
+    }
+
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 100),
+      l: Math.round(l * 100)
+    };
   }
 
   // Initialize on page load

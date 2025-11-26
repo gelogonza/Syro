@@ -1066,23 +1066,41 @@ def frequency_randomizer_api(request):
         # Create Spotify service with fresh token
         sp = SpotifyService(access_token=access_token)
 
-        # Map color to audio features (energy + valence)
+        # Map color to audio features (energy + valence) with enhanced algorithm
         energy = None
         valence = None
 
         if color and len(color) == 7 and color.startswith('#'):
             try:
-                # Parse hex color to RGB
+                # Parse hex color to RGB (0-1 range)
                 r = int(color[1:3], 16) / 255
                 g = int(color[3:5], 16) / 255
                 b = int(color[5:7], 16) / 255
 
-                # Map to audio features
-                # Red -> Energy
-                # Green -> Valence/happiness
-                # Blue -> Low energy (cool colors)
-                energy = r  # High red = high energy
-                valence = (g + r) / 2  # Green + red = happy/positive
+                # Enhanced color-to-audio-feature mapping
+                # Calculate brightness and saturation
+                brightness = (r + g + b) / 3
+                max_val = max(r, g, b)
+                min_val = min(r, g, b)
+                saturation = (max_val - min_val) if max_val > 0 else 0
+
+                # Map RGB to audio features with better heuristics:
+                # Brightness -> Energy (bright = energetic)
+                # Saturation -> Danceability (saturated = danceable)
+                # Hue -> Valence (warm colors = positive, cool colors = introspective)
+
+                energy = min(brightness + saturation * 0.5, 1.0)  # Blend brightness and saturation
+
+                # Hue-based valence mapping
+                if r > g and r > b:  # Red/warm tones
+                    valence = min(0.7 + (r - max(g, b)) * 0.3, 1.0)  # Warm = happy
+                elif g > r and g > b:  # Green tones
+                    valence = 0.6  # Green = balanced/fresh
+                elif b > r and b > g:  # Blue/cool tones
+                    valence = max(0.3, brightness)  # Cool = introspective but bright cool is better
+                else:
+                    valence = 0.5  # Neutral
+
             except (ValueError, IndexError):
                 pass  # Invalid color, proceed without it
 
@@ -1126,7 +1144,7 @@ def frequency_randomizer_api(request):
                 'acousticness': feature_data.get('acousticness', 0),
             }
 
-        return Response({
+        response = Response({
             'status': 'success',
             'data': {
                 'track': track_data,
@@ -1135,6 +1153,9 @@ def frequency_randomizer_api(request):
                 'vibe': f"A {genre} track that sounds like {color if color else 'something fresh'}"
             }
         })
+        # Cache response for 2 minutes (randomizer discovery can be refreshed frequently)
+        response['Cache-Control'] = 'private, max-age=120'
+        return response
 
     except SpotifyUser.DoesNotExist:
         return Response(
