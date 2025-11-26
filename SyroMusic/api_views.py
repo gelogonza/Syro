@@ -145,7 +145,8 @@ class PlaylistViewSet(viewsets.ModelViewSet):
         if track_uri and playlist.spotify_id:
             try:
                 from .services import SpotifyService
-                service = SpotifyService(request.user)
+                spotify_user = SpotifyUser.objects.get(user=request.user)
+                service = SpotifyService(spotify_user)
                 success = service.add_tracks_to_playlist(playlist.spotify_id, [track_uri])
                 if not success:
                     return Response(
@@ -176,8 +177,9 @@ class PlaylistViewSet(viewsets.ModelViewSet):
         
         try:
             from .services import SpotifyService
-            service = SpotifyService(request.user)
-            
+            spotify_user = SpotifyUser.objects.get(user=request.user)
+            service = SpotifyService(spotify_user)
+
             # Create Spotify playlist
             spotify_playlist = service.create_playlist(name, description, public)
             if not spotify_playlist:
