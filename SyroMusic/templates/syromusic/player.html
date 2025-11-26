@@ -1651,6 +1651,40 @@
     console.log('Playing track:', trackUri);
     const deviceId = getActiveDeviceId();
 
+    // If no active device, fetch devices and show selector
+    if (!deviceId) {
+      console.log('No active device, fetching devices...');
+      fetch('{% url "music:get_devices" %}')
+        .then(response => response.json())
+        .then(data => {
+          if (!data.devices || data.devices.length === 0) {
+            showNotification('No Spotify devices available. Open Spotify on a device.', 'error');
+            return;
+          }
+
+          // Find active device
+          const activeDevice = data.devices.find(d => d.is_active);
+          if (activeDevice) {
+            // Play directly on active device
+            playTrackOnDevice(trackUri, activeDevice.id);
+          } else {
+            // Show device selector
+            window.syroPlayer = window.syroPlayer || {};
+            window.syroPlayer.pendingTrackUri = trackUri;
+            showDeviceSelector(data.devices);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching devices:', error);
+          showNotification('Failed to fetch devices', 'error');
+        });
+      return;
+    }
+
+    playTrackOnDevice(trackUri, deviceId);
+  }
+
+  function playTrackOnDevice(trackUri, deviceId) {
     fetch('{% url "music:play_track" %}', {
       method: 'POST',
       headers: {
@@ -1788,6 +1822,39 @@
       console.error('Clear queue error:', error);
       showNotification('Failed to clear queue', 'error');
     });
+  }
+
+  // Search result playback functions
+  function playTrackFromSearch(trackUri) {
+    console.log('Playing track from search:', trackUri);
+    if (!trackUri) {
+      showNotification('Invalid track', 'error');
+      return;
+    }
+    
+    // Close search results
+    const resultsDiv = document.getElementById('playerSearchResults');
+    if (resultsDiv) {
+      resultsDiv.innerHTML = '';
+    }
+    const searchInput = document.getElementById('playerSearchInput');
+    if (searchInput) {
+      searchInput.value = '';
+    }
+    
+    // Play the track using existing playTrack function
+    playTrack(trackUri);
+  }
+
+  function addToQueueFromSearch(trackUri, trackInfo) {
+    console.log('Adding track to queue from search:', trackUri, trackInfo);
+    if (!trackUri) {
+      showNotification('Invalid track', 'error');
+      return;
+    }
+    
+    // Add to queue using existing addToQueue function
+    addToQueue(trackUri, trackInfo);
   }
 
   // ==================== Device Selection ====================
@@ -2033,4 +2100,7 @@
   }
 </script>
 <script src="{% static 'js/features.js' %}"></script>
+
+<!-- Device Selection Modal -->
+{% include 'syromusic/player_modal.html' %}
 {% endblock content %}

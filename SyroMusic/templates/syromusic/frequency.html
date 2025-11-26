@@ -274,7 +274,7 @@
 <!-- Discovery Result -->
 <div id="resultSection" class="hidden mt-12">
   <div class="discovery-card">
-    <h2 class="text-3xl font-bold mb-8">Your Discovery 🎵</h2>
+    <h2 class="text-3xl font-bold mb-8">Your Discovery</h2>
 
     <div class="grid md:grid-cols-2 gap-8">
       <!-- Track Card -->
@@ -569,7 +569,7 @@
 
       const data = await response.json();
       displayDiscovery(data.data);
-      showNotification('Found your next favorite! 🎵', 'success');
+      showNotification('Found your next favorite!', 'success');
 
     } catch (error) {
       console.error('Discovery error:', error);

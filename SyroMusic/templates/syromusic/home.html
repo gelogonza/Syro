@@ -505,8 +505,8 @@ document.addEventListener('DOMContentLoaded', function() {
         source.connect(analyser);
         useRealAudio = true;
         isAudioInitialized = true;
-        updateStatus('Audio: Live Microphone 🎤', false);
-        console.log('✅ Microphone access granted! Visualizer is now reactive to audio.');
+        updateStatus('Audio: Live Microphone', false);
+        console.log('Microphone access granted! Visualizer is now reactive to audio.');
         
         // Show success message briefly then hide
         setTimeout(() => {
@@ -527,13 +527,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Continue with mock audio movement - visualizer still works beautifully!
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
           updateStatus('Audio: Mock Movement (Mic Denied)', false);
-          console.log('ℹ️ Using mock audio movement - visualizer will still animate beautifully!');
+          console.log('Using mock audio movement - visualizer will still animate beautifully!');
         } else if (err.name === 'NotFoundError') {
           updateStatus('Audio: Mock Movement (No Mic)', false);
-          console.log('ℹ️ No microphone found - using mock audio movement');
+          console.log('No microphone found - using mock audio movement');
         } else {
           updateStatus('Audio: Mock Movement', false);
-          console.log('ℹ️ Using mock audio movement');
+          console.log('Using mock audio movement');
         }
         
         // Hide status after showing the message
@@ -552,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() {
       isAudioInitialized = true;
       useRealAudio = false;
       updateStatus('Audio: Mock Movement', false);
-      console.log('ℹ️ Using mock audio movement');
+      console.log('Using mock audio movement');
       
       // Hide status after error
       setTimeout(() => {

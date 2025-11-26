@@ -359,6 +359,9 @@
       <div class="empty-state-icon">🎵</div>
       <div class="empty-state-text">No albums found</div>
       <p>Try selecting a different color to discover more music</p>
+      <a href="{% url 'music:sync_albums' %}" class="btn btn-primary mt-3">
+        <i class="fas fa-sync-alt"></i> Sync Albums from Spotify
+      </a>
     </div>
 
     <!-- Loading State -->
@@ -458,6 +461,9 @@
 
     try {
       let url = '/music/api/albums/by-color/?page=' + currentPage;
+      if (currentColor) {
+        url += '&color=' + encodeURIComponent(currentColor);
+      }
       if (currentColor) {
         url += '&color=' + encodeURIComponent(currentColor);
       }

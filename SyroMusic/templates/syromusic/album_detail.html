@@ -118,7 +118,7 @@
       <p>
         By <a href="{% url 'music:artist_detail' album.artist.id %}" class="artist-link">{{ album.artist.name }}</a>
       </p>
-      <p>Released: {{ album.release_date|date:"MMMM d, Y" }}</p>
+      <p>Released: {{ album.release_date|date:"F d, Y" }}</p>
       <p style="margin-top: 1rem;">{{ album.songs.count }} songs</p>
     </div>
   </div>

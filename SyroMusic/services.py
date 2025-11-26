@@ -76,21 +76,42 @@ class SpotifyService:
             return self.sp.current_user_recently_played(limit=limit)
         except Exception as e:
             logger.error(f"Error getting recently played: {str(e)}")
-            return None
+            # Try one retry with token refresh if it was an auth error
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                return self.sp.current_user_recently_played(limit=limit)
+            except Exception as retry_error:
+                logger.error(f"Retry failed for recently played: {str(retry_error)}")
+                return None
 
     def get_top_artists(self, limit=20, time_range='medium_term'):
         try:
             return self.sp.current_user_top_artists(limit=limit, time_range=time_range)
         except Exception as e:
             logger.error(f"Error getting top artists: {str(e)}")
-            return None
+            # Try one retry with token refresh if it was an auth error
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                return self.sp.current_user_top_artists(limit=limit, time_range=time_range)
+            except Exception as retry_error:
+                logger.error(f"Retry failed for top artists: {str(retry_error)}")
+                return None
 
     def get_top_tracks(self, limit=20, time_range='medium_term'):
         try:
             return self.sp.current_user_top_tracks(limit=limit, time_range=time_range)
         except Exception as e:
             logger.error(f"Error getting top tracks: {str(e)}")
-            return None
+            # Try one retry with token refresh if it was an auth error
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                return self.sp.current_user_top_tracks(limit=limit, time_range=time_range)
+            except Exception as retry_error:
+                logger.error(f"Retry failed for top tracks: {str(retry_error)}")
+                return None
 
     def get_queue(self):
         try:
@@ -343,15 +364,29 @@ class SpotifyService:
             return self.sp.audio_features(track_ids)
         except Exception as e:
             logger.error(f"Error getting audio features: {str(e)}")
-            return None
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                return self.sp.audio_features(track_ids)
+            except Exception as retry_error:
+                logger.error(f"Retry failed for audio features: {str(retry_error)}")
+                return None
 
     def get_available_genres(self):
         """Get list of available genre seeds."""
         try:
-            return self.sp.recommendation_genre_seeds()
+            result = self.sp.recommendation_genre_seeds()
+            return result.get('genres', []) if isinstance(result, dict) else result
         except Exception as e:
             logger.error(f"Error getting available genres: {str(e)}")
-            return None
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                result = self.sp.recommendation_genre_seeds()
+                return result.get('genres', []) if isinstance(result, dict) else result
+            except Exception as retry_error:
+                logger.error(f"Retry failed for available genres: {str(retry_error)}")
+                return None
 
     def get_recommendations(self, seed_genres=None, seed_artists=None, seed_tracks=None, **kwargs):
         """Get recommendations based on seeds."""
@@ -364,7 +399,18 @@ class SpotifyService:
             )
         except Exception as e:
             logger.error(f"Error getting recommendations: {str(e)}")
-            return None
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                return self.sp.recommendations(
+                    seed_genres=seed_genres,
+                    seed_artists=seed_artists,
+                    seed_tracks=seed_tracks,
+                    **kwargs
+                )
+            except Exception as retry_error:
+                logger.error(f"Retry failed for recommendations: {str(retry_error)}")
+                return None
 
     def get_recommendations_by_genre_and_features(self, genre, energy=None, valence=None, limit=20):
         """Get recommendations by genre and audio features."""
@@ -378,10 +424,18 @@ class SpotifyService:
             if valence is not None:
                 kwargs['target_valence'] = valence
 
-            return self.sp.recommendations(**kwargs)
+            result = self.sp.recommendations(**kwargs)
+            return result.get('tracks', []) if isinstance(result, dict) else result
         except Exception as e:
             logger.error(f"Error getting recommendations by genre and features: {str(e)}")
-            return None
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                result = self.sp.recommendations(**kwargs)
+                return result.get('tracks', []) if isinstance(result, dict) else result
+            except Exception as retry_error:
+                logger.error(f"Retry failed for recommendations: {str(retry_error)}")
+                return None
 
     def get_current_user(self):
         """Get current authenticated user's profile information."""
@@ -390,6 +444,62 @@ class SpotifyService:
         except Exception as e:
             logger.error(f"Error getting current user: {str(e)}")
             return None
+
+    def get_saved_albums(self, limit=50, offset=0):
+        """Get user's saved albums from Spotify."""
+        try:
+            return self.sp.current_user_saved_albums(limit=limit, offset=offset)
+        except Exception as e:
+            logger.error(f"Error getting saved albums: {str(e)}")
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                return self.sp.current_user_saved_albums(limit=limit, offset=offset)
+            except Exception as retry_error:
+                logger.error(f"Retry failed for saved albums: {str(retry_error)}")
+                return None
+
+    def get_user_playlists(self, limit=50, offset=0):
+        """Get user's playlists from Spotify."""
+        try:
+            return self.sp.current_user_playlists(limit=limit, offset=offset)
+        except Exception as e:
+            logger.error(f"Error getting user playlists: {str(e)}")
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                return self.sp.current_user_playlists(limit=limit, offset=offset)
+            except Exception as retry_error:
+                logger.error(f"Retry failed for user playlists: {str(retry_error)}")
+                return None
+
+    def get_playlist_tracks(self, playlist_id, limit=100, offset=0):
+        """Get tracks from a specific playlist."""
+        try:
+            return self.sp.playlist_tracks(playlist_id, limit=limit, offset=offset)
+        except Exception as e:
+            logger.error(f"Error getting playlist tracks: {str(e)}")
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                return self.sp.playlist_tracks(playlist_id, limit=limit, offset=offset)
+            except Exception as retry_error:
+                logger.error(f"Retry failed for playlist tracks: {str(retry_error)}")
+                return None
+
+    def get_album_tracks(self, album_id, limit=50, offset=0):
+        """Get tracks from a specific album."""
+        try:
+            return self.sp.album_tracks(album_id, limit=limit, offset=offset)
+        except Exception as e:
+            logger.error(f"Error getting album tracks: {str(e)}")
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                return self.sp.album_tracks(album_id, limit=limit, offset=offset)
+            except Exception as retry_error:
+                logger.error(f"Retry failed for album tracks: {str(retry_error)}")
+                return None
 
     @staticmethod
     def get_access_token(code):

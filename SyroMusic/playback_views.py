@@ -78,7 +78,7 @@ def player_page(request):
             'devices': devices,
             'queue': queue,
         }
-        return render(request, 'SyroMusic/player.html', context)
+        return render(request, 'syromusic/player.html', context)
 
     except Exception as e:
         messages.error(request, f'Error loading player: {str(e)}')
@@ -132,7 +132,8 @@ def play_pause(request):
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
         device_id = request.POST.get('device_id')
-
+        
+        sp = SpotifyService(spotify_user)
         playback = sp.get_current_playback()
 
         if playback and playback.get('is_playing'):
@@ -158,7 +159,8 @@ def next_track(request):
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
         device_id = request.POST.get('device_id')
-
+        
+        sp = SpotifyService(spotify_user)
         success = sp.next_track(device_id=device_id)
 
         if success:
@@ -177,7 +179,8 @@ def previous_track(request):
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
         device_id = request.POST.get('device_id')
-
+        
+        sp = SpotifyService(spotify_user)
         success = sp.previous_track(device_id=device_id)
 
         if success:
@@ -200,7 +203,8 @@ def seek(request):
 
         if not position_ms:
             return JsonResponse({'status': 'error', 'message': 'Position required'}, status=400)
-
+        
+        sp = SpotifyService(spotify_user)
         success = sp.seek_to_position(int(position_ms), device_id=device_id)
 
         if success:
@@ -227,7 +231,8 @@ def set_volume(request):
         volume = int(volume)
         if not 0 <= volume <= 100:
             return JsonResponse({'status': 'error', 'message': 'Volume must be 0-100'}, status=400)
-
+        
+        sp = SpotifyService(spotify_user)
         success = sp.set_volume(volume, device_id=device_id)
 
         if success:
@@ -249,7 +254,8 @@ def transfer_playback(request):
 
         if not device_id:
             return JsonResponse({'status': 'error', 'message': 'Device ID required'}, status=400)
-
+        
+        sp = SpotifyService(spotify_user)
         success = sp.transfer_playback(device_id, play=True)
 
         if success:
@@ -269,7 +275,8 @@ def set_shuffle(request):
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
         state = request.POST.get('state', 'false').lower() == 'true'
         device_id = request.POST.get('device_id')
-
+        
+        sp = SpotifyService(spotify_user)
         success = sp.set_shuffle(state, device_id=device_id)
 
         # Update local queue
@@ -298,7 +305,8 @@ def set_repeat(request):
 
         if mode not in ['off', 'context', 'track']:
             return JsonResponse({'status': 'error', 'message': 'Invalid repeat mode'}, status=400)
-
+        
+        sp = SpotifyService(spotify_user)
         success = sp.set_repeat(mode, device_id=device_id)
 
         # Update local queue
@@ -547,29 +555,28 @@ def get_devices(request):
     try:
         spotify_user = SpotifyUser.objects.get(user=request.user)
         service = SpotifyService(spotify_user)
-        
+
         logger.info(f"Fetching devices for user {request.user.username}")
-        devices_data = service.get_devices()
-        
-        if not devices_data or 'devices' not in devices_data:
+        devices = service.get_available_devices()
+
+        if not devices:
             logger.warning("No devices data returned from Spotify")
             return Response({'devices': []}, status=200)
-        
-        devices = devices_data.get('devices', [])
+
         logger.info(f"Found {len(devices)} devices: {[d.get('name') for d in devices]}")
-        
+
         return Response({'devices': devices}, status=200)
-        
+
     except SpotifyUser.DoesNotExist:
         logger.error(f"No SpotifyUser found for {request.user.username}")
         return Response(
-            {'error': 'Spotify account not connected'}, 
+            {'error': 'Spotify account not connected'},
             status=400
         )
     except Exception as e:
         logger.error(f"Error fetching devices: {str(e)}", exc_info=True)
         return Response(
-            {'error': f'Failed to fetch devices: {str(e)}'}, 
+            {'error': f'Failed to fetch devices: {str(e)}'},
             status=500
         )
 

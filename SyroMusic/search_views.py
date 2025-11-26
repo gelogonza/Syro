@@ -91,7 +91,7 @@ def search(request):
         'search_type': search_type,
         'results': results,
     }
-    return render(request, 'SyroMusic/search.html', context)
+    return render(request, 'syromusic/search.html', context)
 
 
 @api_view(['GET'])
@@ -218,7 +218,7 @@ def search_json_api(request):
         'title': s.title,
         'artist': s.artist.name if s.artist else "Unknown",
         'album': s.album.title if s.album else "",
-        'cover_url': s.album.cover_image.url if s.album and s.album.cover_image else "",
+        'cover_url': s.album.cover_url if s.album and s.album.cover_url else "",
         'uri': s.uri,
         'duration_ms': s.duration_ms,
         'source': 'local'
@@ -227,8 +227,8 @@ def search_json_api(request):
     formatted_local_artists = [{
         'id': a.id,
         'name': a.name,
-        'image_url': a.image.url if a.image else "",
-        'uri': a.uri,
+        'image_url': "",
+        'uri': "",
         'source': 'local'
     } for a in local_artists]
 
@@ -236,9 +236,9 @@ def search_json_api(request):
         'id': a.id,
         'title': a.title,
         'artist': a.artist.name if a.artist else "Unknown",
-        'cover_url': a.cover_image.url if a.cover_image else "",
-        'release_date': a.release_date,
-        'uri': a.uri,
+        'cover_url': a.cover_url if a.cover_url else "",
+        'release_date': a.release_date.isoformat() if a.release_date else "",
+        'uri': "",
         'source': 'local'
     } for a in local_albums]
 
@@ -300,7 +300,7 @@ def recommendations(request):
             'recommendations': recommendations_data,
             'spotify_user': spotify_user,
         }
-        return render(request, 'SyroMusic/recommendations.html', context)
+        return render(request, 'syromusic/recommendations.html', context)
 
     except Exception as e:
         messages.error(request, f'Error loading recommendations: {str(e)}')
@@ -330,7 +330,7 @@ def create_playlist(request):
             messages.error(request, f'Error creating playlist: {str(e)}')
             return redirect('music:create_playlist')
 
-    return render(request, 'SyroMusic/create_playlist.html')
+    return render(request, 'syromusic/create_playlist.html')
 
 
 @login_required(login_url='login')
@@ -344,7 +344,7 @@ def playlist_detail(request, playlist_id):
             'playlist': playlist,
             'songs': songs,
         }
-        return render(request, 'SyroMusic/playlist_detail.html', context)
+        return render(request, 'syromusic/playlist_detail.html', context)
     except Exception as e:
         messages.error(request, f'Error loading playlist: {str(e)}')
         return redirect('music:playlist_list')
@@ -372,7 +372,7 @@ def update_playlist(request, playlist_id):
             return redirect('music:playlist_detail', playlist_id=playlist_id)
 
         context = {'playlist': playlist}
-        return render(request, 'SyroMusic/edit_playlist.html', context)
+        return render(request, 'syromusic/edit_playlist.html', context)
 
     except Exception as e:
         messages.error(request, f'Error updating playlist: {str(e)}')
@@ -392,7 +392,7 @@ def delete_playlist(request, playlist_id):
             return redirect('music:playlist_list')
 
         context = {'playlist': playlist}
-        return render(request, 'SyroMusic/delete_playlist.html', context)
+        return render(request, 'syromusic/delete_playlist.html', context)
 
     except Exception as e:
         messages.error(request, f'Error deleting playlist: {str(e)}')
@@ -402,15 +402,67 @@ def delete_playlist(request, playlist_id):
 @login_required(login_url='login')
 @require_http_methods(['POST'])
 def add_song_to_playlist(request):
-    """Add a song to a playlist via AJAX."""
+    """Add a song to a playlist via AJAX. Handles both local and Spotify songs."""
     try:
         playlist_id = request.POST.get('playlist_id')
         song_id = request.POST.get('song_id')
+        spotify_id = request.POST.get('spotify_id')  # For Spotify songs not yet in DB
+        source = request.POST.get('source', 'local')  # 'local' or 'spotify'
 
         playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
-        song = get_object_or_404(Song, id=song_id)
+        
+        # Handle Spotify songs that don't exist locally yet
+        if source == 'spotify' and spotify_id:
+            # Check if song already exists by spotify_id
+            song = Song.objects.filter(spotify_id=spotify_id).first()
+            
+            if not song:
+                # Need to fetch from Spotify and create it
+                try:
+                    spotify_user = SpotifyUser.objects.get(user=request.user)
+                    service = SpotifyService(spotify_user)
+                    track_data = service.sp.track(spotify_id)
+                    
+                    if track_data:
+                        # Get or create artist
+                        artist_name = track_data['artists'][0]['name'] if track_data.get('artists') else "Unknown Artist"
+                        artist, _ = Artist.objects.get_or_create(name=artist_name)
+                        
+                        # Get or create album
+                        album_data = track_data.get('album', {})
+                        album_title = album_data.get('name', 'Unknown Album')
+                        album_cover = album_data.get('images', [{}])[0].get('url', '') if album_data.get('images') else ''
+                        
+                        album, _ = Album.objects.get_or_create(
+                            title=album_title,
+                            artist=artist,
+                            defaults={
+                                'cover_url': album_cover,
+                                'release_date': album_data.get('release_date', '1900-01-01')
+                            }
+                        )
+                        
+                        # Create song
+                        song = Song.objects.create(
+                            title=track_data.get('name'),
+                            artist=artist,
+                            album=album,
+                            spotify_id=spotify_id,
+                            uri=track_data.get('uri'),
+                            duration_ms=track_data.get('duration_ms', 0),
+                            track_number=track_data.get('track_number', 0)
+                        )
+                except Exception as e:
+                    logger.error(f"Error creating song from Spotify: {str(e)}")
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Could not add song from Spotify: {str(e)}'
+                    }, status=500)
+        else:
+            # Local song - just get it
+            song = get_object_or_404(Song, id=song_id)
 
-        if playlist.songs.filter(id=song_id).exists():
+        if playlist.songs.filter(id=song.id).exists():
             return JsonResponse({
                 'status': 'info',
                 'message': 'Song already in playlist'
@@ -423,6 +475,7 @@ def add_song_to_playlist(request):
         })
 
     except Exception as e:
+        logger.error(f"Error adding song to playlist: {str(e)}")
         return JsonResponse({
             'status': 'error',
             'message': str(e)
@@ -448,6 +501,33 @@ def remove_song_from_playlist(request):
 
     except Exception as e:
         return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_playlists_api(request):
+    """API endpoint to get user's playlists as JSON."""
+    try:
+        playlists = Playlist.objects.filter(user=request.user).order_by('-created_at')
+        
+        playlists_data = [{
+            'id': playlist.id,
+            'title': playlist.title,
+            'description': playlist.description,
+            'song_count': playlist.songs.count(),
+            'created_at': playlist.created_at.isoformat() if playlist.created_at else None
+        } for playlist in playlists]
+        
+        return Response({
+            'status': 'success',
+            'playlists': playlists_data
+        })
+    except Exception as e:
+        logger.error(f"Error fetching playlists: {str(e)}")
+        return Response({
             'status': 'error',
             'message': str(e)
         }, status=500)
@@ -494,7 +574,7 @@ def browse_by_genre(request):
             'genres': genre_data,
             'spotify_user': spotify_user,
         }
-        return render(request, 'SyroMusic/browse_genres.html', context)
+        return render(request, 'syromusic/browse_genres.html', context)
 
     except Exception as e:
         messages.error(request, f'Error browsing genres: {str(e)}')

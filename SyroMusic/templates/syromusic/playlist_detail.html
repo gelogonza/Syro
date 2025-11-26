@@ -374,16 +374,24 @@ function displayPlaylistSearchResults(data, query) {
     const isAlreadyAdded = playlistSongs.has(song.title);
     const btnText = isAlreadyAdded ? 'Already Added' : '+ Add';
     const btnDisabled = isAlreadyAdded ? 'disabled' : '';
+    
+    // Prepare song data for passing to function
+    const songData = JSON.stringify({
+      id: song.id,
+      spotify_id: song.spotify_id || '',
+      source: song.source || 'local'
+    }).replace(/"/g, '&quot;');
 
     html += `
       <div class="search-result-item">
         <div class="search-result-info">
           <div class="search-result-name">${escapeHtml(song.title)}</div>
-          <div class="search-result-artist">${escapeHtml(song.album.artist.name)} • ${escapeHtml(song.album.title)}</div>
+          <div class="search-result-artist">${escapeHtml(song.artist)} • ${escapeHtml(song.album)}</div>
         </div>
         <button
           class="add-song-btn"
-          onclick="addSongToPlaylist(${song.id}, ${playlistId}, this)"
+          data-song="${songData}"
+          onclick="addSongToPlaylist(this, ${playlistId})"
           ${btnDisabled}
         >${btnText}</button>
       </div>
@@ -399,9 +407,24 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-function addSongToPlaylist(songId, playlistId, button) {
+function addSongToPlaylist(button, playlistId) {
   button.disabled = true;
   button.textContent = 'Adding...';
+  
+  // Extract song data from button's data attribute
+  const songData = JSON.parse(button.getAttribute('data-song'));
+  
+  // Build request body
+  let body = `playlist_id=${playlistId}`;
+  
+  if (songData.source === 'spotify') {
+    // Spotify song - send spotify_id and source
+    body += `&spotify_id=${songData.spotify_id}&source=spotify`;
+    if (songData.id) body += `&song_id=${songData.id}`;
+  } else {
+    // Local song - send song_id
+    body += `&song_id=${songData.id}&source=local`;
+  }
 
   fetch('/music/api/playlists/add-song/', {
     method: 'POST',
@@ -409,7 +432,7 @@ function addSongToPlaylist(songId, playlistId, button) {
       'X-CSRFToken': '{{ csrf_token }}',
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: `song_id=${songId}&playlist_id=${playlistId}`
+    body: body
   })
   .then(response => response.json())
   .then(data => {

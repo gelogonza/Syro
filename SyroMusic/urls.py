@@ -13,6 +13,7 @@ urlpatterns = [
     path('sonic-aura/', views.sonic_aura_page, name='sonic_aura_page'),
     path('frequency/', views.frequency_page, name='frequency_page'),
     path('sync/', views.sync_spotify_stats, name='sync_spotify_stats'),
+    path('sync-albums/', views.sync_spotify_albums, name='sync_albums'),
 
     # List views
     path('artists/', views.artist_list, name='artist_list'),
@@ -56,6 +57,7 @@ urlpatterns = [
     path('playlists/<int:playlist_id>/', search_views.playlist_detail, name='playlist_detail'),
     path('playlists/<int:playlist_id>/edit/', search_views.update_playlist, name='update_playlist'),
     path('playlists/<int:playlist_id>/delete/', search_views.delete_playlist, name='delete_playlist'),
+    path('api/playlists/', search_views.get_user_playlists_api, name='get_user_playlists_api'),
     path('api/playlists/add-song/', search_views.add_song_to_playlist, name='add_song_to_playlist'),
     path('api/playlists/remove-song/', search_views.remove_song_from_playlist, name='remove_song_from_playlist'),
 

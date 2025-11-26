@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sync Albums - Syro{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Sync Albums from Spotify</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> What will be synced?</h5>
+                        <ul class="mb-0">
+                            <li><strong>Albums:</strong> Your saved albums, albums from playlists, and recently played</li>
+                            <li><strong>Tracks:</strong> All songs for each album (automatic)</li>
+                            <li><strong>Colors:</strong> Dominant colors extracted from album artwork (automatic)</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-magic"></i> 
+                        <strong>Fully Automated:</strong> Everything happens automatically! Albums will be ready to browse, filter by color, and play immediately.
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Note:</strong> This process may take a few minutes depending on how many albums you have. 
+                        Duplicate albums will be automatically skipped.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sync-alt"></i> Start Syncing Albums
+                            </button>
+                            <a href="{% url 'music:the_crate_page' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to The Crate
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

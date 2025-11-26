@@ -786,7 +786,7 @@ def albums_by_color_api(request):
     """
     Filter albums by dominant color.
     Query params:
-    - color: hex color code (e.g., #ff0000)
+    - color: hex color code (e.g., #ff0000) - Optional, returns all albums if not provided
     - tolerance: color range tolerance in hex (default: f - includes +/- 15 in each channel)
     Returns: paginated list of albums with that color
     """
@@ -795,16 +795,14 @@ def albums_by_color_api(request):
 
         color = request.GET.get('color', '').strip()
 
-        if not color or not color.startswith('#') or len(color) != 7:
-            return Response(
-                {'status': 'error', 'message': 'color parameter required (format: #rrggbb)'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Query albums by dominant color
-        albums = Album.objects.filter(
-            dominant_color__iexact=color
-        ).select_related('artist').order_by('-release_date')
+        # Query albums by dominant color or all albums if no color specified
+        if color and color.startswith('#') and len(color) == 7:
+            albums = Album.objects.filter(
+                dominant_color__iexact=color
+            ).select_related('artist').order_by('-release_date')
+        else:
+            # Return all albums when no color filter is applied
+            albums = Album.objects.select_related('artist').order_by('-release_date')
 
         # Paginate results
         paginator = Paginator(albums, 20)

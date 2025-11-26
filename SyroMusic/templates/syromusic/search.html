@@ -124,6 +124,11 @@
                   <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-plus"></span>
                   Queue
                 </button>
+                <button onclick="openAddToPlaylistModal({{ song.id }}, '{{ song.spotify_id }}', '{{ song.title|escapejs }}', 'local')"
+                  class="px-4 py-2 rounded-lg border border-accent text-accent font-medium text-sm hover:bg-accent/10 flex-shrink-0">
+                  <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-music"></span>
+                  Playlist
+                </button>
               </div>
             </div>
           {% endfor %}
@@ -250,6 +255,11 @@
                   <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-plus"></span>
                   Queue
                 </button>
+                <button onclick="openAddToPlaylistModal(null, '{{ track.id }}', '{{ track.name|escapejs }}', 'spotify')"
+                   class="px-4 py-2 rounded-lg border border-accent text-accent font-medium text-sm hover:bg-accent/10 flex-shrink-0">
+                  <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-music"></span>
+                  Playlist
+                </button>
               </div>
             </div>
           {% endfor %}
@@ -358,7 +368,10 @@
 
 {% block extra_js %}
 <script>
-  let currentTrackUri = null;
+  let currentSongId = null;
+  let currentSpotifyId = null;
+  let currentTrackName = null;
+  let currentSource = null;
   let userPlaylists = [];
 
   // Notification system
@@ -461,16 +474,11 @@
 
   async function fetchUserPlaylists() {
     try {
-      const response = await fetch('/music/api/playlists/', {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}'
-        }
-      });
+      const response = await fetch('/music/api/playlists/');
       
       if (response.ok) {
         const data = await response.json();
-        userPlaylists = data.results || data;
+        userPlaylists = data.playlists || [];
         displayPlaylists();
       } else {
         document.getElementById('playlistsList').innerHTML = 
@@ -487,7 +495,7 @@
     const container = document.getElementById('playlistsList');
     
     if (userPlaylists.length === 0) {
-      container.innerHTML = '<p class="text-sm text-muted-foreground">No playlists found</p>';
+      container.innerHTML = '<p class="text-sm text-muted-foreground">No playlists yet. Create one above!</p>';
       return;
     }
     
@@ -495,13 +503,16 @@
       <button onclick="addToExistingPlaylist(${playlist.id})" 
               class="w-full px-4 py-2 rounded-lg border border-border hover:bg-muted/50 text-left transition">
         <div class="font-semibold">${playlist.title}</div>
-        <div class="text-xs text-muted-foreground">${playlist.songs?.length || 0} songs</div>
+        <div class="text-xs text-muted-foreground">${playlist.song_count || 0} songs</div>
       </button>
     `).join('');
   }
 
-  function openAddToPlaylistModal(trackUri, trackName) {
-    currentTrackUri = trackUri;
+  function openAddToPlaylistModal(songId, spotifyId, trackName, source) {
+    currentSongId = songId;
+    currentSpotifyId = spotifyId;
+    currentTrackName = trackName;
+    currentSource = source;
     document.getElementById('modalTrackName').textContent = trackName;
     document.getElementById('addToPlaylistModal').classList.remove('hidden');
     document.getElementById('newPlaylistName').value = '';
@@ -511,7 +522,10 @@
 
   function closeAddToPlaylistModal() {
     document.getElementById('addToPlaylistModal').classList.add('hidden');
-    currentTrackUri = null;
+    currentSongId = null;
+    currentSpotifyId = null;
+    currentTrackName = null;
+    currentSource = null;
   }
 
   async function createAndAddToPlaylist() {
@@ -519,80 +533,76 @@
     const description = document.getElementById('newPlaylistDescription').value.trim();
     
     if (!name) {
-      alert('Please enter a playlist name');
+      showNotification('Please enter a playlist name', 'error');
       return;
     }
     
     try {
-      // Create playlist on Spotify
-      const response = await fetch('/music/api/playlists/create_with_spotify/', {
+      // Create playlist locally
+      const formData = new FormData();
+      formData.append('title', name);
+      formData.append('description', description);
+      
+      const createResponse = await fetch('/music/playlists/create/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'X-CSRFToken': '{{ csrf_token }}'
         },
-        body: JSON.stringify({
-          name: name,
-          description: description,
-          public: false
-        })
+        body: formData
       });
       
-      if (response.ok) {
-        const playlist = await response.json();
-        
-        // Add track to the new playlist
-        const addResponse = await fetch(`/music/api/playlists/${playlist.id}/add_track/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-          },
-          body: JSON.stringify({
-            track_uri: currentTrackUri
-          })
-        });
-        
-        if (addResponse.ok) {
-          alert(`Successfully created "${name}" and added track!`);
-          closeAddToPlaylistModal();
-        } else {
-          const errorData = await addResponse.json();
-          alert('Playlist created but failed to add track: ' + (errorData.error || 'Unknown error'));
+      if (createResponse.ok) {
+        // Playlist created, now add the song
+        // We need to get the playlist ID from the redirect or response
+        // For now, let's refresh playlists and add to the newest one
+        await fetchUserPlaylists();
+        if (userPlaylists.length > 0) {
+          const newestPlaylist = userPlaylists[0];
+          await addToExistingPlaylist(newestPlaylist.id);
         }
       } else {
-        const data = await response.json();
-        alert('Error creating playlist: ' + (data.error || 'Unknown error'));
+        showNotification('Failed to create playlist', 'error');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to create playlist. Please try again.');
+      showNotification('Failed to create playlist', 'error');
     }
   }
 
   async function addToExistingPlaylist(playlistId) {
     try {
-      const response = await fetch(`/music/api/playlists/${playlistId}/add_track/`, {
+      const formData = new FormData();
+      formData.append('playlist_id', playlistId);
+      formData.append('source', currentSource);
+      
+      if (currentSource === 'local' && currentSongId) {
+        formData.append('song_id', currentSongId);
+      } else if (currentSource === 'spotify' && currentSpotifyId) {
+        formData.append('spotify_id', currentSpotifyId);
+      } else {
+        showNotification('Invalid song data', 'error');
+        return;
+      }
+      
+      const response = await fetch('/music/api/playlists/add-song/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'X-CSRFToken': '{{ csrf_token }}'
         },
-        body: JSON.stringify({
-          track_uri: currentTrackUri
-        })
+        body: formData
       });
       
-      if (response.ok) {
-        alert('Track added to playlist successfully!');
+      const data = await response.json();
+      
+      if (response.ok && data.status === 'success') {
+        showNotification(`"${currentTrackName}" added to playlist!`, 'success');
         closeAddToPlaylistModal();
       } else {
-        const data = await response.json();
-        alert('Error adding to playlist: ' + (data.error || 'Unknown error'));
+        showNotification(data.message || 'Failed to add song', data.status === 'info' ? 'error' : 'error');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to add track. Please try again.');
+      showNotification('Failed to add track', 'error');
     }
   }
 

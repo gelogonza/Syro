@@ -32,7 +32,7 @@ def artist_list(request):
     paginator = Paginator(artists, 25)  # 25 artists per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'SyroMusic/artist_list.html', {'page_obj': page_obj})
+    return render(request, 'syromusic/artist_list.html', {'page_obj': page_obj})
 
 
 def artist_detail(request, artist_id):
@@ -46,7 +46,7 @@ def artist_detail(request, artist_id):
             'artist': artist,
             'albums': albums,
         }
-        return render(request, 'SyroMusic/artist_detail.html', context)
+        return render(request, 'syromusic/artist_detail.html', context)
     except Artist.DoesNotExist:
         messages.error(request, 'Artist not found.')
         return redirect('music:artist_list')
@@ -60,7 +60,7 @@ def album_list(request):
     paginator = Paginator(albums, 25)  # 25 albums per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'SyroMusic/album_list.html', {'page_obj': page_obj})
+    return render(request, 'syromusic/album_list.html', {'page_obj': page_obj})
 
 
 def album_detail(request, album_id):
@@ -73,7 +73,7 @@ def album_detail(request, album_id):
             'album': album,
             'songs': songs,
         }
-        return render(request, 'SyroMusic/album_detail.html', context)
+        return render(request, 'syromusic/album_detail.html', context)
     except Album.DoesNotExist:
         messages.error(request, 'Album not found.')
         return redirect('music:album_list')
@@ -87,7 +87,7 @@ def song_list(request):
     paginator = Paginator(songs, 50)  # 50 songs per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'SyroMusic/song_list.html', {'page_obj': page_obj})
+    return render(request, 'syromusic/song_list.html', {'page_obj': page_obj})
 
 
 def song_detail(request, song_id):
@@ -98,7 +98,7 @@ def song_detail(request, song_id):
         context = {
             'song': song,
         }
-        return render(request, 'SyroMusic/song_detail.html', context)
+        return render(request, 'syromusic/song_detail.html', context)
     except Song.DoesNotExist:
         messages.error(request, 'Song not found.')
         return redirect('music:song_list')
@@ -114,7 +114,7 @@ def playlist_list(request):
     paginator = Paginator(playlists, 20)  # 20 playlists per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'SyroMusic/playlist_list.html', {'page_obj': page_obj})
+    return render(request, 'syromusic/playlist_list.html', {'page_obj': page_obj})
 
 
 def signup(request):
@@ -285,7 +285,7 @@ def dashboard(request):
             'spotify_user': spotify_user,
             'listening_stats': listening_stats,
         }
-        return render(request, 'SyroMusic/dashboard.html', context)
+        return render(request, 'syromusic/dashboard.html', context)
     except Exception as e:
         messages.error(request, f'Error loading dashboard: {str(e)}')
         return redirect('home')
@@ -378,7 +378,7 @@ def stats_dashboard(request):
             'total_plays': total_plays,
         }
 
-        return render(request, 'SyroMusic/stats_dashboard.html', context)
+        return render(request, 'syromusic/stats_dashboard.html', context)
     except Exception as e:
         messages.error(request, f'Error loading stats: {str(e)}')
         return redirect('music:dashboard')
@@ -434,7 +434,7 @@ def wrapped_view(request):
             'top_artists': top_artists[:10],
         }
 
-        return render(request, 'SyroMusic/wrapped.html', context)
+        return render(request, 'syromusic/wrapped.html', context)
     except Exception as e:
         messages.error(request, f'Error loading wrapped: {str(e)}')
         return redirect('music:dashboard')
@@ -450,7 +450,7 @@ def sonic_aura_page(request):
         messages.error(request, 'Please connect your Spotify account first to use Sonic Aura.')
         return redirect('music:spotify_login')
 
-    return render(request, 'SyroMusic/sonic_aura.html')
+    return render(request, 'syromusic/sonic_aura.html')
 
 
 @login_required
@@ -463,7 +463,7 @@ def the_crate_page(request):
         messages.error(request, 'Please connect your Spotify account first to use The Crate.')
         return redirect('music:spotify_login')
 
-    return render(request, 'SyroMusic/the_crate.html')
+    return render(request, 'syromusic/the_crate.html')
 
 
 @login_required
@@ -476,4 +476,230 @@ def frequency_page(request):
         messages.error(request, 'Please connect your Spotify account first to use The Frequency.')
         return redirect('music:spotify_login')
 
-    return render(request, 'SyroMusic/frequency.html')
+    return render(request, 'syromusic/frequency.html')
+
+
+@login_required(login_url='login')
+def sync_spotify_albums(request):
+    """Sync albums from Spotify to populate The Crate."""
+    try:
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+    except SpotifyUser.DoesNotExist:
+        messages.error(request, 'Please connect your Spotify account first.')
+        return redirect('music:spotify_login')
+
+    if request.method == 'POST':
+        try:
+            service = SpotifyService(spotify_user)
+            total_albums = 0
+            albums_seen = set()
+
+            # 1. Sync saved albums
+            logger.info(f"Syncing saved albums for {request.user.username}")
+            offset = 0
+            limit = 50
+            while True:
+                results = service.get_saved_albums(limit=limit, offset=offset)
+                if not results or not results.get('items'):
+                    break
+
+                for item in results['items']:
+                    album_data = item.get('album')
+                    if album_data:
+                        album_id = album_data.get('id')
+                        if album_id and album_id not in albums_seen:
+                            albums_seen.add(album_id)
+                            if _create_album_from_spotify(album_data, service):
+                                total_albums += 1
+
+                if not results.get('next'):
+                    break
+                offset += limit
+
+            # 2. Sync albums from playlists
+            logger.info(f"Syncing playlist albums for {request.user.username}")
+            playlists_result = service.get_user_playlists(limit=50)
+            if playlists_result and playlists_result.get('items'):
+                for playlist in playlists_result['items']:
+                    playlist_id = playlist.get('id')
+                    if not playlist_id:
+                        continue
+
+                    tracks_result = service.get_playlist_tracks(playlist_id, limit=100)
+                    if not tracks_result or not tracks_result.get('items'):
+                        continue
+
+                    for item in tracks_result['items']:
+                        track = item.get('track')
+                        if not track:
+                            continue
+
+                        album_data = track.get('album')
+                        if album_data:
+                            album_id = album_data.get('id')
+                            if album_id and album_id not in albums_seen:
+                                albums_seen.add(album_id)
+                                if _create_album_from_spotify(album_data, service):
+                                    total_albums += 1
+
+            # 3. Sync albums from recently played
+            logger.info(f"Syncing recent albums for {request.user.username}")
+            results = service.get_recently_played(limit=50)
+            if results and results.get('items'):
+                for item in results['items']:
+                    track = item.get('track')
+                    if not track:
+                        continue
+
+                    album_data = track.get('album')
+                    if album_data:
+                        album_id = album_data.get('id')
+                        if album_id and album_id not in albums_seen:
+                            albums_seen.add(album_id)
+                            if _create_album_from_spotify(album_data, service):
+                                total_albums += 1
+
+            messages.success(request, f'Successfully synced {total_albums} albums with tracks and colors from Spotify!')
+            logger.info(f"Synced {total_albums} albums for {request.user.username}")
+            return redirect('music:the_crate')
+
+        except Exception as e:
+            logger.error(f"Error syncing albums for {request.user.username}: {str(e)}")
+            messages.error(request, f'Error syncing albums: {str(e)}')
+            return redirect('music:dashboard')
+
+    # GET request - show confirmation page
+    return render(request, 'syromusic/sync_albums.html')
+
+
+def _create_album_from_spotify(album_data, service=None):
+    """Helper function to create or update an album from Spotify data."""
+    from django.db import IntegrityError
+    from datetime import datetime, timedelta
+    import io
+    import urllib.request
+    from PIL import Image
+    
+    try:
+        album_title = album_data.get('name', 'Unknown Album')
+        spotify_album_id = album_data.get('id')
+        if not album_title:
+            return False
+
+        # Get or create artist
+        artist_data = album_data.get('artists', [{}])[0]
+        artist_name = artist_data.get('name', 'Unknown Artist')
+
+        artist, created = Artist.objects.get_or_create(
+            name=artist_name
+        )
+
+        # Check if album already exists for this artist
+        existing_album = Album.objects.filter(title=album_title, artist=artist).first()
+        if existing_album:
+            return False
+
+        # Get album cover image
+        images = album_data.get('images', [])
+        cover_url = images[0]['url'] if images else ''
+
+        # Parse release date
+        release_date_str = album_data.get('release_date', '2000-01-01')
+        try:
+            # Handle different date formats from Spotify
+            if len(release_date_str) == 4:  # Just year
+                release_date = f"{release_date_str}-01-01"
+            elif len(release_date_str) == 7:  # Year-month
+                release_date = f"{release_date_str}-01"
+            else:
+                release_date = release_date_str
+        except:
+            release_date = '2000-01-01'
+
+        # Create album
+        album = Album.objects.create(
+            title=album_title,
+            artist=artist,
+            release_date=release_date,
+            cover_url=cover_url,
+        )
+
+        # Automatically extract color from album cover
+        if cover_url:
+            try:
+                response = urllib.request.urlopen(cover_url, timeout=5)
+                img = Image.open(io.BytesIO(response.read())).convert('RGB')
+                img = img.resize((150, 150))
+                
+                pixels = list(img.getdata())
+                color_map = {}
+                
+                for r, g, b in pixels:
+                    r = (r // 25) * 25
+                    g = (g // 25) * 25
+                    b = (b // 25) * 25
+                    key = (r, g, b)
+                    color_map[key] = color_map.get(key, 0) + 1
+                
+                dominant_color = '#1a1a2e'
+                max_count = 0
+                
+                for (r, g, b), count in color_map.items():
+                    brightness = (r * 299 + g * 587 + b * 114) / 1000
+                    if count > max_count and 20 < brightness < 240:
+                        max_count = count
+                        dominant_color = f'#{r:02x}{g:02x}{b:02x}'
+                
+                album.dominant_color = dominant_color
+                album.color_extracted_at = timezone.now()
+                album.save(update_fields=['dominant_color', 'color_extracted_at'])
+            except Exception as color_error:
+                logger.warning(f"Could not extract color for album {album_title}: {str(color_error)}")
+
+        # Automatically sync tracks for this album
+        if service and spotify_album_id:
+            try:
+                tracks_result = service.get_album_tracks(spotify_album_id)
+                if tracks_result and tracks_result.get('items'):
+                    for track_data in tracks_result['items']:
+                        try:
+                            track_name = track_data.get('name', 'Unknown Track')
+                            track_number = track_data.get('track_number', 0)
+                            duration_ms = track_data.get('duration_ms', 0)
+                            spotify_id = track_data.get('id', '')
+                            uri = track_data.get('uri', '')
+
+                            # Check if track already exists
+                            if Song.objects.filter(
+                                title=track_name,
+                                album=album,
+                                track_number=track_number
+                            ).exists():
+                                continue
+
+                            # Create song
+                            Song.objects.create(
+                                title=track_name,
+                                album=album,
+                                artist=artist,
+                                track_number=track_number,
+                                duration=timedelta(milliseconds=duration_ms),
+                                duration_ms=duration_ms,
+                                spotify_id=spotify_id,
+                                uri=uri,
+                            )
+                        except IntegrityError:
+                            continue
+                        except Exception as track_error:
+                            logger.warning(f"Could not create track {track_name}: {str(track_error)}")
+                            continue
+            except Exception as tracks_error:
+                logger.warning(f"Could not sync tracks for album {album_title}: {str(tracks_error)}")
+
+        return True
+
+    except IntegrityError:
+        return False
+    except Exception as e:
+        logger.error(f"Error creating album: {str(e)}")
+        return False
