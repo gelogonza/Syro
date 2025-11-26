@@ -134,7 +134,7 @@ def signup(request):
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
 
-@login_required
+
 def spotify_login(request):
     """Redirect user to Spotify authorization page."""
     # Updated scope to include all necessary permissions for device control
