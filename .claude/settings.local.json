@@ -22,7 +22,8 @@
       "Bash(git merge:*)",
       "Bash(source:*)",
       "Bash(git push:*)",
-      "Bash(python manage.py migrate:*)"
+      "Bash(python manage.py migrate:*)",
+      "Bash(python manage.py makemigrations:*)"
     ],
     "deny": [],
     "ask": []

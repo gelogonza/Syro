@@ -43,9 +43,12 @@ class Song(models.Model):
     """Model representing a song."""
     title = models.CharField(max_length=255, db_index=True)
     album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='songs')
+    artist = models.ForeignKey('Artist', on_delete=models.SET_NULL, null=True, blank=True, related_name='songs')
     duration = models.DurationField()
+    duration_ms = models.IntegerField(default=0, null=True, blank=True)
     track_number = models.IntegerField(null=True, blank=True)
     spotify_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    uri = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
