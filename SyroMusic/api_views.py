@@ -841,11 +841,55 @@ def albums_by_color_api(request):
         )
 
 
+def get_color_name(hex_color):
+    """
+    Convert hex color code to human-readable color name.
+    """
+    try:
+        hex_color = hex_color.strip().lower()
+        if not hex_color.startswith('#'):
+            hex_color = '#' + hex_color
+
+        # Parse RGB
+        r = int(hex_color[1:3], 16)
+        g = int(hex_color[3:5], 16)
+        b = int(hex_color[5:7], 16)
+
+        # Calculate brightness and saturation
+        brightness = (r + g + b) / 3
+        max_val = max(r, g, b)
+        min_val = min(r, g, b)
+        saturation = max_val - min_val
+
+        # Determine dominant color
+        if max_val < 50:
+            return "Black"
+        elif brightness > 200:
+            return "White"
+        elif saturation < 30:
+            return "Gray"
+
+        # Determine hue
+        if r == max_val:
+            if g >= b:
+                return "Red" if saturation > 80 else "Orange"
+            else:
+                return "Purple" if b > r/2 else "Red"
+        elif g == max_val:
+            return "Green" if saturation > 80 else "Yellow"
+        elif b == max_val:
+            return "Blue" if r < 100 else "Purple"
+
+        return "Other"
+    except:
+        return "Other"
+
+
 @api_view(['GET'])
 def color_palette_api(request):
     """
     Get all available colors from albums.
-    Returns a list of unique dominant colors with counts.
+    Returns a list of unique dominant colors with human-readable names and counts.
     """
     try:
         from .models import Album
@@ -859,13 +903,23 @@ def color_palette_api(request):
             count=Count('id')
         ).order_by('-count')
 
-        colors = [
-            {
-                'color': stat['dominant_color'],
-                'count': stat['count'],
-            }
-            for stat in color_stats if stat['dominant_color']
-        ]
+        # Group by color name and sum counts
+        color_map = {}
+        for stat in color_stats:
+            if stat['dominant_color']:
+                hex_color = stat['dominant_color']
+                color_name = get_color_name(hex_color)
+
+                if color_name not in color_map:
+                    color_map[color_name] = {
+                        'name': color_name,
+                        'color': hex_color,  # Keep original hex for reference
+                        'count': 0
+                    }
+                color_map[color_name]['count'] += stat['count']
+
+        # Convert to list and sort by count
+        colors = sorted(color_map.values(), key=lambda x: x['count'], reverse=True)
 
         if not colors:
             return Response({
@@ -882,6 +936,7 @@ def color_palette_api(request):
         })
 
     except Exception as e:
+        logger.error(f"Error in color_palette_api: {str(e)}")
         return Response(
             {'status': 'error', 'message': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -1296,6 +1351,102 @@ def artist_tracks_api(request):
         )
     except Exception as e:
         logger.error(f"Error in artist_tracks_api: {str(e)}")
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def album_tracks_api(request):
+    """
+    Fetch tracks for a Spotify album.
+    Query parameters:
+    - album_id: Spotify album ID (required)
+    """
+    album_id = request.GET.get('album_id')
+
+    if not album_id:
+        return Response(
+            {'status': 'error', 'message': 'album_id is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        from .services import SpotifyService
+
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+        service = SpotifyService(spotify_user)
+
+        # Fetch album info
+        album_data = service.sp.album(album_id)
+
+        if not album_data:
+            return Response(
+                {'status': 'error', 'message': 'Album not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Fetch album tracks
+        tracks_data = service.sp.album_tracks(album_id)
+
+        if not tracks_data or 'items' not in tracks_data:
+            return Response(
+                {'status': 'error', 'message': 'No tracks found for this album'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        tracks = []
+        for track in tracks_data['items']:
+            if not track:
+                continue
+
+            image_url = ''
+            if album_data.get('images') and len(album_data['images']) > 0:
+                image_url = album_data['images'][0]['url']
+
+            artist_names = ', '.join([a['name'] for a in track.get('artists', [])])
+
+            tracks.append({
+                'id': track.get('id'),
+                'name': track.get('name'),
+                'artist': artist_names,
+                'cover_url': image_url,
+                'uri': track.get('uri'),
+                'duration_ms': track.get('duration_ms', 0),
+                'track_number': track.get('track_number', 0),
+                'preview_url': track.get('preview_url')
+            })
+
+        # Get album artists
+        album_artists = ', '.join([a['name'] for a in album_data.get('artists', [])])
+
+        return Response(
+            {
+                'status': 'success',
+                'data': {
+                    'album': {
+                        'id': album_data.get('id'),
+                        'name': album_data.get('name'),
+                        'artist': album_artists,
+                        'image': album_data.get('images', [{}])[0].get('url', '') if album_data.get('images') else '',
+                        'release_date': album_data.get('release_date'),
+                        'total_tracks': album_data.get('total_tracks', 0)
+                    },
+                    'tracks': tracks,
+                    'count': len(tracks)
+                }
+            }
+        )
+
+    except SpotifyUser.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'No Spotify account connected'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error in album_tracks_api: {str(e)}")
         return Response(
             {'status': 'error', 'message': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR

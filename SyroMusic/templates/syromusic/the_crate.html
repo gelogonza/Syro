@@ -437,9 +437,11 @@
       // Add all colors to dropdown (no limit)
       sortedColors.forEach((colorData) => {
         const option = document.createElement('option');
+        // Use hex color as value for filtering
         option.value = colorData.color;
         option.style.background = colorData.color;
-        option.textContent = `${colorData.color} (${colorData.count} albums)`;
+        // Display color name instead of hex code
+        option.textContent = `${colorData.name || colorData.color} (${colorData.count} albums)`;
         dropdown.appendChild(option);
       });
     } catch (error) {

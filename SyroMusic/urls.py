@@ -95,6 +95,7 @@ urlpatterns = [
     path('api/genre-seeds/', api_views.genre_seeds_api, name='genre_seeds'),
     path('api/frequency-randomizer/', api_views.frequency_randomizer_api, name='frequency_randomizer'),
 
-    # Artist Discovery
+    # Artist & Album Discovery
     path('api/artists/<str:artist_id>/tracks/', api_views.artist_tracks_api, name='artist_tracks'),
+    path('api/albums/tracks/', api_views.album_tracks_api, name='album_tracks'),
 ]

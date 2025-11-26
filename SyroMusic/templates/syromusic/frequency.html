@@ -463,11 +463,18 @@
   // Initialize Genres
   async function initializeGenres() {
     try {
-      const response = await fetch('/music/api/genre-seeds/');
+      const response = await fetch('/music/api/genre-seeds/', {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         const genres = data.data || [];
         displayGenres(genres);
+      } else {
+        console.error('Failed to load genres:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error loading genres:', error);
