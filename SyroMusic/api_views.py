@@ -1273,13 +1273,13 @@ def frequency_randomizer_api(request):
 @permission_classes([IsAuthenticated])
 def artist_tracks_api(request, artist_id):
     """
-    Fetch top tracks for a Spotify artist.
+    Fetch all tracks for a Spotify artist from their albums.
     URL parameters:
     - artist_id: Spotify artist ID (required, in URL path)
     Query parameters:
-    - limit: Number of tracks to return (default: 20, max: 50)
+    - limit: Number of tracks to return (default: 100, max: 500)
     """
-    limit = min(int(request.GET.get('limit', 20)), 50)
+    limit = min(int(request.GET.get('limit', 100)), 500)
 
     if not artist_id:
         return Response(
@@ -1296,37 +1296,72 @@ def artist_tracks_api(request, artist_id):
         # Fetch artist info
         artist_data = service.sp.artist(artist_id)
 
-        # Fetch artist's top tracks
-        tracks_data = service.sp.artist_top_tracks(artist_id, country='US')
+        # Fetch all artist albums
+        albums_data = service.sp.artist_albums(artist_id, limit=50)
 
-        if not tracks_data or 'tracks' not in tracks_data:
-            return Response(
-                {'status': 'error', 'message': 'No tracks found for this artist'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        tracks_dict = {}  # Use dict to avoid duplicates
 
-        tracks = []
-        for track in tracks_data['tracks'][:limit]:
-            if not track:
-                continue
+        if albums_data and 'items' in albums_data:
+            for album in albums_data['items']:
+                if not album or album.get('album_type') not in ['album', 'single']:
+                    continue
 
-            image_url = ''
-            if track.get('album') and track['album'].get('images') and len(track['album']['images']) > 0:
-                image_url = track['album']['images'][0]['url']
+                # Fetch tracks from this album
+                try:
+                    album_tracks_data = service.sp.album_tracks(album.get('id'), limit=50)
+                    if album_tracks_data and 'items' in album_tracks_data:
+                        for track in album_tracks_data['items']:
+                            if not track or track.get('id') in tracks_dict:
+                                continue
 
-            artist_names = ', '.join([a['name'] for a in track.get('artists', [])])
+                            image_url = ''
+                            if album.get('images') and len(album['images']) > 0:
+                                image_url = album['images'][0]['url']
 
-            tracks.append({
-                'id': track.get('id'),
-                'name': track.get('name'),
-                'artist': artist_names,
-                'album': track.get('album', {}).get('name', ''),
-                'cover_url': image_url,
-                'uri': track.get('uri'),
-                'duration_ms': track.get('duration_ms', 0),
-                'preview_url': track.get('preview_url'),
-                'popularity': track.get('popularity', 0)
-            })
+                            artist_names = ', '.join([a['name'] for a in track.get('artists', [])])
+
+                            tracks_dict[track.get('id')] = {
+                                'id': track.get('id'),
+                                'name': track.get('name'),
+                                'artist': artist_names,
+                                'album': album.get('name', ''),
+                                'cover_url': image_url,
+                                'uri': track.get('uri'),
+                                'duration_ms': track.get('duration_ms', 0),
+                                'preview_url': track.get('preview_url'),
+                                'popularity': track.get('popularity', 0)
+                            }
+                except Exception as e:
+                    logger.warning(f"Error fetching tracks from album {album.get('id')}: {str(e)}")
+                    continue
+
+        if not tracks_dict:
+            # Fallback to top tracks if album fetch fails
+            tracks_data = service.sp.artist_top_tracks(artist_id, country='US')
+            if tracks_data and 'tracks' in tracks_data:
+                for track in tracks_data['tracks']:
+                    if not track:
+                        continue
+
+                    image_url = ''
+                    if track.get('album') and track['album'].get('images') and len(track['album']['images']) > 0:
+                        image_url = track['album']['images'][0]['url']
+
+                    artist_names = ', '.join([a['name'] for a in track.get('artists', [])])
+
+                    tracks_dict[track.get('id')] = {
+                        'id': track.get('id'),
+                        'name': track.get('name'),
+                        'artist': artist_names,
+                        'album': track.get('album', {}).get('name', ''),
+                        'cover_url': image_url,
+                        'uri': track.get('uri'),
+                        'duration_ms': track.get('duration_ms', 0),
+                        'preview_url': track.get('preview_url'),
+                        'popularity': track.get('popularity', 0)
+                    }
+
+        tracks = list(tracks_dict.values())[:limit]
 
         return Response(
             {
@@ -1351,6 +1386,92 @@ def artist_tracks_api(request, artist_id):
         )
     except Exception as e:
         logger.error(f"Error in artist_tracks_api: {str(e)}")
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def spotify_album_tracks_api(request, album_id):
+    """
+    Fetch tracks for a Spotify album from URL path.
+    URL path parameters:
+    - album_id: Spotify album ID (required)
+    """
+    if not album_id:
+        return Response(
+            {'status': 'error', 'message': 'album_id is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        from .services import SpotifyService
+
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+        service = SpotifyService(spotify_user)
+
+        # Fetch album info
+        album_data = service.sp.album(album_id)
+
+        if not album_data:
+            return Response(
+                {'status': 'error', 'message': 'Album not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Fetch album tracks
+        tracks_data = service.sp.album_tracks(album_id)
+
+        if not tracks_data or 'items' not in tracks_data:
+            return Response(
+                {'status': 'error', 'message': 'No tracks found for this album'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        tracks = []
+        for track in tracks_data['items']:
+            if not track:
+                continue
+
+            tracks.append({
+                'id': track.get('id'),
+                'name': track.get('name'),
+                'artists': track.get('artists', []),
+                'album': {
+                    'name': album_data.get('name'),
+                    'images': album_data.get('images', [])
+                },
+                'uri': track.get('uri'),
+                'duration_ms': track.get('duration_ms', 0),
+                'track_number': track.get('track_number', 0),
+                'preview_url': track.get('preview_url')
+            })
+
+        return Response(
+            {
+                'status': 'success',
+                'album': {
+                    'id': album_data.get('id'),
+                    'name': album_data.get('name'),
+                    'artists': album_data.get('artists', []),
+                    'images': album_data.get('images', []),
+                    'release_date': album_data.get('release_date'),
+                    'total_tracks': album_data.get('total_tracks', 0)
+                },
+                'tracks': tracks,
+                'count': len(tracks)
+            }
+        )
+
+    except SpotifyUser.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'No Spotify account connected'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error in spotify_album_tracks_api: {str(e)}")
         return Response(
             {'status': 'error', 'message': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR

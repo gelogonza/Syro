@@ -98,4 +98,5 @@ urlpatterns = [
     # Artist & Album Discovery
     path('api/artists/<str:artist_id>/tracks/', api_views.artist_tracks_api, name='artist_tracks'),
     path('api/albums/tracks/', api_views.album_tracks_api, name='album_tracks'),
+    path('api/spotify/album/<str:album_id>/tracks/', api_views.spotify_album_tracks_api, name='spotify_album_tracks'),
 ]

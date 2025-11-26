@@ -819,7 +819,7 @@
   }
 
   // Artist Modal Functions
-  function openArtistModal(artistName, artistImage) {
+  function openArtistModal(artistName, artistImage, artistId) {
     const modal = document.getElementById('artistModal');
     if (!modal) return;
 
@@ -835,31 +835,204 @@
       modalImage.style.display = 'none';
     }
 
-    // Placeholder content - in a real implementation, would fetch from backend
+    // Show loading state
     modalContent.innerHTML = `
-      <div class="space-y-6">
-        <div>
-          <h3 class="text-lg font-semibold text-white mb-3">About</h3>
-          <p class="text-gray-300">Discover music from ${escapeHtml(artistName)}.</p>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold text-white mb-3">Top Songs</h3>
-          <p class="text-gray-400 text-sm">Search for this artist in the search bar to view their top songs.</p>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold text-white mb-3">Albums</h3>
-          <p class="text-gray-400 text-sm">Browse their albums using the main navigation or search.</p>
-        </div>
+      <div class="flex items-center justify-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
       </div>
     `;
 
     modal.style.display = 'flex';
+
+    // Fetch artist tracks from the API
+    if (artistId) {
+      fetch(`/music/api/artists/${encodeURIComponent(artistId)}/tracks/?limit=100`)
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .then(data => {
+          if (!data || !data.data || !data.data.tracks) {
+            throw new Error('No tracks data in response');
+          }
+
+          const tracks = data.data.tracks;
+
+          if (!tracks || tracks.length === 0) {
+            modalContent.innerHTML = `
+              <div class="text-center py-8">
+                <p class="text-gray-400">No tracks found for this artist.</p>
+              </div>
+            `;
+            return;
+          }
+
+          // Build track list HTML
+          let tracksHtml = '<div class="space-y-2 max-h-96 overflow-y-auto">';
+          tracks.forEach(track => {
+            const trackName = escapeHtml(track.name || 'Unknown Track');
+            const albumName = escapeHtml(track.album || 'Unknown Album');
+            const duration = track.duration_ms ? formatDuration(track.duration_ms) : '0:00';
+            const trackUri = track.uri || '';
+
+            tracksHtml += `
+              <div class="flex items-center gap-3 p-2 rounded hover:bg-white/10 transition-colors group">
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-white truncate text-sm">${trackName}</div>
+                  <div class="text-xs text-gray-400 truncate">${albumName}</div>
+                </div>
+                <div class="text-xs text-gray-500 flex-shrink-0">${duration}</div>
+                <button
+                  onclick="playTrackFromSearch('${escapeHtml(trackUri)}')"
+                  class="hidden group-hover:flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-colors flex-shrink-0"
+                  title="Play"
+                >
+                  <span class="iconify text-white" data-icon="mdi:play"></span>
+                </button>
+              </div>
+            `;
+          });
+          tracksHtml += '</div>';
+
+          modalContent.innerHTML = `
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-lg font-semibold text-white mb-3">Top Songs</h3>
+                <p class="text-gray-400 text-sm mb-4">${tracks.length} tracks available</p>
+                ${tracksHtml}
+              </div>
+            </div>
+          `;
+        })
+        .catch(error => {
+          console.error('Error loading artist tracks:', error);
+          modalContent.innerHTML = `
+            <div class="text-center py-8">
+              <p class="text-red-400">Failed to load tracks for this artist.</p>
+              <p class="text-gray-400 text-sm mt-2">${escapeHtml(error.message)}</p>
+            </div>
+          `;
+        });
+    }
   }
 
   function closeArtistModal() {
     const modal = document.getElementById('artistModal');
     if (modal) {
       modal.style.display = 'none';
+    }
+  }
+
+  // Album Modal Functions
+  function openAlbumModal(albumTitle, albumCover, albumId) {
+    const modal = document.getElementById('artistModal');
+    if (!modal) return;
+
+    const modalTitle = document.getElementById('artistModalTitle');
+    const modalImage = document.getElementById('artistModalImage');
+    const modalContent = document.getElementById('artistModalContent');
+
+    modalTitle.textContent = albumTitle;
+    if (albumCover && albumCover.trim()) {
+      modalImage.src = albumCover;
+      modalImage.style.display = 'block';
+    } else {
+      modalImage.style.display = 'none';
+    }
+
+    // Show loading state
+    modalContent.innerHTML = `
+      <div class="flex items-center justify-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+
+    // Fetch album tracks from the API
+    if (albumId) {
+      fetch(`/music/api/spotify/album/${encodeURIComponent(albumId)}/tracks/`)
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .then(data => {
+          if (!data || !data.data || !data.data.tracks) {
+            throw new Error('No tracks data in response');
+          }
+
+          const tracks = data.data.tracks;
+
+          if (!tracks || tracks.length === 0) {
+            modalContent.innerHTML = `
+              <div class="text-center py-8">
+                <p class="text-gray-400">No tracks found for this album.</p>
+              </div>
+            `;
+            return;
+          }
+
+          // Build track list HTML
+          let tracksHtml = '<div class="space-y-2 max-h-96 overflow-y-auto">';
+          tracks.forEach((track, index) => {
+            const trackName = escapeHtml(track.name || 'Unknown Track');
+            const artistName = escapeHtml(track.artist || 'Unknown Artist');
+            const duration = track.duration_ms ? formatDuration(track.duration_ms) : '0:00';
+            const trackUri = track.uri || '';
+
+            tracksHtml += `
+              <div class="flex items-center gap-3 p-2 rounded hover:bg-white/10 transition-colors group">
+                <div class="text-xs text-gray-500 flex-shrink-0 w-6 text-right">${index + 1}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-white truncate text-sm">${trackName}</div>
+                  <div class="text-xs text-gray-400 truncate">${artistName}</div>
+                </div>
+                <div class="text-xs text-gray-500 flex-shrink-0">${duration}</div>
+                <button
+                  onclick="playTrackFromSearch('${escapeHtml(trackUri)}')"
+                  class="hidden group-hover:flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-colors flex-shrink-0"
+                  title="Play"
+                >
+                  <span class="iconify text-white" data-icon="mdi:play"></span>
+                </button>
+              </div>
+            `;
+          });
+          tracksHtml += '</div>';
+
+          // Add button to play entire album
+          let playAllHtml = '';
+          if (tracks.length > 0 && tracks[0].uri) {
+            playAllHtml = `
+              <button
+                onclick="playTrackFromSearch('${escapeHtml(tracks[0].uri)}')"
+                class="w-full mt-4 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-semibold transition-colors"
+              >
+                Play Album
+              </button>
+            `;
+          }
+
+          modalContent.innerHTML = `
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-lg font-semibold text-white mb-3">Tracks</h3>
+                <p class="text-gray-400 text-sm mb-4">${tracks.length} tracks</p>
+                ${tracksHtml}
+              </div>
+              ${playAllHtml}
+            </div>
+          `;
+        })
+        .catch(error => {
+          console.error('Error loading album tracks:', error);
+          modalContent.innerHTML = `
+            <div class="text-center py-8">
+              <p class="text-red-400">Failed to load tracks for this album.</p>
+              <p class="text-gray-400 text-sm mt-2">${escapeHtml(error.message)}</p>
+            </div>
+          `;
+        });
     }
   }
 
@@ -1465,20 +1638,10 @@
         return '';
       }
 
-      // Handle nested artist structure from search API
-      const artistName = String(
-        (song.artist && song.artist.name) ||
-        (song.album && song.album.artist && song.album.artist.name) ||
-        'Unknown Artist'
-      ).trim();
-
-      const albumTitle = String(
-        (song.album && song.album.title) || 'Unknown Album'
-      ).trim();
-
-      const albumCover = String(
-        (song.album && song.album.cover_url) || ''
-      ).trim();
+      // Handle artist and album from search API (flat structure)
+      const artistName = String(song.artist || 'Unknown Artist').trim();
+      const albumTitle = String(song.album || 'Unknown Album').trim();
+      const albumCover = String(song.cover_url || '').trim();
 
       const safeUri = escapeHtml(trackUri);
       const safeTitle = escapeHtml(title);
@@ -1536,6 +1699,7 @@
 
       const name = String(artist.name || 'Unknown Artist').trim();
       const imageUrl = String(artist.image_url || '').trim();
+      const artistId = String(artist.id || '').trim();
 
       if (!name) {
         return '';
@@ -1545,7 +1709,7 @@
       const safeImage = escapeHtml(imageUrl);
 
       return `
-        <div class="search-result-item artist-result" onclick="openArtistModal('${escapeSingleQuotes(safeName)}', '${escapeSingleQuotes(safeImage)}')">
+        <div class="search-result-item artist-result" onclick="openArtistModal('${escapeSingleQuotes(safeName)}', '${escapeSingleQuotes(safeImage)}', '${escapeSingleQuotes(artistId)}')">
           <div class="flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors">
             ${imageUrl ? `
               <img
@@ -1582,6 +1746,7 @@
         'Unknown Artist'
       ).trim();
       const coverUrl = String(album.cover_url || album.image_url || '').trim();
+      const albumId = String(album.id || '').trim();
 
       let releaseYear = '';
       if (album.release_date) {
@@ -1601,7 +1766,7 @@
       const safeCover = escapeHtml(coverUrl);
 
       return `
-        <div class="search-result-item album-result">
+        <div class="search-result-item album-result" onclick="openAlbumModal('${escapeSingleQuotes(safeTitle)}', '${escapeSingleQuotes(safeCover)}', '${escapeSingleQuotes(albumId)}')">
           <div class="flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors">
             ${coverUrl ? `
               <img
