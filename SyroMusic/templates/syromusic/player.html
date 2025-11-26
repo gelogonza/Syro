@@ -759,6 +759,25 @@
   </div>
 </div>
 
+<!-- Artist Detail Modal -->
+<div id="artistModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 1000; align-items: center; justify-content: center; padding: 2rem;">
+  <div style="background: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(26, 26, 26, 0.95) 100%); border: 1px solid rgba(255, 107, 157, 0.3); border-radius: 16px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 2rem; position: relative;">
+    <!-- Close Button -->
+    <button onclick="closeArtistModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: #ff6b9d; font-size: 1.5rem; cursor: pointer; z-index: 1001;">
+      ✕
+    </button>
+
+    <!-- Artist Image -->
+    <img id="artistModalImage" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin: 0 auto 1.5rem; display: block; border: 2px solid rgba(255, 107, 157, 0.5);" alt="Artist">
+
+    <!-- Artist Name -->
+    <h2 id="artistModalTitle" style="font-size: 1.75rem; font-weight: 900; color: white; margin-bottom: 2rem; text-align: center; background: linear-gradient(135deg, #ff6b9d, #45b7d1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></h2>
+
+    <!-- Modal Content -->
+    <div id="artistModalContent" style="color: white; line-height: 1.6;"></div>
+  </div>
+</div>
+
 <script>
   // ==================== Utility Functions ====================
 
@@ -794,6 +813,63 @@
     };
     return text.replace(/[&<>"']/g, m => map[m]);
   }
+
+  function escapeSingleQuotes(text) {
+    return text.replace(/'/g, "\\'");
+  }
+
+  // Artist Modal Functions
+  function openArtistModal(artistName, artistImage) {
+    const modal = document.getElementById('artistModal');
+    if (!modal) return;
+
+    const modalTitle = document.getElementById('artistModalTitle');
+    const modalImage = document.getElementById('artistModalImage');
+    const modalContent = document.getElementById('artistModalContent');
+
+    modalTitle.textContent = artistName;
+    if (artistImage && artistImage.trim()) {
+      modalImage.src = artistImage;
+      modalImage.style.display = 'block';
+    } else {
+      modalImage.style.display = 'none';
+    }
+
+    // Placeholder content - in a real implementation, would fetch from backend
+    modalContent.innerHTML = `
+      <div class="space-y-6">
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-3">About</h3>
+          <p class="text-gray-300">Discover music from ${escapeHtml(artistName)}.</p>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-3">Top Songs</h3>
+          <p class="text-gray-400 text-sm">Search for this artist in the search bar to view their top songs.</p>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-3">Albums</h3>
+          <p class="text-gray-400 text-sm">Browse their albums using the main navigation or search.</p>
+        </div>
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+  }
+
+  function closeArtistModal() {
+    const modal = document.getElementById('artistModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  // Close modal when clicking outside of it
+  window.addEventListener('click', function(event) {
+    const modal = document.getElementById('artistModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
 
   // ==================== Color Extraction ====================
 
@@ -1469,7 +1545,7 @@
       const safeImage = escapeHtml(imageUrl);
 
       return `
-        <div class="search-result-item artist-result">
+        <div class="search-result-item artist-result" onclick="openArtistModal('${escapeSingleQuotes(safeName)}', '${escapeSingleQuotes(safeImage)}')">
           <div class="flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors">
             ${imageUrl ? `
               <img
