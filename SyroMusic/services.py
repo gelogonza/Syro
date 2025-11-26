@@ -162,6 +162,48 @@ class SpotifyService:
             logger.error(f"Error fetching audio features: {str(e)}")
             return []
 
+    def get_available_genres(self):
+        """Get list of all available genres from Spotify."""
+        try:
+            if not self.sp:
+                return []
+            genres = self.sp.recommendation_genre_seeds()
+            return genres.get('genres', [])
+        except Exception as e:
+            logger.error(f"Error fetching genres: {str(e)}")
+            return []
+
+    def get_recommendations_by_genre_and_features(self, genre, energy=None, valence=None, limit=20):
+        """
+        Get track recommendations based on genre and optional audio features.
+
+        Args:
+            genre: Genre seed string
+            energy: Target energy (0-1), or None to skip
+            valence: Target valence/mood (0-1), or None to skip
+            limit: Number of recommendations (max 100)
+        """
+        try:
+            if not self.sp or not genre:
+                return []
+
+            kwargs = {
+                'seed_genres': [genre],
+                'limit': min(limit, 100)
+            }
+
+            # Add audio feature targets if provided
+            if energy is not None:
+                kwargs['target_energy'] = max(0, min(1, energy))
+            if valence is not None:
+                kwargs['target_valence'] = max(0, min(1, valence))
+
+            recommendations = self.sp.recommendations(**kwargs)
+            return recommendations.get('tracks', [])
+        except Exception as e:
+            logger.error(f"Error fetching recommendations: {str(e)}")
+            return []
+
     def get_current_playlists(self, limit=50):
         """Get user's playlists."""
         try:

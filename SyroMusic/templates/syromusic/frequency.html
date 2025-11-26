@@ -1,0 +1,485 @@
+{% extends 'base.html' %}
+
+{% block title %}The Frequency - Discover Music {% endblock title %}
+
+{% block content %}
+<div class="mb-8">
+  <h1 class="text-4xl font-bold mb-2 gradient-text">The Frequency</h1>
+  <p class="text-muted-foreground text-lg">I want to listen to <span id="selectedGenreDisplay" class="text-primary font-semibold">[Genre]</span> that sounds like <span id="selectedColorDisplay" class="text-primary font-semibold">[Color]</span></p>
+</div>
+
+<div class="grid lg:grid-cols-2 gap-8">
+  <!-- Left: 3D Orb Visualization -->
+  <div class="glass rounded-2xl p-8 border border-primary/20 h-96 flex items-center justify-center">
+    <canvas id="orbCanvas" width="400" height="400" class="w-full h-full max-w-sm"></canvas>
+  </div>
+
+  <!-- Right: Controls and Selection -->
+  <div class="space-y-6">
+    <!-- Genre Selector -->
+    <div class="glass rounded-2xl p-6 border border-primary/20">
+      <label class="text-lg font-semibold mb-4 block">Choose Genre</label>
+      <div class="space-y-2 max-h-64 overflow-y-auto">
+        <input type="text" id="genreSearch" placeholder="Search genres..."
+               class="w-full px-4 py-2 bg-background/50 border border-border rounded-lg text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary mb-4">
+        <div id="genreList" class="grid grid-cols-2 gap-2">
+          <!-- Genre buttons will be populated here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Color Mood Selector -->
+    <div class="glass rounded-2xl p-6 border border-primary/20">
+      <label class="text-lg font-semibold mb-4 block">Choose Mood Color</label>
+      <div id="colorGrid" class="grid grid-cols-4 gap-3">
+        <!-- Color swatches will be populated here -->
+      </div>
+      <div class="mt-4 p-4 rounded-lg bg-background/50 border border-border text-center">
+        <p class="text-sm text-muted-foreground mb-2">Selected Color</p>
+        <div id="selectedColorPreview" class="w-full h-12 rounded-lg bg-gradient-to-r from-primary to-accent shadow-lg"></div>
+      </div>
+    </div>
+
+    <!-- Randomize Button -->
+    <button onclick="randomizeDiscovery()"
+            class="w-full px-8 py-4 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-semibold text-lg hover-glow transition-all">
+      <span class="iconify h-6 w-6 mr-2 inline" data-icon="mdi:dice-multiple"></span>
+      Find My Vibe
+    </button>
+  </div>
+</div>
+
+<!-- Discovery Result -->
+<div id="resultSection" class="hidden mt-12">
+  <div class="glass rounded-2xl p-8 border border-primary/20">
+    <h2 class="text-2xl font-bold mb-6">Your Discovery</h2>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <!-- Track Card -->
+      <div class="flex flex-col">
+        <div class="aspect-square rounded-xl overflow-hidden mb-4 shadow-2xl">
+          <img id="resultTrackImage" src="" alt="Album Art" class="w-full h-full object-cover">
+        </div>
+        <h3 class="text-2xl font-bold mb-2" id="resultTrackName">Track Name</h3>
+        <p class="text-muted-foreground mb-4" id="resultTrackArtist">Artist Name</p>
+
+        <div class="flex gap-3 mb-6">
+          <button onclick="playDiscoveredTrack()"
+                  class="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-semibold hover-glow transition-all">
+            <span class="iconify h-5 w-5 mr-2 inline" data-icon="mdi:play"></span>
+            Play Now
+          </button>
+          <button onclick="saveToQueue()"
+                  class="flex-1 px-6 py-3 rounded-lg border-2 border-primary text-primary font-semibold hover:bg-primary/10 transition-all">
+            <span class="iconify h-5 w-5 mr-2 inline" data-icon="mdi:playlist-plus"></span>
+            Add Queue
+          </button>
+        </div>
+
+        <!-- Preview Player -->
+        <audio id="previewPlayer" controls class="w-full rounded-lg">
+          Your browser does not support the audio element.
+        </audio>
+      </div>
+
+      <!-- Track Details -->
+      <div class="space-y-6">
+        <!-- Vibe Description -->
+        <div class="bg-background/30 rounded-lg p-6">
+          <p class="text-muted-foreground italic mb-4" id="vibeDescription">
+            A pop track that sounds like something fresh
+          </p>
+        </div>
+
+        <!-- Audio Features -->
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Track Vibe Profile</h4>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between mb-2">
+                <span class="text-muted-foreground">Energy</span>
+                <span class="text-white font-semibold" id="resultEnergy">0.0</span>
+              </div>
+              <div class="w-full h-2 bg-border rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" id="energyBar" style="width: 0%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-2">
+                <span class="text-muted-foreground">Danceability</span>
+                <span class="text-white font-semibold" id="resultDance">0.0</span>
+              </div>
+              <div class="w-full h-2 bg-border rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" id="danceBar" style="width: 0%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-2">
+                <span class="text-muted-foreground">Mood (Valence)</span>
+                <span class="text-white font-semibold" id="resultMood">0.0</span>
+              </div>
+              <div class="w-full h-2 bg-border rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" id="moodBar" style="width: 0%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-2">
+                <span class="text-muted-foreground">Acousticness</span>
+                <span class="text-white font-semibold" id="resultAcoustic">0.0</span>
+              </div>
+              <div class="w-full h-2 bg-border rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" id="acousticBar" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Track Info -->
+        <div class="bg-background/30 rounded-lg p-4 space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Album</span>
+            <span class="text-white font-semibold" id="resultAlbum">—</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Genre</span>
+            <span class="text-white font-semibold capitalize" id="resultGenre">—</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Mood</span>
+            <span class="text-white font-semibold" id="resultColor">—</span>
+          </div>
+        </div>
+
+        <!-- Spotify Link -->
+        <a id="spotifyLink" href="#" target="_blank" class="block w-full px-6 py-3 rounded-lg border-2 border-primary text-primary font-semibold text-center hover:bg-primary/10 transition-all">
+          <span class="iconify h-5 w-5 mr-2 inline" data-icon="mdi:spotify"></span>
+          Listen on Spotify
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- More Discoveries -->
+  <div class="mt-8 text-center">
+    <button onclick="randomizeDiscovery()"
+            class="px-8 py-3 rounded-lg bg-secondary border-2 border-primary text-primary font-semibold hover:bg-primary/10 transition-all">
+      <span class="iconify h-5 w-5 mr-2 inline" data-icon="mdi:refresh"></span>
+      Find Another
+    </button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  // Global state
+  let selectedGenre = null;
+  let selectedColor = '#ff6b9d';
+  let scene, camera, renderer, orb;
+  let discoveredTrack = null;
+  let colorPalette = [
+    '#ff6b9d', '#ff8e72', '#ffa94d', '#ffd93d',
+    '#6bcf7f', '#4ecdc4', '#45b7d1', '#5a67d8',
+    '#a78bfa', '#f687b3', '#fb7185', '#fd6b61'
+  ];
+
+  // Initialize 3D Orb
+  function initializeOrb() {
+    const canvas = document.getElementById('orbCanvas');
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a2e);
+
+    camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    camera.position.z = 3;
+
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    // Create Orb (Icosahedron geometry)
+    const geometry = new THREE.IcosahedronGeometry(1, 4);
+    const material = new THREE.MeshPhongMaterial({
+      color: 0xff6b9d,
+      emissive: 0xff6b9d,
+      wireframe: false,
+      shininess: 100
+    });
+    orb = new THREE.Mesh(geometry, material);
+    scene.add(orb);
+
+    // Lighting
+    const light1 = new THREE.PointLight(0xffffff, 1);
+    light1.position.set(5, 5, 5);
+    scene.add(light1);
+
+    const light2 = new THREE.PointLight(0xff6b9d, 0.5);
+    light2.position.set(-5, -5, 5);
+    scene.add(light2);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    scene.add(ambientLight);
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      orb.rotation.x += 0.002;
+      orb.rotation.y += 0.003;
+      renderer.render(scene, camera);
+    }
+    animate();
+  }
+
+  // Update Orb Color
+  function updateOrbColor(hexColor) {
+    if (orb && orb.material) {
+      const color = new THREE.Color(hexColor);
+      orb.material.color.copy(color);
+      orb.material.emissive.copy(color);
+    }
+  }
+
+  // Initialize Genres
+  async function initializeGenres() {
+    try {
+      const response = await fetch('/music/api/genre-seeds/');
+      if (response.ok) {
+        const data = await response.json();
+        const genres = data.data || [];
+        displayGenres(genres);
+      }
+    } catch (error) {
+      console.error('Error loading genres:', error);
+    }
+  }
+
+  function displayGenres(genres) {
+    const genreList = document.getElementById('genreList');
+    genreList.innerHTML = genres.map(genre => `
+      <button onclick="selectGenre('${genre}')"
+              class="px-4 py-2 rounded-lg bg-background/50 border border-border text-muted-foreground hover:border-primary hover:text-primary transition-all text-sm">
+        ${genre}
+      </button>
+    `).join('');
+
+    // Genre search
+    document.getElementById('genreSearch').addEventListener('input', function(e) {
+      const query = e.target.value.toLowerCase();
+      const buttons = genreList.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.style.display = btn.textContent.toLowerCase().includes(query) ? '' : 'none';
+      });
+    });
+  }
+
+  function selectGenre(genre) {
+    selectedGenre = genre;
+    document.getElementById('selectedGenreDisplay').textContent = genre;
+
+    // Update button states
+    document.querySelectorAll('#genreList button').forEach(btn => {
+      btn.classList.toggle('bg-primary', btn.textContent === genre);
+      btn.classList.toggle('text-black', btn.textContent === genre);
+      btn.classList.toggle('border-primary', btn.textContent === genre);
+    });
+  }
+
+  // Initialize Color Palette
+  function initializeColorPalette() {
+    const colorGrid = document.getElementById('colorGrid');
+    colorGrid.innerHTML = colorPalette.map(color => `
+      <button onclick="selectColor('${color}')"
+              class="w-full h-16 rounded-lg border-2 border-transparent hover:border-white transition-all shadow-lg"
+              style="background-color: ${color};"
+              title="${color}"></button>
+    `).join('');
+
+    // Select first color by default
+    updateColorDisplay();
+  }
+
+  function selectColor(color) {
+    selectedColor = color;
+    updateColorDisplay();
+  }
+
+  function updateColorDisplay() {
+    document.getElementById('selectedColorDisplay').textContent = selectedColor;
+    document.getElementById('selectedColorPreview').style.backgroundColor = selectedColor;
+
+    // Update button states
+    document.querySelectorAll('#colorGrid button').forEach(btn => {
+      const matches = btn.style.backgroundColor.toLowerCase() === new THREE.Color(selectedColor).getStyle().toLowerCase();
+      btn.style.borderColor = matches ? '#ffffff' : 'transparent';
+      btn.style.borderWidth = matches ? '2px' : '2px';
+    });
+
+    updateOrbColor(selectedColor);
+  }
+
+  // Randomize Discovery
+  async function randomizeDiscovery() {
+    if (!selectedGenre) {
+      showNotification('Please select a genre first', 'error');
+      return;
+    }
+
+    try {
+      showNotification('Finding your vibe...', 'success');
+
+      const params = new URLSearchParams({
+        genre: selectedGenre,
+        color: selectedColor
+      });
+
+      const response = await fetch(`/music/api/frequency-randomizer/?${params}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Discovery failed');
+      }
+
+      const data = await response.json();
+      displayDiscovery(data.data);
+      showNotification('Found your next favorite! 🎵', 'success');
+
+    } catch (error) {
+      console.error('Discovery error:', error);
+      showNotification(error.message || 'Failed to discover music', 'error');
+    }
+  }
+
+  function displayDiscovery(data) {
+    const track = data.track;
+    discoveredTrack = track;
+
+    document.getElementById('resultTrackImage').src = track.image || '';
+    document.getElementById('resultTrackName').textContent = track.name;
+    document.getElementById('resultTrackArtist').textContent = track.artist;
+    document.getElementById('resultAlbum').textContent = track.album;
+    document.getElementById('resultGenre').textContent = data.genre;
+    document.getElementById('resultColor').textContent = data.color;
+    document.getElementById('vibeDescription').textContent = data.vibe;
+    document.getElementById('spotifyLink').href = track.external_urls || '#';
+
+    // Audio features
+    const features = track.audio_features || {};
+    const energy = features.energy || 0;
+    const dance = features.danceability || 0;
+    const mood = features.valence || 0;
+    const acoustic = features.acousticness || 0;
+
+    document.getElementById('resultEnergy').textContent = energy.toFixed(2);
+    document.getElementById('resultDance').textContent = dance.toFixed(2);
+    document.getElementById('resultMood').textContent = mood.toFixed(2);
+    document.getElementById('resultAcoustic').textContent = acoustic.toFixed(2);
+
+    document.getElementById('energyBar').style.width = `${energy * 100}%`;
+    document.getElementById('danceBar').style.width = `${dance * 100}%`;
+    document.getElementById('moodBar').style.width = `${mood * 100}%`;
+    document.getElementById('acousticBar').style.width = `${acoustic * 100}%`;
+
+    // Preview
+    if (track.preview_url) {
+      document.getElementById('previewPlayer').src = track.preview_url;
+    }
+
+    document.getElementById('resultSection').classList.remove('hidden');
+  }
+
+  async function playDiscoveredTrack() {
+    if (!discoveredTrack) return;
+
+    try {
+      const response = await fetch('/music/api/playback/play/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          uris: [discoveredTrack.uri]
+        })
+      });
+
+      if (response.ok) {
+        showNotification(`Now playing: ${discoveredTrack.name}`, 'success');
+        setTimeout(() => {
+          window.location.href = '/music/player/';
+        }, 1000);
+      } else {
+        showNotification('Failed to play track', 'error');
+      }
+    } catch (error) {
+      console.error('Play error:', error);
+      showNotification('Failed to play track', 'error');
+    }
+  }
+
+  async function saveToQueue() {
+    if (!discoveredTrack) return;
+
+    try {
+      const response = await fetch('/music/api/playback/queue/add/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          track_uri: discoveredTrack.uri
+        })
+      });
+
+      if (response.ok) {
+        showNotification(`Added to queue: ${discoveredTrack.name}`, 'success');
+      } else {
+        showNotification('Failed to add to queue', 'error');
+      }
+    } catch (error) {
+      console.error('Queue error:', error);
+      showNotification('Failed to add to queue', 'error');
+    }
+  }
+
+  function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all transform translate-x-0 ${
+      type === 'success' ? 'bg-gradient-to-r from-primary to-accent text-black' : 'bg-red-500 text-white'
+    }`;
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="iconify h-5 w-5" data-icon="${type === 'success' ? 'mdi:check-circle' : 'mdi:alert-circle'}"></span>
+        <span class="font-medium">${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.style.transform = 'translateX(400px)';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeOrb();
+    initializeGenres();
+    initializeColorPalette();
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  });
+
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    const canvas = document.getElementById('orbCanvas');
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+  });
+</script>
+{% endblock content %}

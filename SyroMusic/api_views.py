@@ -971,3 +971,176 @@ def sonic_aura_api(request):
             {'status': 'error', 'message': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def genre_seeds_api(request):
+    """
+    Get list of available genres for discovery randomizer.
+    """
+    try:
+        from .services import SpotifyService, TokenManager
+        from .models import SpotifyUser
+
+        user = request.user
+        spotify_user = SpotifyUser.objects.get(user=user)
+
+        # Refresh token if needed
+        access_token = TokenManager.refresh_user_token(spotify_user)
+        if not access_token:
+            return Response(
+                {'status': 'error', 'message': 'Could not refresh Spotify token'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Create Spotify service with fresh token
+        sp = SpotifyService(access_token=access_token)
+
+        # Fetch available genres
+        genres = sp.get_available_genres()
+        if not genres:
+            return Response(
+                {'status': 'error', 'message': 'Could not fetch genres'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return Response({
+            'status': 'success',
+            'data': genres,
+            'count': len(genres)
+        })
+
+    except SpotifyUser.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'No Spotify account connected'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error in genre_seeds_api: {str(e)}")
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def frequency_randomizer_api(request):
+    """
+    Discover music by genre and color (mood).
+    Query parameters:
+    - genre: Genre seed string (required)
+    - color: Hex color code for mood (optional)
+    Returns: Random track recommendation with that vibe
+    """
+    try:
+        from .services import SpotifyService, TokenManager
+        from .models import SpotifyUser
+        import random
+
+        user = request.user
+        spotify_user = SpotifyUser.objects.get(user=user)
+
+        # Get query parameters
+        genre = request.query_params.get('genre', '').strip().lower()
+        color = request.query_params.get('color', '').strip()
+
+        if not genre:
+            return Response(
+                {'status': 'error', 'message': 'genre parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Refresh token if needed
+        access_token = TokenManager.refresh_user_token(spotify_user)
+        if not access_token:
+            return Response(
+                {'status': 'error', 'message': 'Could not refresh Spotify token'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Create Spotify service with fresh token
+        sp = SpotifyService(access_token=access_token)
+
+        # Map color to audio features (energy + valence)
+        energy = None
+        valence = None
+
+        if color and len(color) == 7 and color.startswith('#'):
+            try:
+                # Parse hex color to RGB
+                r = int(color[1:3], 16) / 255
+                g = int(color[3:5], 16) / 255
+                b = int(color[5:7], 16) / 255
+
+                # Map to audio features
+                # Red -> Energy
+                # Green -> Valence/happiness
+                # Blue -> Low energy (cool colors)
+                energy = r  # High red = high energy
+                valence = (g + r) / 2  # Green + red = happy/positive
+            except (ValueError, IndexError):
+                pass  # Invalid color, proceed without it
+
+        # Get recommendations
+        recommendations = sp.get_recommendations_by_genre_and_features(
+            genre=genre,
+            energy=energy,
+            valence=valence,
+            limit=20
+        )
+
+        if not recommendations:
+            return Response(
+                {'status': 'error', 'message': 'Could not find recommendations for this genre'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # Pick random track
+        track = random.choice(recommendations)
+
+        # Extract track info
+        track_data = {
+            'id': track.get('id'),
+            'uri': track.get('uri'),
+            'name': track.get('name'),
+            'artist': track['artists'][0]['name'] if track.get('artists') else 'Unknown',
+            'album': track['album']['name'] if track.get('album') else 'Unknown',
+            'image': track['album']['images'][0]['url'] if track.get('album', {}).get('images') else None,
+            'preview_url': track.get('preview_url'),
+            'external_urls': track.get('external_urls', {}).get('spotify', ''),
+        }
+
+        # Fetch audio features for the selected track
+        features = sp.get_audio_features([track.get('id')])
+        if features and features[0]:
+            feature_data = features[0]
+            track_data['audio_features'] = {
+                'energy': feature_data.get('energy', 0),
+                'danceability': feature_data.get('danceability', 0),
+                'valence': feature_data.get('valence', 0),
+                'acousticness': feature_data.get('acousticness', 0),
+            }
+
+        return Response({
+            'status': 'success',
+            'data': {
+                'track': track_data,
+                'genre': genre,
+                'color': color,
+                'vibe': f"A {genre} track that sounds like {color if color else 'something fresh'}"
+            }
+        })
+
+    except SpotifyUser.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'No Spotify account connected'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error in frequency_randomizer_api: {str(e)}")
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

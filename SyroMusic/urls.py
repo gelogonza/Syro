@@ -10,6 +10,7 @@ urlpatterns = [
     path('stats/', views.stats_dashboard, name='stats_dashboard'),
     path('wrapped/', views.wrapped_view, name='wrapped'),
     path('sonic-aura/', views.sonic_aura_page, name='sonic_aura_page'),
+    path('frequency/', views.frequency_page, name='frequency_page'),
     path('sync/', views.sync_spotify_stats, name='sync_spotify_stats'),
 
     # List views
@@ -86,4 +87,8 @@ urlpatterns = [
 
     # Sonic Aura Stats (Phase 3 - Shareable cards)
     path('api/sonic-aura/', api_views.sonic_aura_api, name='sonic_aura'),
+
+    # The Frequency Discovery (Phase 4 - Randomizer)
+    path('api/genre-seeds/', api_views.genre_seeds_api, name='genre_seeds'),
+    path('api/frequency-randomizer/', api_views.frequency_randomizer_api, name='frequency_randomizer'),
 ]

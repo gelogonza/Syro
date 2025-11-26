@@ -409,3 +409,16 @@ def sonic_aura_page(request):
         return redirect('music:spotify_login')
 
     return render(request, 'SyroMusic/sonic_aura.html')
+
+
+@login_required
+def frequency_page(request):
+    """Display The Frequency discovery page for randomized music discovery."""
+    try:
+        # Check if user has Spotify connected
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+    except SpotifyUser.DoesNotExist:
+        messages.error(request, 'Please connect your Spotify account first to use The Frequency.')
+        return redirect('music:spotify_login')
+
+    return render(request, 'SyroMusic/frequency.html')
