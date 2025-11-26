@@ -94,4 +94,7 @@ urlpatterns = [
     # The Frequency Discovery (Phase 4 - Randomizer)
     path('api/genre-seeds/', api_views.genre_seeds_api, name='genre_seeds'),
     path('api/frequency-randomizer/', api_views.frequency_randomizer_api, name='frequency_randomizer'),
+
+    # Artist Discovery
+    path('api/artists/<str:artist_id>/tracks/', api_views.artist_tracks_api, name='artist_tracks'),
 ]

@@ -1212,3 +1212,91 @@ def frequency_randomizer_api(request):
             {'status': 'error', 'message': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def artist_tracks_api(request):
+    """
+    Fetch top tracks for a Spotify artist.
+    Query parameters:
+    - artist_id: Spotify artist ID (required)
+    - limit: Number of tracks to return (default: 20, max: 50)
+    """
+    artist_id = request.GET.get('artist_id')
+    limit = min(int(request.GET.get('limit', 20)), 50)
+
+    if not artist_id:
+        return Response(
+            {'status': 'error', 'message': 'artist_id is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        from .services import SpotifyService
+
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+        service = SpotifyService(spotify_user)
+
+        # Fetch artist info
+        artist_data = service.sp.artist(artist_id)
+
+        # Fetch artist's top tracks
+        tracks_data = service.sp.artist_top_tracks(artist_id, country='US')
+
+        if not tracks_data or 'tracks' not in tracks_data:
+            return Response(
+                {'status': 'error', 'message': 'No tracks found for this artist'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        tracks = []
+        for track in tracks_data['tracks'][:limit]:
+            if not track:
+                continue
+
+            image_url = ''
+            if track.get('album') and track['album'].get('images') and len(track['album']['images']) > 0:
+                image_url = track['album']['images'][0]['url']
+
+            artist_names = ', '.join([a['name'] for a in track.get('artists', [])])
+
+            tracks.append({
+                'id': track.get('id'),
+                'name': track.get('name'),
+                'artist': artist_names,
+                'album': track.get('album', {}).get('name', ''),
+                'cover_url': image_url,
+                'uri': track.get('uri'),
+                'duration_ms': track.get('duration_ms', 0),
+                'preview_url': track.get('preview_url'),
+                'popularity': track.get('popularity', 0)
+            })
+
+        return Response(
+            {
+                'status': 'success',
+                'data': {
+                    'artist': {
+                        'id': artist_data.get('id'),
+                        'name': artist_data.get('name'),
+                        'image': artist_data.get('images', [{}])[0].get('url', '') if artist_data.get('images') else '',
+                        'followers': artist_data.get('followers', {}).get('total', 0)
+                    },
+                    'tracks': tracks,
+                    'count': len(tracks)
+                }
+            }
+        )
+
+    except SpotifyUser.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'No Spotify account connected'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error in artist_tracks_api: {str(e)}")
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
