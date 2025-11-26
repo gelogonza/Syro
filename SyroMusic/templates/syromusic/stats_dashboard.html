@@ -5,8 +5,8 @@
 {% block extra_css %}
 <style>
   .stats-header {
-    background: linear-gradient(135deg, #1DB954, #1ed760);
-    color: white;
+    background: linear-gradient(135deg, #00FFFF, #0088FF);
+    color: #000000;
     padding: 2.5rem 2rem;
     border-radius: 12px;
     margin-bottom: 2rem;
@@ -24,18 +24,18 @@
   .stats-header h1 {
     margin: 0 0 0.5rem 0;
     font-size: 2rem;
-    color: white;
+    color: #000000;
   }
 
   .stats-header p {
     margin: 0;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(0, 0, 0, 0.85);
     font-size: 1rem;
   }
 
   .sync-button {
-    background-color: #1a1a1a;
-    color: #1DB954;
+    background-color: #000000;
+    color: #00FFFF;
     padding: 0.75rem 1.75rem;
     border: none;
     border-radius: 25px;
@@ -47,7 +47,8 @@
 
   .sync-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.4);
+    background-color: rgba(0, 0, 0, 0.8);
   }
 
   .sync-button:active {
@@ -64,7 +65,7 @@
 
   .time-range-btn {
     padding: 0.65rem 1.25rem;
-    border: 2px solid #ddd;
+    border: 2px solid #404040;
     background-color: #1a1a1a;
     border-radius: 25px;
     cursor: pointer;
@@ -72,18 +73,19 @@
     font-weight: 500;
     transition: all 0.3s ease;
     text-decoration: none;
-    color: #666;
+    color: #a0a0a0;
   }
 
   .time-range-btn:hover {
-    border-color: #1DB954;
-    color: #1DB954;
+    border-color: #00FFFF;
+    color: #00FFFF;
   }
 
   .time-range-btn.active {
-    background-color: #1DB954;
-    border-color: #1DB954;
-    color: white;
+    background: linear-gradient(135deg, #00FFFF, #0088FF);
+    border-color: #00FFFF;
+    color: #000000;
+    font-weight: 600;
   }
 
   /* Section Headers */
@@ -94,19 +96,21 @@
     margin-top: 2.5rem;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 3px solid #1DB954;
+    border-bottom: 3px solid #00FFFF;
   }
 
   .section-header h2 {
     margin: 0;
     font-size: 1.75rem;
+    color: #ffffff;
   }
 
   .period-label {
-    background-color: #e8f5e9;
-    color: #1DB954;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 136, 255, 0.15));
+    color: #00FFFF;
     padding: 0.5rem 1rem;
     border-radius: 20px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
     font-weight: 500;
     font-size: 0.95rem;
   }
@@ -120,10 +124,11 @@
   }
 
   .artist-card {
-    background: #1a1a1a;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.8), rgba(26, 26, 26, 0.6));
+    border: 1px solid rgba(0, 255, 255, 0.2);
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
     text-align: center;
     text-decoration: none;
@@ -132,7 +137,8 @@
 
   .artist-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 24px rgba(0, 255, 255, 0.2);
+    border-color: rgba(0, 255, 255, 0.5);
   }
 
   .artist-image {
@@ -146,7 +152,7 @@
   .artist-placeholder {
     width: 100%;
     aspect-ratio: 1;
-    background: linear-gradient(135deg, #1DB954, #1ed760);
+    background: linear-gradient(135deg, #00FFFF, #0088FF);
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -171,8 +177,8 @@
 
   .artist-popularity {
     display: inline-block;
-    background-color: #1DB954;
-    color: white;
+    background: linear-gradient(135deg, #00FFFF, #0088FF);
+    color: #000000;
     padding: 0.4rem 0.8rem;
     border-radius: 15px;
     font-size: 0.85rem;
@@ -181,24 +187,25 @@
 
   /* Top Tracks List */
   .tracks-container {
-    background: #1a1a1a;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.8), rgba(26, 26, 26, 0.6));
+    border: 1px solid rgba(0, 255, 255, 0.2);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     margin-top: 2rem;
   }
 
   .track-item {
     padding: 1.5rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.1);
     display: flex;
     gap: 1.5rem;
     align-items: center;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
   }
 
   .track-item:hover {
-    background-color: #f9f9f9;
+    background-color: rgba(0, 255, 255, 0.05);
   }
 
   .track-item:last-child {
@@ -210,7 +217,10 @@
     text-align: center;
     font-weight: 600;
     font-size: 1.25rem;
-    color: #1DB954;
+    background: linear-gradient(135deg, #00FFFF, #0088FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .track-thumbnail {
@@ -224,7 +234,7 @@
   .track-placeholder {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #1DB954, #1ed760);
+    background: linear-gradient(135deg, #00FFFF, #0088FF);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -258,8 +268,8 @@
 
   .play-button {
     padding: 0.65rem 1.5rem;
-    background-color: #1DB954;
-    color: white;
+    background: linear-gradient(135deg, #00FFFF, #0088FF);
+    color: #000000;
     border: none;
     border-radius: 25px;
     cursor: pointer;
@@ -270,7 +280,7 @@
   }
 
   .play-button:hover {
-    background-color: #1ed760;
+    box-shadow: 0 4px 16px rgba(0, 255, 255, 0.4);
     transform: scale(1.05);
   }
 
@@ -295,7 +305,7 @@
     top: 2rem;
     width: 3px;
     height: calc(100% - 2rem);
-    background-color: #1DB954;
+    background: linear-gradient(180deg, #00FFFF, #0088FF);
   }
 
   .activity-item:last-child::before {
@@ -305,18 +315,20 @@
   .activity-dot {
     width: 12px;
     height: 12px;
-    background-color: #1DB954;
+    background: linear-gradient(135deg, #00FFFF, #0088FF);
     border-radius: 50%;
     position: absolute;
     left: -4.5px;
     top: 0.5rem;
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.4);
   }
 
   .activity-content {
-    background: #1a1a1a;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.8), rgba(26, 26, 26, 0.6));
+    border: 1px solid rgba(0, 255, 255, 0.2);
     padding: 1.25rem;
     border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     flex: 1;
   }
 
@@ -342,9 +354,10 @@
   .empty-state {
     text-align: center;
     padding: 3rem 1.5rem;
-    background: #1a1a1a;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.8), rgba(26, 26, 26, 0.6));
+    border: 1px solid rgba(0, 255, 255, 0.2);
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     margin-top: 2rem;
   }
 
@@ -354,7 +367,7 @@
   }
 
   .empty-state h3 {
-    color: #666;
+    color: #ffffff;
     margin-bottom: 0.5rem;
   }
 
@@ -372,10 +385,11 @@
   }
 
   .summary-item {
-    background: #1a1a1a;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.8), rgba(26, 26, 26, 0.6));
+    border: 1px solid rgba(0, 255, 255, 0.2);
     padding: 1.25rem;
     border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     text-align: center;
   }
 
@@ -390,7 +404,10 @@
   .summary-value {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #1DB954;
+    background: linear-gradient(135deg, #00FFFF, #0088FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   /* Responsive */
@@ -507,7 +524,7 @@
       <div class="empty-state-icon"></div>
       <h3>No Artists Found</h3>
       <p>Your top artists will appear here once you sync your Spotify data.</p>
-      <a href="{% url 'music:sync_spotify_stats' %}" class="btn" style="background-color: #1DB954;">
+      <a href="{% url 'music:sync_spotify_stats' %}" class="btn-primary">
         Sync Your Data Now
       </a>
     </div>
@@ -545,7 +562,7 @@
       <div class="empty-state-icon"></div>
       <h3>No Tracks Found</h3>
       <p>Your top tracks will appear here once you sync your Spotify data.</p>
-      <a href="{% url 'music:sync_spotify_stats' %}" class="btn" style="background-color: #1DB954;">
+      <a href="{% url 'music:sync_spotify_stats' %}" class="btn-primary">
         Sync Your Data Now
       </a>
     </div>
@@ -577,7 +594,7 @@
       <div class="empty-state-icon"></div>
       <h3>No Recent Activity</h3>
       <p>Your listening history will appear here once you sync your Spotify data.</p>
-      <a href="{% url 'music:sync_spotify_stats' %}" class="btn" style="background-color: #1DB954;">
+      <a href="{% url 'music:sync_spotify_stats' %}" class="btn-primary">
         Sync Your Data Now
       </a>
     </div>
