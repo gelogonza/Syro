@@ -99,9 +99,13 @@
           {% for song in results.songs %}
             <div class="p-4 border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors flex items-center justify-between group">
               <div class="flex items-center gap-3 flex-1 min-w-0">
-                <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
-                  <span class="iconify h-5 w-5 text-primary" data-icon="mdi:music-note"></span>
-                </div>
+                {% if song.album.cover_url %}
+                  <img src="{{ song.album.cover_url }}" alt="{{ song.album.title }}" class="h-12 w-12 rounded-lg object-cover flex-shrink-0">
+                {% else %}
+                  <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+                    <span class="iconify h-6 w-6 text-primary" data-icon="mdi:music-note"></span>
+                  </div>
+                {% endif %}
                 <div class="flex-1 min-w-0">
                   <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ song.title }}</div>
                   <div class="text-sm text-muted-foreground line-clamp-1">

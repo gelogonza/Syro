@@ -344,8 +344,28 @@
     <!-- Color Palette -->
     <div class="color-palette-section">
       <span class="color-palette-label">Filter by Color:</span>
-      <div id="colorPalette" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
-        <!-- Colors will be loaded here -->
+      <div style="display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap;">
+        <label for="colorDropdown" style="font-weight: 600; color: #10b981;">Filter by Color:</label>
+        <select id="colorDropdown" style="
+          padding: 10px 15px;
+          border: 2px solid #1a1a2e;
+          border-radius: 6px;
+          background: #0f1419;
+          color: #ffffff;
+          font-size: 14px;
+          cursor: pointer;
+          transition: border-color 0.3s;
+        " onchange="handleColorDropdownChange()">
+          <option value="">🎨 All Albums</option>
+        </select>
+        <div id="colorPreview" style="
+          display: none;
+          width: 40px;
+          height: 40px;
+          border-radius: 6px;
+          border: 2px solid #10b981;
+          box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        "></div>
       </div>
     </div>
 
@@ -407,41 +427,46 @@
       const data = await response.json();
       const colors = data.data || [];
 
-      const paletteContainer = document.getElementById('colorPalette');
-      paletteContainer.innerHTML = '';
+      // Populate color dropdown with all colors
+      const dropdown = document.getElementById('colorDropdown');
+      dropdown.innerHTML = '<option value="">🎨 All Albums</option>';
 
-      // Add "All Colors" button
-      const allBtn = document.createElement('button');
-      allBtn.className = 'color-swatch active';
-      allBtn.style.background = 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)';
-      allBtn.title = 'All albums';
-      allBtn.onclick = () => selectColor(null, allBtn);
-      paletteContainer.appendChild(allBtn);
+      // Sort colors by count (most popular first)
+      const sortedColors = [...colors].sort((a, b) => b.count - a.count);
 
-      // Add color swatches
-      colors.slice(0, 12).forEach((colorData, index) => {
-        const swatch = document.createElement('button');
-        swatch.className = 'color-swatch';
-        swatch.style.background = colorData.color;
-        swatch.title = `${colorData.count} albums`;
-        swatch.onclick = () => selectColor(colorData.color, swatch);
-        paletteContainer.appendChild(swatch);
+      // Add all colors to dropdown (no limit)
+      sortedColors.forEach((colorData) => {
+        const option = document.createElement('option');
+        option.value = colorData.color;
+        option.style.background = colorData.color;
+        option.textContent = `${colorData.color} (${colorData.count} albums)`;
+        dropdown.appendChild(option);
       });
     } catch (error) {
       console.error('Error loading colors:', error);
     }
   }
 
-  // Select a color and filter albums
-  async function selectColor(color, element) {
-    // Remove active state from all swatches
-    document.querySelectorAll('.color-swatch').forEach(btn => {
-      btn.classList.remove('active');
-    });
+  // Handle color dropdown change
+  async function handleColorDropdownChange() {
+    const dropdown = document.getElementById('colorDropdown');
+    const selectedColor = dropdown.value;
+    const preview = document.getElementById('colorPreview');
 
-    // Add active state to clicked swatch
-    element.classList.add('active');
+    if (selectedColor) {
+      preview.style.background = selectedColor;
+      preview.style.display = 'block';
+    } else {
+      preview.style.display = 'none';
+    }
 
+    currentColor = selectedColor || null;
+    currentPage = 1;
+    await loadAlbums();
+  }
+
+  // Select a color and filter albums (legacy, kept for compatibility)
+  async function selectColor(color) {
     currentColor = color;
     currentPage = 1;
     await loadAlbums();

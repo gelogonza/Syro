@@ -514,6 +514,7 @@
       <button onclick="selectColor('${color}')"
               class="color-swatch w-full h-16 border-2 border-transparent shadow-lg"
               style="background-color: ${color};"
+              data-color="${color}"
               title="${color}"></button>
     `).join('');
 
@@ -532,14 +533,10 @@
 
     // Update button states
     document.querySelectorAll('#colorGrid button').forEach(btn => {
-      const btnColor = new THREE.Color(btn.style.backgroundColor).getHexString();
-      const selectedHex = selectedColor.replace('#', '');
-      const matches = btnColor.toLowerCase() === selectedHex.toLowerCase();
-
-      if (matches) {
+      btn.classList.remove('active');
+      // Check if this button's data-color matches selected color
+      if (btn.dataset.color && btn.dataset.color.toLowerCase() === selectedColor.toLowerCase()) {
         btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
       }
     });
 

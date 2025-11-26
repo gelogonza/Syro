@@ -955,7 +955,7 @@ def sonic_aura_api(request):
                     artists_data = sp.sp.artists(batch)
                     if artists_data and 'artists' in artists_data:
                         for artist in artists_data['artists']:
-                            if artist:
+                            if artist and isinstance(artist, dict):
                                 for genre in artist.get('genres', []):
                                     genre_counts[genre] = genre_counts.get(genre, 0) + 1
             except Exception as genre_error:
