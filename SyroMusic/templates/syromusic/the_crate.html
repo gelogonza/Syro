@@ -1,0 +1,550 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}The Crate - Color Discovery{% endblock title %}
+
+{% block extra_css %}
+<style>
+  /* Hide Spotify SDK and unwanted elements */
+  iframe[src*="spotify"],
+  div[class*="spotify"],
+  body > div[style*="position: fixed"][style*="z-index"],
+  body > iframe {
+    display: none !important;
+  }
+
+  /* Dark Theme */
+  body {
+    background: #0a0a0a !important;
+    color: #ffffff !important;
+  }
+
+  body::before {
+    display: none;
+  }
+
+  /* Dynamic Background */
+  @keyframes breathing {
+    0%, 100% { opacity: 0.85; transform: scale(1.2); }
+    50% { opacity: 0.95; transform: scale(1.25); }
+  }
+
+  .dynamic-bg-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .dynamic-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(ellipse 1200px 800px at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+      radial-gradient(ellipse 1000px 900px at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
+      linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    filter: blur(120px);
+    opacity: 0.85;
+    transform: scale(1.2);
+    animation: breathing 8s ease-in-out infinite;
+  }
+
+  .dynamic-bg-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.4) 100%);
+    z-index: 1;
+  }
+
+  .dynamic-bg-overlay::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' result='noise'/%3E%3C/filter%3E%3Crect width='400' height='400' fill='rgba(0,0,0,0.03)' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    opacity: 0.5;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  .content-wrapper {
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Container and Layout */
+  .crate-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .crate-header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .crate-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+  }
+
+  .crate-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* Color Palette Selector */
+  .color-palette-section {
+    margin-bottom: 50px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .color-palette-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .color-swatch {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .color-swatch:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .color-swatch.active {
+    border-color: #ffffff;
+    box-shadow: 0 0 24px rgba(255, 255, 255, 0.4);
+    transform: scale(1.15);
+  }
+
+  /* Masonry Grid */
+  .album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+
+  @media (max-width: 1200px) {
+    .album-grid {
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .album-grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .album-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+  }
+
+  /* Album Card */
+  .album-card {
+    position: relative;
+    aspect-ratio: 1;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .album-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .album-card:hover .album-cover {
+    transform: scale(1.08);
+    filter: brightness(0.8);
+  }
+
+  .album-card:hover .album-info-overlay {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .album-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Album Info Overlay - Hover Reveal */
+  .album-info-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 50%, rgba(0, 0, 0, 0.95) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 16px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .album-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .album-artist {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 8px;
+  }
+
+  .album-color-badge {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+  }
+
+  .empty-state-text {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+
+  /* Loading State */
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 20px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #10b981;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Pagination Controls */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 40px;
+  }
+
+  .pagination button {
+    padding: 10px 16px;
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    color: #10b981;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .pagination button:hover:not(:disabled) {
+    background: rgba(16, 185, 129, 0.3);
+    border-color: #10b981;
+  }
+
+  .pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pagination-info {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+  }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="dynamic-bg-container">
+  <div class="dynamic-bg"></div>
+  <div class="dynamic-bg-overlay"></div>
+</div>
+
+<div class="content-wrapper">
+  <div class="crate-container">
+    <!-- Header -->
+    <div class="crate-header">
+      <h1 class="crate-title">The Crate</h1>
+      <p class="crate-subtitle">Discover albums by their dominant color. Explore your music library in a whole new way.</p>
+    </div>
+
+    <!-- Color Palette -->
+    <div class="color-palette-section">
+      <span class="color-palette-label">Filter by Color:</span>
+      <div id="colorPalette" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+        <!-- Colors will be loaded here -->
+      </div>
+    </div>
+
+    <!-- Album Grid -->
+    <div id="albumGrid" class="album-grid">
+      <!-- Albums will be loaded here -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+      <div class="empty-state-icon">🎵</div>
+      <div class="empty-state-text">No albums found</div>
+      <p>Try selecting a different color to discover more music</p>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p>Loading albums...</p>
+    </div>
+
+    <!-- Pagination -->
+    <div id="paginationControls" class="pagination" style="display: none;">
+      <button id="prevBtn" onclick="previousPage()">← Previous</button>
+      <span id="pageInfo" class="pagination-info">Page 1</span>
+      <button id="nextBtn" onclick="nextPage()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentColor = null;
+  let currentPage = 1;
+  let totalPages = 1;
+  const albumsPerPage = 20;
+
+  // Initialize the page
+  document.addEventListener('DOMContentLoaded', async function() {
+    await loadColorPalette();
+    // Load all albums initially
+    await loadAlbums();
+  });
+
+  // Load color palette from API
+  async function loadColorPalette() {
+    try {
+      const response = await fetch('/music/api/color-palette/', {
+        credentials: 'same-origin',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to load colors');
+
+      const data = await response.json();
+      const colors = data.data || [];
+
+      const paletteContainer = document.getElementById('colorPalette');
+      paletteContainer.innerHTML = '';
+
+      // Add "All Colors" button
+      const allBtn = document.createElement('button');
+      allBtn.className = 'color-swatch active';
+      allBtn.style.background = 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)';
+      allBtn.title = 'All albums';
+      allBtn.onclick = () => selectColor(null, allBtn);
+      paletteContainer.appendChild(allBtn);
+
+      // Add color swatches
+      colors.slice(0, 12).forEach((colorData, index) => {
+        const swatch = document.createElement('button');
+        swatch.className = 'color-swatch';
+        swatch.style.background = colorData.color;
+        swatch.title = `${colorData.count} albums`;
+        swatch.onclick = () => selectColor(colorData.color, swatch);
+        paletteContainer.appendChild(swatch);
+      });
+    } catch (error) {
+      console.error('Error loading colors:', error);
+    }
+  }
+
+  // Select a color and filter albums
+  async function selectColor(color, element) {
+    // Remove active state from all swatches
+    document.querySelectorAll('.color-swatch').forEach(btn => {
+      btn.classList.remove('active');
+    });
+
+    // Add active state to clicked swatch
+    element.classList.add('active');
+
+    currentColor = color;
+    currentPage = 1;
+    await loadAlbums();
+  }
+
+  // Load albums with optional color filter
+  async function loadAlbums() {
+    const grid = document.getElementById('albumGrid');
+    const emptyState = document.getElementById('emptyState');
+    const loading = document.getElementById('loadingState');
+    const pagination = document.getElementById('paginationControls');
+
+    loading.style.display = 'block';
+    grid.style.display = 'none';
+    emptyState.style.display = 'none';
+    pagination.style.display = 'none';
+
+    try {
+      let url = '/music/api/albums/by-color/?page=' + currentPage;
+      if (currentColor) {
+        url += '&color=' + encodeURIComponent(currentColor);
+      }
+
+      const response = await fetch(url, {
+        credentials: 'same-origin',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to load albums');
+
+      const data = await response.json();
+      const albums = data.data || [];
+      const pagination_data = data.pagination || {};
+
+      loading.style.display = 'none';
+
+      if (albums.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      // Render albums
+      grid.innerHTML = '';
+      albums.forEach(album => {
+        const card = document.createElement('div');
+        card.className = 'album-card';
+        card.innerHTML = `
+          <img src="${album.cover_url}" alt="${album.title}" class="album-cover" />
+          <div class="album-info-overlay">
+            <div class="album-title">${escapeHtml(album.title)}</div>
+            <div class="album-artist">${escapeHtml(album.artist)}</div>
+            <div class="album-color-badge" style="background: ${album.dominant_color};"></div>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          // Could navigate to album detail or play album
+          window.location.href = `/music/albums/${album.artist_id}/`;
+        });
+        grid.appendChild(card);
+      });
+
+      grid.style.display = 'grid';
+
+      // Update pagination
+      totalPages = pagination_data.total_pages || 1;
+      if (totalPages > 1) {
+        document.getElementById('pageInfo').textContent =
+          `Page ${pagination_data.current_page} of ${totalPages}`;
+        document.getElementById('prevBtn').disabled = !pagination_data.has_previous;
+        document.getElementById('nextBtn').disabled = !pagination_data.has_next;
+        pagination.style.display = 'flex';
+      }
+    } catch (error) {
+      console.error('Error loading albums:', error);
+      loading.style.display = 'none';
+      emptyState.style.display = 'block';
+    }
+  }
+
+  function previousPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      loadAlbums();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function nextPage() {
+    if (currentPage < totalPages) {
+      currentPage++;
+      loadAlbums();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+  }
+</script>
+{% endblock content %}

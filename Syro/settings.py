@@ -210,6 +210,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'SyroMusic.tasks.sync_all_user_data',
         'schedule': 6 * 60 * 60,  # Run every 6 hours
     },
+    'extract-album-colors-daily': {
+        'task': 'SyroMusic.tasks.extract_album_colors',
+        'schedule': 24 * 60 * 60,  # Run every 24 hours
+    },
 }
 
 # ============================================================

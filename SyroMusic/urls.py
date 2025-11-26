@@ -9,6 +9,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('stats/', views.stats_dashboard, name='stats_dashboard'),
     path('wrapped/', views.wrapped_view, name='wrapped'),
+    path('the-crate/', views.the_crate_page, name='the_crate_page'),
     path('sonic-aura/', views.sonic_aura_page, name='sonic_aura_page'),
     path('frequency/', views.frequency_page, name='frequency_page'),
     path('sync/', views.sync_spotify_stats, name='sync_spotify_stats'),

@@ -129,21 +129,36 @@ def signup(request):
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
 
+@login_required
 def spotify_login(request):
-    """Initiate Spotify OAuth login flow."""
-    try:
-        if not all([
-            hasattr(__import__('django.conf', fromlist=['settings']).settings, 'SPOTIPY_CLIENT_ID'),
-            hasattr(__import__('django.conf', fromlist=['settings']).settings, 'SPOTIPY_CLIENT_SECRET'),
-        ]):
-            messages.error(request, 'Spotify is not configured. Please contact the administrator.')
-            return redirect('login')
-
-        auth_url = SpotifyService.get_authorization_url()
-        return redirect(auth_url)
-    except Exception as e:
-        messages.error(request, f'Error initiating Spotify login: {str(e)}')
-        return redirect('login')
+    """Redirect user to Spotify authorization page."""
+    # Updated scope to include all necessary permissions for device control
+    scope = (
+        'user-read-private '
+        'user-read-email '
+        'user-library-read '
+        'user-top-read '
+        'user-read-recently-played '
+        'playlist-modify-public '
+        'playlist-modify-private '
+        'user-read-playback-state '
+        'user-modify-playback-state '
+        'user-read-currently-playing '
+        'streaming '
+        'app-remote-control'  # Added for device control
+    )
+    
+    sp_oauth = SpotifyOAuth(
+        client_id=settings.SPOTIPY_CLIENT_ID,
+        client_secret=settings.SPOTIPY_CLIENT_SECRET,
+        redirect_uri=settings.SPOTIPY_REDIRECT_URI,
+        scope=scope,
+        show_dialog=True
+    )
+    
+    auth_url = sp_oauth.get_authorize_url()
+    logger.info(f"Redirecting user {request.user.username} to Spotify auth URL")
+    return redirect(auth_url)
 
 
 def spotify_callback(request):
@@ -409,6 +424,19 @@ def sonic_aura_page(request):
         return redirect('music:spotify_login')
 
     return render(request, 'SyroMusic/sonic_aura.html')
+
+
+@login_required
+def the_crate_page(request):
+    """Display The Crate page for color-based album discovery with masonry grid."""
+    try:
+        # Check if user has Spotify connected
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+    except SpotifyUser.DoesNotExist:
+        messages.error(request, 'Please connect your Spotify account first to use The Crate.')
+        return redirect('music:spotify_login')
+
+    return render(request, 'SyroMusic/the_crate.html')
 
 
 @login_required
