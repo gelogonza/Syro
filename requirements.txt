@@ -19,3 +19,4 @@ kombu==5.3.4
 cryptography==42.0.4
 python-decouple==3.8
 pillow==10.1.0
+lyricsgenius==3.0.1

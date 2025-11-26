@@ -153,6 +153,13 @@ SPOTIPY_CLIENT_SECRET = config('SPOTIPY_CLIENT_SECRET', default=None)
 SPOTIPY_REDIRECT_URI = config('SPOTIPY_REDIRECT_URI', default='http://localhost:8000/music/spotify/callback/')
 
 # ============================================================
+# Genius API Configuration for Lyrics
+# To set up: export GENIUS_API_TOKEN="your_genius_api_token"
+# Get your token from: https://genius.com/api-clients
+# ============================================================
+GENIUS_API_TOKEN = config('GENIUS_API_TOKEN', default=None)
+
+# ============================================================
 # Logging Configuration
 # ============================================================
 LOGGING = {

@@ -561,3 +561,49 @@ class TokenManager:
         except Exception as e:
             logger.error(f"Error refreshing token: {str(e)}")
             return None
+
+
+class LyricsService:
+    """Service to fetch lyrics from various sources."""
+    
+    @staticmethod
+    def fetch_lyrics(track_name, artist_name):
+        """Fetch lyrics from Genius API."""
+        try:
+            import lyricsgenius
+            from django.conf import settings
+            
+            # Get Genius API token from settings
+            genius_token = getattr(settings, 'GENIUS_API_TOKEN', None)
+            
+            if not genius_token:
+                logger.warning("GENIUS_API_TOKEN not configured in settings")
+                return None
+            
+            # Initialize Genius API
+            genius = lyricsgenius.Genius(
+                genius_token,
+                verbose=False,
+                remove_section_headers=True,
+                skip_non_songs=True,
+                excluded_terms=["(Remix)", "(Live)"]
+            )
+            
+            # Search for the song
+            song = genius.search_song(track_name, artist_name)
+            
+            if song and song.lyrics:
+                return {
+                    'lyrics': song.lyrics,
+                    'source': 'genius',
+                    'is_explicit': False  # Genius doesn't provide this info directly
+                }
+            
+            return None
+            
+        except ImportError:
+            logger.error("lyricsgenius library not installed. Install with: pip install lyricsgenius")
+            return None
+        except Exception as e:
+            logger.error(f"Error fetching lyrics from Genius: {str(e)}")
+            return None

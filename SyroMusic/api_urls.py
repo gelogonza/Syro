@@ -7,7 +7,7 @@ from rest_framework.routers import DefaultRouter
 from .api_views import (
     ArtistViewSet, AlbumViewSet, SongViewSet, PlaylistViewSet,
     SpotifyUserViewSet, UserStatsViewSet, ListeningActivityViewSet,
-    sync_spotify_stats_api, get_stats_detailed_api
+    sync_spotify_stats_api, get_stats_detailed_api, track_lyrics_api
 )
 
 # Create a router for ViewSets
@@ -29,4 +29,5 @@ urlpatterns = [
     # Additional API endpoints
     path('sync/spotify/', sync_spotify_stats_api, name='sync-spotify-stats'),
     path('stats/detailed/', get_stats_detailed_api, name='stats-detailed'),
+    path('lyrics/', track_lyrics_api, name='track-lyrics'),
 ]

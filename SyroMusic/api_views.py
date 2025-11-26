@@ -746,10 +746,14 @@ def playback_analytics_api(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def track_lyrics_api(request):
     """Get lyrics for a track."""
     try:
-        spotify_track_id = request.query_params.get('spotify_track_id')
+        spotify_track_id = request.GET.get('spotify_track_id')
+        track_name = request.GET.get('track_name', '')
+        artist_name = request.GET.get('artist_name', '')
 
         if not spotify_track_id:
             return Response(
@@ -757,6 +761,7 @@ def track_lyrics_api(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # Check if lyrics are already cached
         lyrics = TrackLyrics.objects.filter(spotify_track_id=spotify_track_id).first()
 
         if lyrics:
@@ -766,15 +771,45 @@ def track_lyrics_api(request):
                     'lyrics': lyrics.lyrics,
                     'source': lyrics.lyrics_source,
                     'is_explicit': lyrics.is_explicit,
+                    'track_name': lyrics.track_name,
+                    'artist_name': lyrics.artist_name,
                 }
             })
-        else:
-            return Response(
-                {'status': 'not_found', 'message': 'Lyrics not available'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        
+        # If not cached, fetch from Genius
+        if track_name and artist_name:
+            from .services import LyricsService
+            fetched_lyrics = LyricsService.fetch_lyrics(track_name, artist_name)
+            
+            if fetched_lyrics:
+                # Cache the lyrics
+                lyrics = TrackLyrics.objects.create(
+                    spotify_track_id=spotify_track_id,
+                    track_name=track_name,
+                    artist_name=artist_name,
+                    lyrics=fetched_lyrics['lyrics'],
+                    lyrics_source=fetched_lyrics.get('source', 'genius'),
+                    is_explicit=fetched_lyrics.get('is_explicit', False)
+                )
+                
+                return Response({
+                    'status': 'success',
+                    'data': {
+                        'lyrics': lyrics.lyrics,
+                        'source': lyrics.lyrics_source,
+                        'is_explicit': lyrics.is_explicit,
+                        'track_name': lyrics.track_name,
+                        'artist_name': lyrics.artist_name,
+                    }
+                })
+        
+        return Response(
+            {'status': 'not_found', 'message': 'Lyrics not available'},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
     except Exception as e:
+        logger.error(f"Error fetching lyrics: {str(e)}")
         return Response(
             {'status': 'error', 'message': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -1574,6 +1609,320 @@ def album_tracks_api(request):
         )
     except Exception as e:
         logger.error(f"Error in album_tracks_api: {str(e)}")
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_playlists_api(request):
+    """
+    Fetch current user's playlists from Spotify.
+
+    Query parameters:
+    - limit: Number of playlists to fetch (default: 50, max: 50)
+    - offset: Pagination offset (default: 0)
+
+    Returns:
+    {
+        "status": "success",
+        "data": {
+            "playlists": [
+                {
+                    "id": "playlist_id",
+                    "name": "Playlist Name",
+                    "description": "Description",
+                    "image": "https://...",
+                    "track_count": 42,
+                    "owner": "owner_name",
+                    "uri": "spotify:playlist:xxx",
+                    "external_urls": {...}
+                },
+                ...
+            ],
+            "count": 15
+        }
+    }
+    """
+    try:
+        from .services import SpotifyService
+
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+        service = SpotifyService(spotify_user)
+
+        limit = min(int(request.GET.get('limit', 50)), 50)
+        offset = int(request.GET.get('offset', 0))
+
+        # Fetch user's playlists
+        playlists_data = service.get_user_playlists(limit=limit, offset=offset)
+
+        if not playlists_data or 'items' not in playlists_data:
+            return Response(
+                {
+                    'status': 'success',
+                    'data': {
+                        'playlists': [],
+                        'count': 0
+                    }
+                }
+            )
+
+        playlists = []
+        for playlist in playlists_data['items']:
+            if not playlist:
+                continue
+
+            image_url = ''
+            if playlist.get('images') and len(playlist['images']) > 0:
+                image_url = playlist['images'][0]['url']
+
+            playlists.append({
+                'id': playlist.get('id'),
+                'name': playlist.get('name'),
+                'description': playlist.get('description', ''),
+                'image': image_url,
+                'track_count': playlist.get('tracks', {}).get('total', 0),
+                'owner': playlist.get('owner', {}).get('display_name', 'Unknown'),
+                'uri': playlist.get('uri'),
+                'external_urls': playlist.get('external_urls', {})
+            })
+
+        return Response(
+            {
+                'status': 'success',
+                'data': {
+                    'playlists': playlists,
+                    'count': len(playlists),
+                    'total': playlists_data.get('total', 0)
+                }
+            }
+        )
+
+    except SpotifyUser.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'No Spotify account connected'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error in user_playlists_api: {str(e)}")
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def playlist_tracks_api(request, playlist_id):
+    """
+    Fetch tracks from a specific Spotify playlist.
+
+    URL path parameters:
+    - playlist_id: Spotify playlist ID (required)
+
+    Query parameters:
+    - limit: Number of tracks to fetch (default: 100, max: 100)
+    - offset: Pagination offset (default: 0)
+
+    Returns:
+    {
+        "status": "success",
+        "data": {
+            "playlist": {
+                "id": "playlist_id",
+                "name": "Playlist Name",
+                "description": "Description",
+                "image": "https://...",
+                "owner": "owner_name",
+                "track_count": 42,
+                "uri": "spotify:playlist:xxx"
+            },
+            "tracks": [
+                {
+                    "id": "track_id",
+                    "name": "Track Name",
+                    "artist": "Artist Name",
+                    "album": "Album Name",
+                    "cover_url": "https://...",
+                    "uri": "spotify:track:xxx",
+                    "duration_ms": 240000,
+                    "preview_url": "https://..."
+                },
+                ...
+            ],
+            "count": 42
+        }
+    }
+    """
+    if not playlist_id:
+        return Response(
+            {'status': 'error', 'message': 'playlist_id is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        from .services import SpotifyService
+
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+        service = SpotifyService(spotify_user)
+
+        limit = min(int(request.GET.get('limit', 100)), 100)
+        offset = int(request.GET.get('offset', 0))
+
+        # Fetch playlist info
+        playlist_data = service.sp.playlist(playlist_id)
+
+        if not playlist_data:
+            return Response(
+                {'status': 'error', 'message': 'Playlist not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Fetch playlist tracks
+        tracks_data = service.get_playlist_tracks(playlist_id, limit=limit, offset=offset)
+
+        if not tracks_data or 'items' not in tracks_data:
+            return Response(
+                {
+                    'status': 'success',
+                    'data': {
+                        'playlist': {
+                            'id': playlist_data.get('id'),
+                            'name': playlist_data.get('name'),
+                            'description': playlist_data.get('description', ''),
+                            'image': playlist_data.get('images', [{}])[0].get('url', '') if playlist_data.get('images') else '',
+                            'owner': playlist_data.get('owner', {}).get('display_name', 'Unknown'),
+                            'track_count': playlist_data.get('tracks', {}).get('total', 0),
+                            'uri': playlist_data.get('uri')
+                        },
+                        'tracks': [],
+                        'count': 0
+                    }
+                }
+            )
+
+        tracks = []
+        for item in tracks_data['items']:
+            if not item or 'track' not in item:
+                continue
+
+            track = item['track']
+
+            # Extract artist names
+            artist_names = ', '.join([a['name'] for a in track.get('artists', [])])
+
+            # Get album cover
+            cover_url = ''
+            if track.get('album', {}).get('images') and len(track['album']['images']) > 0:
+                cover_url = track['album']['images'][0]['url']
+
+            tracks.append({
+                'id': track.get('id'),
+                'name': track.get('name'),
+                'artist': artist_names if artist_names else 'Unknown Artist',
+                'album': track.get('album', {}).get('name', 'Unknown Album'),
+                'cover_url': cover_url,
+                'uri': track.get('uri'),
+                'duration_ms': track.get('duration_ms', 0),
+                'preview_url': track.get('preview_url')
+            })
+
+        return Response(
+            {
+                'status': 'success',
+                'data': {
+                    'playlist': {
+                        'id': playlist_data.get('id'),
+                        'name': playlist_data.get('name'),
+                        'description': playlist_data.get('description', ''),
+                        'image': playlist_data.get('images', [{}])[0].get('url', '') if playlist_data.get('images') else '',
+                        'owner': playlist_data.get('owner', {}).get('display_name', 'Unknown'),
+                        'track_count': playlist_data.get('tracks', {}).get('total', 0),
+                        'uri': playlist_data.get('uri')
+                    },
+                    'tracks': tracks,
+                    'count': len(tracks)
+                }
+            }
+        )
+
+    except SpotifyUser.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'No Spotify account connected'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error in playlist_tracks_api: {str(e)}")
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_track_to_playlist_api(request):
+    """
+    Add one or more tracks to a Spotify playlist.
+
+    Request body (JSON):
+    {
+        "playlist_id": "playlist_id",
+        "track_uris": ["spotify:track:xxx", "spotify:track:yyy"]
+    }
+
+    Returns:
+    {
+        "status": "success",
+        "message": "Track(s) added to playlist successfully"
+    }
+    """
+    try:
+        from .services import SpotifyService
+
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+        service = SpotifyService(spotify_user)
+
+        playlist_id = request.data.get('playlist_id')
+        track_uris = request.data.get('track_uris', [])
+
+        if not playlist_id:
+            return Response(
+                {'status': 'error', 'message': 'playlist_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not track_uris or not isinstance(track_uris, list):
+            return Response(
+                {'status': 'error', 'message': 'track_uris must be a non-empty array'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Add tracks to playlist
+        result = service.add_tracks_to_playlist(playlist_id, track_uris)
+
+        if result:
+            return Response(
+                {
+                    'status': 'success',
+                    'message': f'{len(track_uris)} track(s) added to playlist successfully'
+                }
+            )
+        else:
+            return Response(
+                {'status': 'error', 'message': 'Failed to add tracks to playlist'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    except SpotifyUser.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'No Spotify account connected'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error in add_track_to_playlist_api: {str(e)}")
         return Response(
             {'status': 'error', 'message': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR

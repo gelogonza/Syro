@@ -2,27 +2,95 @@
 
 {% block title %}Dashboard - Syro{% endblock title %}
 
+{% block extra_css %}
+<style>
+  @keyframes prismatic-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    25% {
+      background-position: 50% 0%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    75% {
+      background-position: 50% 100%;
+    }
+  }
+
+  .prismatic-text {
+    background: linear-gradient(
+      135deg,
+      #c0c0c0 0%,
+      #e8e8e8 15%,
+      #ffffff 30%,
+      #d4d4ff 45%,
+      #ffd4ff 60%,
+      #ffffff 75%,
+      #e8e8e8 85%,
+      #c0c0c0 100%
+    );
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: prismatic-shift 6s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+  }
+
+  .prismatic-icon-bg {
+    background: linear-gradient(
+      135deg,
+      #c0c0c0 0%,
+      #e8e8e8 15%,
+      #ffffff 30%,
+      #d4d4ff 45%,
+      #ffd4ff 60%,
+      #ffffff 75%,
+      #e8e8e8 85%,
+      #c0c0c0 100%
+    );
+    background-size: 300% 300%;
+    animation: prismatic-shift 6s ease-in-out infinite;
+    box-shadow: 
+      0 4px 12px rgba(255, 255, 255, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .prismatic-icon-bg i {
+    color: #1a1a1a !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  }
+
+  .prismatic-border {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+</style>
+{% endblock extra_css %}
+
 {% block content %}
 {% if spotify_user and spotify_user.is_connected %}
   <!-- Spotify Connected Profile -->
-  <div class="glass rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 to-accent/10 p-8 md:p-12 mb-8 text-center">
+  <div class="glass rounded-2xl border border-white/20 bg-gradient-to-br from-white/5 to-white/10 p-8 md:p-12 mb-8 text-center">
     {% if spotify_user.profile_image_url %}
       <img src="{{ spotify_user.profile_image_url }}" 
            alt="{{ spotify_user.spotify_display_name }}"
-           class="w-32 h-32 md:w-40 md:h-40 rounded-full mx-auto mb-6 border-4 border-primary/50 hover:scale-105 transition-transform">
+           class="w-32 h-32 md:w-40 md:h-40 rounded-full mx-auto mb-6 border-4 prismatic-border hover:scale-105 transition-transform">
     {% else %}
-      <div class="w-32 h-32 md:w-40 md:h-40 rounded-full mx-auto mb-6 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center border-4 border-primary/50">
-        <i data-lucide="user" class="h-16 w-16 text-primary"></i>
+      <div class="w-32 h-32 md:w-40 md:h-40 rounded-full mx-auto mb-6 prismatic-icon-bg flex items-center justify-center border-4 prismatic-border">
+        <i data-lucide="user" class="h-16 w-16"></i>
       </div>
     {% endif %}
     
-    <h1 class="text-4xl font-bold mb-2 gradient-text">{{ spotify_user.spotify_display_name }}</h1>
+    <h1 class="text-4xl font-bold mb-2 prismatic-text">{{ spotify_user.spotify_display_name }}</h1>
     <p class="text-muted-foreground text-lg mb-4">@{{ spotify_user.spotify_username }}</p>
     
     <div class="flex items-center justify-center gap-4 flex-wrap">
       <a href="{{ spotify_user.spotify_profile_url }}" target="_blank" 
-         class="inline-flex items-center text-primary hover:text-accent transition-colors">
-        <i data-lucide="external-link" class="h-4 w-4 mr-2"></i>
+         class="inline-flex items-center prismatic-text hover:opacity-80 transition-opacity">
+        <i data-lucide="external-link" class="h-4 w-4 mr-2" style="color: currentColor; -webkit-text-fill-color: currentColor;"></i>
         View on Spotify
       </a>
       <span class="flex items-center text-muted-foreground">
@@ -35,56 +103,116 @@
   <!-- Statistics Cards -->
   <div class="mb-8">
     <h2 class="text-2xl font-bold mb-6 flex items-center">
-      <i data-lucide="bar-chart-3" class="h-6 w-6 mr-2 text-primary"></i>
+      <span class="prismatic-icon-bg h-8 w-8 rounded-lg flex items-center justify-center mr-2">
+        <i data-lucide="bar-chart-3" class="h-5 w-5"></i>
+      </span>
       Your Music Stats
     </h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
-        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-3">
-          <i data-lucide="list-music" class="h-6 w-6 text-primary"></i>
+        <div class="h-12 w-12 rounded-lg prismatic-icon-bg flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="mic-2" class="h-6 w-6"></i>
         </div>
-        <div class="text-3xl font-bold gradient-text mb-1">{{ listening_stats.total_playlists }}</div>
-        <div class="text-sm text-muted-foreground uppercase tracking-wide">Playlists</div>
-      </div>
-      
-      <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
-        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-3">
-          <i data-lucide="heart" class="h-6 w-6 text-primary"></i>
-        </div>
-        <div class="text-3xl font-bold gradient-text mb-1">{{ listening_stats.total_saved_tracks }}</div>
-        <div class="text-sm text-muted-foreground uppercase tracking-wide">Saved Tracks</div>
-      </div>
-      
-      <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
-        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-3">
-          <i data-lucide="mic-2" class="h-6 w-6 text-primary"></i>
-        </div>
-        <div class="text-3xl font-bold gradient-text mb-1">{{ listening_stats.total_artists_followed }}</div>
-        <div class="text-sm text-muted-foreground uppercase tracking-wide">Following</div>
-      </div>
-      
-      <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
-        <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-3">
-          <i data-lucide="clock" class="h-6 w-6 text-primary"></i>
-        </div>
-        <div class="text-sm font-semibold text-primary mb-1">
-          {% if listening_stats.last_synced %}
-            {{ listening_stats.last_synced|date:"M d, Y" }}
+        <div class="text-2xl font-bold prismatic-text mb-1">
+          {% if top_artist %}
+            {{ top_artist }}
           {% else %}
-            Not yet
+            Not available
           {% endif %}
         </div>
-        <div class="text-sm text-muted-foreground uppercase tracking-wide">Last Synced</div>
+        <div class="text-sm text-muted-foreground uppercase tracking-wide">Top Artist</div>
+      </div>
+      
+      <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
+        <div class="h-12 w-12 rounded-lg prismatic-icon-bg flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="clock" class="h-6 w-6"></i>
+        </div>
+        <div class="text-3xl font-bold prismatic-text mb-1">
+          {% if year_minutes %}
+            {{ year_minutes|floatformat:0 }}
+          {% else %}
+            0
+          {% endif %}
+        </div>
+        <div class="text-sm text-muted-foreground uppercase tracking-wide">Minutes This Year</div>
+        {% if is_estimated %}
+          <div class="text-xs text-yellow-400 mt-1" title="Building accurate history - sync regularly for precise data">⚠️ Estimated</div>
+        {% else %}
+          <div class="text-xs text-green-400 mt-1" title="Based on tracked listening data">✓ Tracked</div>
+        {% endif %}
+      </div>
+      
+      <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
+        <div class="h-12 w-12 rounded-lg prismatic-icon-bg flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="calendar" class="h-6 w-6"></i>
+        </div>
+        <div class="text-3xl font-bold prismatic-text mb-1">
+          {% if alltime_minutes %}
+            {{ alltime_minutes|floatformat:0 }}
+          {% else %}
+            0
+          {% endif %}
+        </div>
+        <div class="text-sm text-muted-foreground uppercase tracking-wide">All-Time Minutes</div>
+        {% if is_estimated %}
+          <div class="text-xs text-yellow-400 mt-1" title="Estimated from top tracks - will become accurate over time">⚠️ Estimated</div>
+        {% else %}
+          <div class="text-xs text-green-400 mt-1" title="Based on your tracked listening history">✓ Accurate</div>
+        {% endif %}
+      </div>
+      
+      <div class="glass rounded-xl p-6 border border-border hover-glow text-center">
+        <div class="h-12 w-12 rounded-lg prismatic-icon-bg flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="music" class="h-6 w-6"></i>
+        </div>
+        <div class="text-2xl font-bold prismatic-text mb-1">
+          {% if top_genre %}
+            {{ top_genre|title }}
+          {% else %}
+            Not available
+          {% endif %}
+        </div>
+        <div class="text-sm text-muted-foreground uppercase tracking-wide">Top Genre</div>
       </div>
     </div>
   </div>
+
+  <!-- Tracking Information -->
+  {% if is_estimated %}
+  <div class="glass rounded-xl p-6 border border-yellow-500/20 bg-yellow-500/5 mb-8">
+    <div class="flex items-start space-x-4">
+      <div class="h-12 w-12 rounded-lg bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+        <i data-lucide="info" class="h-6 w-6 text-yellow-500"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold mb-2">Building Your Listening History</h3>
+        <p class="text-muted-foreground mb-3">
+          Your minutes listened are currently <strong>estimated</strong> based on Spotify's top tracks data. 
+          {% if tracking_since %}
+            We've been tracking since {{ tracking_since|date:"M d, Y" }}.
+          {% endif %}
+        </p>
+        <p class="text-sm text-muted-foreground mb-4">
+          <strong>To get accurate stats:</strong> Click "Sync Stats" regularly. The more you sync, the more accurate your data becomes. 
+          After {{analytics.created_at|timesince}} of tracking, your stats will be 100% accurate!
+        </p>
+        <a href="{% url 'music:sync_spotify_stats' %}" class="btn-primary inline-flex items-center justify-center text-sm">
+          <i data-lucide="refresh-cw" class="h-4 w-4 mr-2"></i>
+          Sync Now to Build History
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Disconnect Option -->
   <div class="glass rounded-xl p-6 border border-border mb-8">
     <div class="flex items-start justify-between">
       <div>
         <h3 class="text-lg font-semibold mb-2 flex items-center">
-          <i data-lucide="link" class="h-5 w-5 mr-2 text-primary"></i>
+          <span class="prismatic-icon-bg h-7 w-7 rounded-lg flex items-center justify-center mr-2">
+            <i data-lucide="link" class="h-4 w-4"></i>
+          </span>
           Account Connection
         </h3>
         <p class="text-muted-foreground">Your Spotify account is connected to Syro.</p>
@@ -115,23 +243,33 @@
         </p>
         <ul class="space-y-2 mb-6">
           <li class="flex items-center text-sm">
-            <i data-lucide="check" class="h-4 w-4 mr-2 text-primary flex-shrink-0"></i>
+            <span class="prismatic-icon-bg h-5 w-5 rounded flex items-center justify-center mr-2 flex-shrink-0">
+              <i data-lucide="check" class="h-3 w-3"></i>
+            </span>
             <span>View your top artists and tracks</span>
           </li>
           <li class="flex items-center text-sm">
-            <i data-lucide="check" class="h-4 w-4 mr-2 text-primary flex-shrink-0"></i>
+            <span class="prismatic-icon-bg h-5 w-5 rounded flex items-center justify-center mr-2 flex-shrink-0">
+              <i data-lucide="check" class="h-3 w-3"></i>
+            </span>
             <span>Create and manage playlists</span>
           </li>
           <li class="flex items-center text-sm">
-            <i data-lucide="check" class="h-4 w-4 mr-2 text-primary flex-shrink-0"></i>
+            <span class="prismatic-icon-bg h-5 w-5 rounded flex items-center justify-center mr-2 flex-shrink-0">
+              <i data-lucide="check" class="h-3 w-3"></i>
+            </span>
             <span>Track your listening statistics</span>
           </li>
           <li class="flex items-center text-sm">
-            <i data-lucide="check" class="h-4 w-4 mr-2 text-primary flex-shrink-0"></i>
+            <span class="prismatic-icon-bg h-5 w-5 rounded flex items-center justify-center mr-2 flex-shrink-0">
+              <i data-lucide="check" class="h-3 w-3"></i>
+            </span>
             <span>Discover personalized recommendations</span>
           </li>
           <li class="flex items-center text-sm">
-            <i data-lucide="check" class="h-4 w-4 mr-2 text-primary flex-shrink-0"></i>
+            <span class="prismatic-icon-bg h-5 w-5 rounded flex items-center justify-center mr-2 flex-shrink-0">
+              <i data-lucide="check" class="h-3 w-3"></i>
+            </span>
             <span>Stream music directly in the app</span>
           </li>
         </ul>
@@ -145,8 +283,8 @@
   </div>
 
   <div class="text-center py-12">
-    <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-6">
-      <i data-lucide="music-4" class="h-10 w-10 text-primary"></i>
+    <div class="inline-flex items-center justify-center h-20 w-20 rounded-full prismatic-icon-bg mb-6">
+      <i data-lucide="music-4" class="h-10 w-10"></i>
     </div>
     <h2 class="text-3xl font-bold mb-3">Welcome to Syro!</h2>
     <p class="text-muted-foreground text-lg max-w-md mx-auto">
@@ -158,45 +296,46 @@
 <!-- Quick Links -->
 <div class="glass rounded-xl p-8 border border-border">
   <h2 class="text-2xl font-bold mb-6 flex items-center">
-    <i data-lucide="zap" class="h-6 w-6 mr-2 text-primary"></i>
+    <span class="prismatic-icon-bg h-8 w-8 rounded-lg flex items-center justify-center mr-2">
+      <i data-lucide="zap" class="h-5 w-5"></i>
+    </span>
     Quick Access
   </h2>
   <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-    <a href="{% url 'music:artist_list' %}" 
+    <a href="{% url 'music:search' %}"
        class="glass rounded-lg p-6 border border-border hover-glow hover:scale-105 transition-all group">
-      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-        <i data-lucide="mic-2" class="h-5 w-5 text-primary"></i>
+      <div class="h-10 w-10 rounded-lg prismatic-icon-bg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <i data-lucide="magnify" class="h-5 w-5"></i>
       </div>
-      <h3 class="font-semibold mb-2 gradient-text">Browse Artists</h3>
-      <p class="text-sm text-muted-foreground">Explore your favorite artists</p>
+      <h3 class="font-semibold mb-2 prismatic-text">Search Music</h3>
+      <p class="text-sm text-muted-foreground">Discover songs, artists and albums</p>
     </a>
-    
-    <a href="{% url 'music:album_list' %}" 
+
+    <a href="{% url 'music:player' %}"
        class="glass rounded-lg p-6 border border-border hover-glow hover:scale-105 transition-all group">
-      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-        <i data-lucide="disc-3" class="h-5 w-5 text-primary"></i>
+      <div class="h-10 w-10 rounded-lg prismatic-icon-bg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <i data-lucide="play-circle" class="h-5 w-5"></i>
       </div>
-      <h3 class="font-semibold mb-2 gradient-text">Browse Albums</h3>
-      <p class="text-sm text-muted-foreground">Check out complete albums</p>
+      <h3 class="font-semibold mb-2 prismatic-text">Music Player</h3>
+      <p class="text-sm text-muted-foreground">Control Spotify playback</p>
     </a>
-    
-    <a href="{% url 'music:song_list' %}" 
+
+    <a href="{% url 'music:sync_spotify_stats' %}"
        class="glass rounded-lg p-6 border border-border hover-glow hover:scale-105 transition-all group">
-      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-        <i data-lucide="music" class="h-5 w-5 text-primary"></i>
+      <div class="h-10 w-10 rounded-lg prismatic-icon-bg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <i data-lucide="refresh-cw" class="h-5 w-5"></i>
       </div>
-      <h3 class="font-semibold mb-2 gradient-text">Browse Songs</h3>
-      <p class="text-sm text-muted-foreground">Find individual songs</p>
+      <h3 class="font-semibold mb-2 prismatic-text">Sync Stats</h3>
+      <p class="text-sm text-muted-foreground">Update your listening data</p>
     </a>
-    
-    <a href="{% url 'music:playlist_list' %}" 
-       class="glass rounded-lg p-6 border border-border hover-glow hover:scale-105 transition-all group">
-      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-        <i data-lucide="list-music" class="h-5 w-5 text-primary"></i>
+
+    <div class="glass rounded-lg p-6 border border-border hover:scale-105 transition-all group">
+      <div class="h-10 w-10 rounded-lg prismatic-icon-bg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <i data-lucide="spotify" class="h-5 w-5"></i>
       </div>
-      <h3 class="font-semibold mb-2 gradient-text">Your Playlists</h3>
-      <p class="text-sm text-muted-foreground">Manage your playlists</p>
-    </a>
+      <h3 class="font-semibold mb-2 prismatic-text">Spotify Integration</h3>
+      <p class="text-sm text-muted-foreground">Full access to your account</p>
+    </div>
   </div>
 </div>
 

@@ -237,18 +237,7 @@
     <h2 class="text-2xl font-bold mb-3">Start Searching</h2>
     <p class="text-muted-foreground mb-8">Use the search bar above to find artists, albums, songs, and playlists</p>
     
-    <div class="flex flex-wrap items-center justify-center gap-3">
-      <a href="{% url 'music:recommendations' %}" 
-         class="inline-flex items-center rounded-lg px-6 py-3 text-sm font-semibold bg-gradient-to-r from-primary to-accent text-black hover-glow">
-        <span class="iconify h-4 w-4 mr-2" data-icon="mdi:star-outline"></span>
-        Recommended For You
-      </a>
-      <a href="{% url 'music:browse_genres' %}" 
-         class="inline-flex items-center rounded-lg px-6 py-3 text-sm font-semibold border border-border hover:bg-secondary">
-        <span class="iconify h-4 w-4 mr-2" data-icon="mdi:grid"></span>
-        Browse by Genre
-      </a>
-    </div>
+    <p class="text-center text-sm text-muted-foreground">Start typing above to discover music on Spotify</p>
   </div>
 {% endif %}
 

@@ -457,6 +457,8 @@ class PlaybackHistoryAnalytics(models.Model):
     most_active_day_of_week = models.IntegerField(default=0)
 
     total_listening_minutes = models.IntegerField(default=0)
+    total_listening_minutes_this_year = models.IntegerField(default=0)
+    estimated_alltime_minutes = models.IntegerField(default=0)
     unique_artists_heard = models.IntegerField(default=0)
     unique_tracks_heard = models.IntegerField(default=0)
 

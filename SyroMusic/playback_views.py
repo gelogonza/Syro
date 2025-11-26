@@ -456,13 +456,13 @@ def add_to_queue(request):
                 'spotify_id': track_uri.split(':')[-1] if ':' in track_uri else track_uri,
                 'added_at': timezone.now().isoformat(),
             }
-            
-            # Merge with provided track info
-            if track_info:
+
+            # Merge with provided track info (only if it's a dict)
+            if track_info and isinstance(track_info, dict):
                 track_obj.update(track_info)
             
             queue.queue_tracks.append(track_obj)
-            queue.save()
+            queue.save(update_fields=['queue_tracks', 'last_updated'])
 
             track_name = track_info.get('title', 'Track')
             return JsonResponse({
@@ -529,7 +529,7 @@ def clear_queue(request):
         queue, _ = PlaybackQueue.objects.get_or_create(user=request.user)
         queue.queue_tracks = []
         queue.current_index = 0
-        queue.save()
+        queue.save(update_fields=['queue_tracks', 'current_index', 'last_updated'])
 
         return JsonResponse({
             'status': 'success',

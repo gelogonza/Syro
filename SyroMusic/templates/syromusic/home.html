@@ -57,28 +57,50 @@
       0 0 0 1px rgba(0, 0, 0, 0.5);
   }
 
-  /* Icon container with glass effect */
+  /* Icon container with silver-prismatic effect */
   .icon-bubble {
     background: linear-gradient(
       135deg,
-      rgba(16, 185, 129, 0.15) 0%,
-      rgba(16, 185, 129, 0.05) 100%
+      #c0c0c0 0%,
+      #e8e8e8 15%,
+      #ffffff 30%,
+      #d4d4ff 45%,
+      #ffd4ff 60%,
+      #ffffff 75%,
+      #e8e8e8 85%,
+      #c0c0c0 100%
     );
+    background-size: 300% 300%;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow:
-      0 4px 16px 0 rgba(16, 185, 129, 0.1),
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+      0 4px 16px 0 rgba(255, 255, 255, 0.15),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    animation: prismatic-shift 6s ease-in-out infinite;
   }
 
   .liquid-glass-card:hover .icon-bubble {
     background: linear-gradient(
       135deg,
-      rgba(16, 185, 129, 0.25) 0%,
-      rgba(16, 185, 129, 0.1) 100%
+      #d0d0d0 0%,
+      #f0f0f0 15%,
+      #ffffff 30%,
+      #e0e0ff 45%,
+      #ffe0ff 60%,
+      #ffffff 75%,
+      #f0f0f0 85%,
+      #d0d0d0 100%
     );
-    border-color: rgba(16, 185, 129, 0.3);
+    background-size: 300% 300%;
+    border-color: rgba(255, 255, 255, 0.5);
     transform: scale(1.1) rotate(-5deg);
+    filter: brightness(1.15);
+  }
+  
+  .icon-bubble .iconify {
+    color: #1a1a1a !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
   }
 
   /* CTA Card with enhanced glass effect */
@@ -120,6 +142,21 @@
     }
     100% {
       background-position: 0% 50%;
+    }
+  }
+
+  @keyframes prismatic-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    25% {
+      background-position: 50% 0%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    75% {
+      background-position: 50% 100%;
     }
   }
 
@@ -323,7 +360,7 @@
       </button>
     </div>
     
-    <h1 class="text-6xl md:text-8xl font-bold mb-12 pb-4 leading-normal fade-in-up" style="background: linear-gradient(135deg, #ffffff 0%, #10b981 25%, #22c55e 50%, #059669 75%, #ffffff 100%); background-size: 200% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradient-shift 3s ease infinite, fadeInUp 1s ease-out; text-shadow: 0 0 30px rgba(16, 185, 129, 0.5);">
+    <h1 class="text-6xl md:text-8xl font-bold mb-12 pb-4 leading-normal fade-in-up" style="background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 15%, #ffffff 30%, #d4d4ff 45%, #ffd4ff 60%, #ffffff 75%, #e8e8e8 85%, #c0c0c0 100%); background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: prismatic-shift 6s ease-in-out infinite, fadeInUp 1s ease-out; filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4));">
       Syro
     </h1>
     
@@ -337,10 +374,10 @@
         <span class="iconify h-5 w-5 mr-2" data-icon="mdi:magnify"></span>
         Explore Music
       </a>
-      <a href="{% url 'music:artist_list' %}"
+      <a href="{% url 'music:spotify_login' %}"
          class="btn-secondary inline-flex items-center justify-center">
-        <span class="iconify h-5 w-5 mr-2" data-icon="mdi:account-group"></span>
-        Browse Artists
+        <span class="iconify h-5 w-5 mr-2" data-icon="mdi:play-circle"></span>
+        Open Player
       </a>
     </div>
   </div>
@@ -355,41 +392,40 @@
     </div>
     
     <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 feature-cards-container">
-      <a href="{% url 'music:song_list' %}" 
+      <a href="{% url 'music:search' %}"
          class="liquid-glass-card p-6 transition-all group feature-card book-flip book-flip-1">
         <div class="icon-bubble h-14 w-14 rounded-2xl flex items-center justify-center mb-4 transition-all">
-          <span class="iconify h-7 w-7 text-primary" data-icon="mdi:music"></span>
+          <span class="iconify h-7 w-7" data-icon="mdi:magnify"></span>
         </div>
-        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Browse Songs</h3>
-        <p class="text-sm text-gray-400">Explore millions of tracks</p>
+        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Search Music</h3>
+        <p class="text-sm text-gray-400">Explore millions of songs from Spotify</p>
       </a>
-      
-      <a href="{% url 'music:album_list' %}" 
+
+      <a href="{% url 'music:player' %}"
          class="liquid-glass-card p-6 transition-all group feature-card book-flip book-flip-2">
         <div class="icon-bubble h-14 w-14 rounded-2xl flex items-center justify-center mb-4 transition-all">
-          <span class="iconify h-7 w-7 text-primary" data-icon="mdi:album"></span>
+          <span class="iconify h-7 w-7" data-icon="mdi:play"></span>
         </div>
-        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Albums</h3>
-        <p class="text-sm text-gray-400">Discover complete albums</p>
+        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Play Music</h3>
+        <p class="text-sm text-gray-400">Full Spotify playback control</p>
       </a>
-      
-      <a href="{% url 'music:artist_list' %}" 
+
+      <a href="{% url 'music:dashboard' %}"
          class="liquid-glass-card p-6 transition-all group feature-card book-flip book-flip-3">
         <div class="icon-bubble h-14 w-14 rounded-2xl flex items-center justify-center mb-4 transition-all">
-          <span class="iconify h-7 w-7 text-primary" data-icon="mdi:microphone"></span>
+          <span class="iconify h-7 w-7" data-icon="mdi:account-circle"></span>
         </div>
-        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Artists</h3>
-        <p class="text-sm text-gray-400">Follow your favorite musicians</p>
+        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Profile</h3>
+        <p class="text-sm text-gray-400">View your Spotify stats and activity</p>
       </a>
-      
-      <a href="{% url 'music:playlist_list' %}" 
-         class="liquid-glass-card p-6 transition-all group feature-card book-flip book-flip-4">
+
+      <div class="liquid-glass-card p-6 transition-all group feature-card book-flip book-flip-4">
         <div class="icon-bubble h-14 w-14 rounded-2xl flex items-center justify-center mb-4 transition-all">
-          <span class="iconify h-7 w-7 text-primary" data-icon="mdi:playlist-music"></span>
+          <span class="iconify h-7 w-7" data-icon="mdi:spotify"></span>
         </div>
-        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Playlists</h3>
-        <p class="text-sm text-gray-400">Create custom playlists</p>
-      </a>
+        <h3 class="text-xl font-bold mb-2 text-white group-hover:text-primary transition-colors">Spotify</h3>
+        <p class="text-sm text-gray-400">Your favorite music streaming service</p>
+      </div>
     </div>
   </div>
 </section>
@@ -399,7 +435,7 @@
   <div class="container mx-auto px-4">
     <div class="spotify-card liquid-glass-cta p-8 md:p-12 text-center transition-all">
       <div class="spotify-icon icon-bubble inline-flex items-center justify-center h-16 w-16 rounded-full mb-6 transition-all">
-        <span class="iconify h-8 w-8 text-primary" data-icon="mdi:spotify"></span>
+        <span class="iconify h-8 w-8" data-icon="mdi:spotify"></span>
       </div>
       <h2 class="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent bg-size-200">Connect with Spotify</h2>
       <p class="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -625,12 +661,17 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const x = i * barWidth;
       
-      // Create gradient for bars (vibrant green theme)
+      // Create rainbow gradient for bars with dynamic hue based on position and time
       const gradient = ctx.createLinearGradient(0, centerY - barHeight, 0, centerY + barHeight);
       const alpha = Math.max(normalizedValue, 0.4);
-      gradient.addColorStop(0, `rgba(16, 185, 129, ${alpha})`);
-      gradient.addColorStop(0.5, `rgba(34, 197, 94, ${Math.min(alpha + 0.2, 1)})`);
-      gradient.addColorStop(1, `rgba(5, 150, 105, ${alpha})`);
+      
+      // Calculate hue based on bar position and add time-based shift for animated rainbow
+      const hue = (i / barCount * 360 + time * 30) % 360;
+      
+      // Create vibrant gradient with HSL colors
+      gradient.addColorStop(0, `hsla(${hue}, 80%, 60%, ${alpha})`);
+      gradient.addColorStop(0.5, `hsla(${hue}, 85%, 65%, ${Math.min(alpha + 0.2, 1)})`);
+      gradient.addColorStop(1, `hsla(${hue}, 75%, 55%, ${alpha})`);
       
       ctx.fillStyle = gradient;
       
@@ -639,10 +680,11 @@ document.addEventListener('DOMContentLoaded', function() {
       drawRoundedRect(x + 1, centerY - barHeight, barWidth - 2, barHeight, radius);
       drawRoundedRect(x + 1, centerY, barWidth - 2, barHeight, radius);
       
-      // Add glow effect based on intensity
+      // Add glow effect based on intensity with rainbow color
       if (normalizedValue > 0.3) {
+        const hue = (i / barCount * 360 + time * 30) % 360;
         ctx.shadowBlur = 15 * normalizedValue;
-        ctx.shadowColor = `rgba(16, 185, 129, ${normalizedValue})`;
+        ctx.shadowColor = `hsla(${hue}, 80%, 60%, ${normalizedValue})`;
       }
     }
     
@@ -684,12 +726,17 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const x = i * barWidth;
       
-      // Create gradient with varying opacity based on movement
+      // Create rainbow gradient with varying opacity based on movement
       const gradient = ctx.createLinearGradient(0, centerY - barHeight, 0, centerY + barHeight);
       const alpha = amplitude * 0.75 + 0.25;
-      gradient.addColorStop(0, `rgba(16, 185, 129, ${alpha * 0.85})`);
-      gradient.addColorStop(0.5, `rgba(34, 197, 94, ${alpha})`);
-      gradient.addColorStop(1, `rgba(5, 150, 105, ${alpha * 0.85})`);
+      
+      // Calculate hue based on bar position and add time-based shift for animated rainbow
+      const hue = (i / barCount * 360 + time * 30) % 360;
+      
+      // Create vibrant gradient with HSL colors
+      gradient.addColorStop(0, `hsla(${hue}, 80%, 60%, ${alpha * 0.85})`);
+      gradient.addColorStop(0.5, `hsla(${hue}, 85%, 65%, ${alpha})`);
+      gradient.addColorStop(1, `hsla(${hue}, 75%, 55%, ${alpha * 0.85})`);
       
       ctx.fillStyle = gradient;
       
@@ -698,10 +745,11 @@ document.addEventListener('DOMContentLoaded', function() {
       drawRoundedRect(x + 1, centerY - barHeight, barWidth - 2, barHeight, radius);
       drawRoundedRect(x + 1, centerY, barWidth - 2, barHeight, radius);
       
-      // Dynamic glow based on amplitude
+      // Dynamic glow based on amplitude with rainbow color
       if (amplitude > 0.4) {
+        const hue = (i / barCount * 360 + time * 30) % 360;
         ctx.shadowBlur = 12 * amplitude;
-        ctx.shadowColor = `rgba(16, 185, 129, ${amplitude * 0.7})`;
+        ctx.shadowColor = `hsla(${hue}, 80%, 60%, ${amplitude * 0.7})`;
       }
     }
     

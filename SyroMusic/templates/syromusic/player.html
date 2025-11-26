@@ -38,19 +38,19 @@
   @keyframes breathing {
     0%, 100% {
       opacity: 0.85;
-      transform: scale(1.2);
+      transform: scale(1.2) rotate(0deg);
     }
     25% {
       opacity: 0.9;
-      transform: scale(1.22);
+      transform: scale(1.22) rotate(0.5deg);
     }
     50% {
       opacity: 0.95;
-      transform: scale(1.25);
+      transform: scale(1.25) rotate(1deg);
     }
     75% {
       opacity: 0.9;
-      transform: scale(1.22);
+      transform: scale(1.22) rotate(0.5deg);
     }
   }
 
@@ -58,12 +58,97 @@
     0% {
       background-position: 0% 50%;
     }
+    25% {
+      background-position: 50% 25%;
+    }
     50% {
       background-position: 100% 50%;
+    }
+    75% {
+      background-position: 50% 75%;
     }
     100% {
       background-position: 0% 50%;
     }
+  }
+  
+  @keyframes color-pulse {
+    0%, 100% {
+      filter: blur(120px) brightness(1) saturate(1.2);
+    }
+    50% {
+      filter: blur(140px) brightness(1.2) saturate(1.5);
+    }
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) translateX(0px);
+    }
+    33% {
+      transform: translateY(-20px) translateX(10px);
+    }
+    66% {
+      transform: translateY(10px) translateX(-10px);
+    }
+  }
+
+  @keyframes prismatic-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    25% {
+      background-position: 50% 0%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    75% {
+      background-position: 50% 100%;
+    }
+  }
+
+  /* Silver Prismatic Button */
+  .btn-prismatic {
+    position: relative;
+    background: linear-gradient(
+      135deg,
+      #c0c0c0 0%,
+      #e8e8e8 15%,
+      #ffffff 30%,
+      #d4d4ff 45%,
+      #ffd4ff 60%,
+      #ffffff 75%,
+      #e8e8e8 85%,
+      #c0c0c0 100%
+    );
+    background-size: 300% 300%;
+    color: #1a1a1a;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 
+      0 4px 12px rgba(255, 255, 255, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    animation: prismatic-shift 6s ease-in-out infinite;
+    transition: all 0.3s ease;
+  }
+
+  .btn-prismatic:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 20px rgba(255, 255, 255, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    filter: brightness(1.1);
+  }
+
+  .btn-prismatic:active {
+    transform: translateY(0px);
+    box-shadow: 
+      0 2px 8px rgba(255, 255, 255, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.3);
   }
 
   /* Dynamic Background Container */
@@ -84,14 +169,36 @@
     background:
       radial-gradient(ellipse 1200px 800px at 20% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
       radial-gradient(ellipse 1000px 900px at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
+      radial-gradient(ellipse 800px 1000px at 50% 50%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
       linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    background-size: 200% 200%;
-    background-position: 0% 50%;
+    background-size: 200% 200%, 200% 200%, 300% 300%, 100% 100%;
+    background-position: 0% 50%, 100% 50%, 50% 50%, center;
     transition: background 4s cubic-bezier(0.4, 0.0, 0.2, 1);
     filter: blur(120px);
     opacity: 0.85;
     transform: scale(1.2);
-    animation: breathing 8s ease-in-out infinite;
+    animation: breathing 8s ease-in-out infinite, gradient-shift 15s ease-in-out infinite, color-pulse 10s ease-in-out infinite;
+  }
+  
+  /* Additional animated gradient layers */
+  .dynamic-bg::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle 800px at 30% 60%, rgba(139, 92, 246, 0.12) 0%, transparent 60%);
+    animation: float 20s ease-in-out infinite;
+    opacity: 0.6;
+  }
+  
+  .dynamic-bg::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle 600px at 70% 40%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+    animation: float 18s ease-in-out infinite reverse;
+    opacity: 0.5;
   }
 
   .dynamic-bg-overlay {
@@ -190,22 +297,6 @@
     object-fit: cover;
   }
 
-  /* Center hole */
-  .vinyl-hole {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-    box-shadow:
-      inset 0 2px 8px rgba(0,0,0,0.8),
-      0 0 0 2px #2a2a2a;
-    z-index: 10;
-  }
-
   @keyframes spin {
     from {
       transform: rotate(0deg);
@@ -284,10 +375,10 @@
 
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #10b981 0%, #22c55e 100%);
+    background: linear-gradient(90deg, #ffffff 0%, #f0f0f0 100%);
     border-radius: 4px;
     transition: width 0.1s linear;
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 0 24px rgba(255, 255, 255, 0.3);
   }
 
   .time-display {
@@ -349,11 +440,15 @@
   .control-btn-lg {
     width: 72px;
     height: 72px;
-    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
     border: none;
-    box-shadow: 0 12px 40px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 12px 40px rgba(255, 255, 255, 0.5), 0 0 60px rgba(255, 255, 255, 0.3);
     position: relative;
     z-index: 1;
+  }
+  
+  .control-btn-lg .iconify {
+    color: #1a1a1a !important;
   }
 
   .control-btn-lg::after {
@@ -364,14 +459,14 @@
     right: 0;
     bottom: 0;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
     pointer-events: none;
   }
 
   .control-btn-lg:hover {
-    background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+    background: linear-gradient(135deg, #f0f0f0 0%, #ffffff 100%);
     transform: scale(1.12) translateY(-4px);
-    box-shadow: 0 16px 48px rgba(16, 185, 129, 0.7);
+    box-shadow: 0 16px 48px rgba(255, 255, 255, 0.7), 0 0 80px rgba(255, 255, 255, 0.4);
   }
 
   .control-btn-lg:active {
@@ -555,6 +650,28 @@
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
   }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  }
 </style>
 {% endblock extra_css %}
 
@@ -570,7 +687,15 @@
   <!-- Search Section -->
   <div class="max-w-7xl mx-auto mb-8">
     <div class="player-card p-6">
-      <h2 class="text-xl font-bold mb-4 text-white">Search & Play</h2>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-white">Search & Play</h2>
+        <button onclick="loadUserPlaylists()" class="btn-prismatic px-4 py-2 rounded font-semibold transition flex items-center gap-2">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M2 3a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V3zM2 9a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V9zm0 6a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2zM11 3a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zM11 9a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zm0 6a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6z" />
+          </svg>
+          My Playlists
+        </button>
+      </div>
       <input
         type="text"
         id="playerSearchInput"
@@ -607,7 +732,6 @@
                     </div>
                   {% endif %}
                 </div>
-                <div class="vinyl-hole"></div>
               </div>
             </div>
           </div>
@@ -658,7 +782,7 @@
           </div>
 
           <!-- Volume Control -->
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-4 mb-6">
             <span class="iconify text-xl text-white" data-icon="mdi:volume-high"></span>
             <input
               type="range"
@@ -670,6 +794,19 @@
               onchange="setVolume(this.value)"
             />
             <span class="text-sm font-semibold text-white w-12 text-right" id="volumeValue">100%</span>
+          </div>
+
+          <!-- Lyrics Toggle Button -->
+          <div class="flex justify-center">
+            <button 
+              id="lyricsToggleBtn"
+              onclick="toggleLyrics()" 
+              class="btn-prismatic px-6 py-3 rounded-xl font-bold flex items-center gap-2"
+              title="Show Lyrics"
+            >
+              <span class="iconify" data-icon="mdi:music-note-outline"></span>
+              <span>View Lyrics</span>
+            </button>
           </div>
         </div>
       </div>
@@ -739,13 +876,6 @@
               Dashboard
             </a>
             <a
-              href="{% url 'music:stats_dashboard' %}"
-              class="device-item block text-center"
-            >
-              <span class="iconify mr-2" data-icon="mdi:chart-bar"></span>
-              Stats
-            </a>
-            <a
               href="{% url 'music:search' %}"
               class="device-item block text-center"
             >
@@ -777,6 +907,40 @@
     <div id="artistModalContent" style="color: white; line-height: 1.6;"></div>
   </div>
 </div>
+
+<!-- Lyrics Modal -->
+<div id="lyricsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.90); z-index: 1000; align-items: center; justify-content: center; padding: 2rem;">
+  <div style="background: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(26, 26, 26, 0.95) 100%); border: 1px solid rgba(192, 192, 192, 0.3); border-radius: 16px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 2rem; position: relative; box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);">
+    <!-- Close Button -->
+    <button onclick="closeLyricsModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: rgba(192, 192, 192, 0.8); font-size: 1.5rem; cursor: pointer; z-index: 1001; transition: color 0.2s;">
+      ✕
+    </button>
+
+    <!-- Track Info -->
+    <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(192, 192, 192, 0.2);">
+      <h2 id="lyricsTrackName" style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem;"></h2>
+      <p id="lyricsArtistName" style="font-size: 1rem; color: rgba(255, 255, 255, 0.7);"></p>
+    </div>
+
+    <!-- Lyrics Content -->
+    <div id="lyricsContent" style="color: rgba(255, 255, 255, 0.9); line-height: 2; font-size: 1.1rem; white-space: pre-wrap; text-align: center; font-family: 'Inter', sans-serif;">
+      <div style="text-align: center; padding: 3rem 1rem;">
+        <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid rgba(192, 192, 192, 0.3); border-top-color: rgba(192, 192, 192, 0.8); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.6);">Loading lyrics...</p>
+      </div>
+    </div>
+
+    <!-- Source Attribution -->
+    <div id="lyricsSource" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(192, 192, 192, 0.2); text-align: center; color: rgba(255, 255, 255, 0.5); font-size: 0.85rem;">
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
 
 <script>
   // ==================== Utility Functions ====================
@@ -824,6 +988,81 @@
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  function playPlaylist(playlistUri, playlistName) {
+    /**
+     * Play a Spotify playlist
+     */
+    if (!playlistUri) {
+      showNotification('Invalid playlist URI', 'error');
+      return;
+    }
+
+    const deviceId = getActiveDeviceId();
+
+    // If no active device, fetch devices and show selector
+    if (!deviceId) {
+      console.log('No active device, fetching devices...');
+      fetch('{% url "music:get_devices" %}')
+        .then(response => response.json())
+        .then(data => {
+          if (!data.devices || data.devices.length === 0) {
+            showNotification('No Spotify devices available. Open Spotify on a device.', 'error');
+            return;
+          }
+
+          // Find active device
+          const activeDevice = data.devices.find(d => d.is_active);
+          if (activeDevice) {
+            // Play directly on active device
+            playPlaylistOnDevice(playlistUri, playlistName, activeDevice.id);
+          } else {
+            // Show device selector
+            window.syroPlayer = window.syroPlayer || {};
+            window.syroPlayer.pendingPlaylistUri = playlistUri;
+            window.syroPlayer.pendingPlaylistName = playlistName;
+            showDeviceSelector(data.devices);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching devices:', error);
+          showNotification('Failed to fetch devices', 'error');
+        });
+      return;
+    }
+
+    playPlaylistOnDevice(playlistUri, playlistName, deviceId);
+  }
+
+  function playPlaylistOnDevice(playlistUri, playlistName, deviceId) {
+    fetch('{% url "music:play_track" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        uri: playlistUri,
+        device_id: deviceId
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        showNotification(`Now playing: ${escapeHtml(playlistName)}`, 'success');
+        setTimeout(() => {
+          updatePlaybackState();
+          applyDynamicBackground();
+        }, 500);
+      } else {
+        showNotification(data.message || 'Failed to play playlist', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error playing playlist:', error);
+      showNotification('Failed to play playlist', 'error');
+    });
   }
 
   // Artist Modal Functions
@@ -1052,6 +1291,367 @@
     }
   });
 
+  // ==================== Playlist Functions ====================
+
+  function loadUserPlaylists() {
+    /**
+     * Fetch and display user's playlists from Spotify
+     */
+    fetch('/music/api/playlists/user/', {
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success' && data.data.playlists.length > 0) {
+        displayUserPlaylists(data.data.playlists);
+      } else {
+        showNotification('No playlists found', 'info');
+      }
+    })
+    .catch(error => {
+      console.error('Error loading playlists:', error);
+      showNotification('Failed to load playlists', 'error');
+    });
+  }
+
+  function displayUserPlaylists(playlists) {
+    /**
+     * Display list of user playlists in a modal
+     */
+    const modal = document.getElementById('artistModal');
+    const modalContent = document.getElementById('artistModalContent');
+    const modalImage = document.getElementById('artistModalImage');
+    const modalTitle = document.getElementById('artistModalTitle');
+
+    if (!modal || !modalContent) {
+      console.error('Modal elements not found');
+      return;
+    }
+
+    // Hide the image and title elements for playlists view
+    if (modalImage) modalImage.style.display = 'none';
+    if (modalTitle) modalTitle.style.display = 'none';
+
+    const playlistsHtml = playlists.map((playlist, index) => `
+      <div class="flex items-center justify-between p-4 bg-black/40 backdrop-blur-md rounded-lg hover:bg-black/50 transition cursor-pointer group border border-white/10" onclick="openPlaylistModal('${escapeSingleQuotes(playlist.name)}', '${escapeSingleQuotes(playlist.image)}', '${escapeSingleQuotes(playlist.id)}')">
+        <div class="flex items-center gap-4 flex-1 min-w-0">
+          ${playlist.image ? `
+            <img src="${escapeHtml(playlist.image)}" alt="${escapeHtml(playlist.name)}" class="w-12 h-12 rounded object-cover flex-shrink-0">
+          ` : `
+            <div class="w-12 h-12 bg-white/10 rounded flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6 text-white/40" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 3a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V3zM2 9a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V9zm0 6a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2zM11 3a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zM11 9a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zm0 6a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6z" />
+              </svg>
+            </div>
+          `}
+          <div class="min-w-0 flex-1">
+            <p class="font-semibold text-white truncate">${escapeHtml(playlist.name)}</p>
+            <p class="text-sm text-white/60 truncate">${playlist.track_count} tracks • ${escapeHtml(playlist.owner)}</p>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    modalContent.innerHTML = `
+      <div class="space-y-4 max-h-96 overflow-y-auto">
+        <div class="text-center pb-2">
+          <h3 class="text-3xl font-bold bg-gradient-to-r from-gray-300 via-white to-gray-300 bg-clip-text text-transparent">My Playlists</h3>
+        </div>
+        ${playlistsHtml}
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+    modalContent.scrollTop = 0;
+  }
+
+  function openPlaylistModal(playlistName, playlistCover, playlistId) {
+    /**
+     * Open playlist and display its tracks
+     */
+    const modal = document.getElementById('artistModal');
+    const modalContent = document.getElementById('artistModalContent');
+    const modalImage = document.getElementById('artistModalImage');
+    const modalTitle = document.getElementById('artistModalTitle');
+
+    if (!modal || !modalContent) {
+      console.error('Modal elements not found');
+      return;
+    }
+
+    // Show image and title for playlist detail view
+    if (modalImage) {
+      modalImage.style.display = 'block';
+      if (playlistCover && playlistCover.trim()) {
+        modalImage.src = playlistCover;
+      }
+    }
+    if (modalTitle) {
+      modalTitle.style.display = 'block';
+      modalTitle.textContent = playlistName;
+    }
+
+    // Show loading state
+    modalContent.innerHTML = `
+      <div class="flex items-center justify-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+      </div>
+    `;
+    modal.style.display = 'flex';
+
+    // Fetch playlist tracks
+    fetch(`/music/api/playlists/${playlistId}/tracks/`, {
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        displayPlaylistTracks(data.data);
+      } else {
+        throw new Error(data.message || 'Failed to load playlist');
+      }
+    })
+    .catch(error => {
+      console.error('Error loading playlist tracks:', error);
+      modalContent.innerHTML = `
+        <div class="text-center py-8">
+          <p class="text-red-400">Failed to load playlist tracks.</p>
+          <p class="text-gray-400 text-sm mt-2">${escapeHtml(error.message)}</p>
+          <button onclick="loadUserPlaylists()" class="mt-4 px-4 py-2 bg-cyan-500 text-gray-900 rounded font-semibold hover:bg-cyan-400 transition">
+            Back to Playlists
+          </button>
+        </div>
+      `;
+    });
+  }
+
+  function displayPlaylistTracks(data) {
+    /**
+     * Display tracks from a playlist
+     */
+    const modal = document.getElementById('artistModal');
+    const modalContent = document.getElementById('artistModalContent');
+    const playlist = data.playlist;
+    const tracks = data.tracks;
+
+    if (!tracks || tracks.length === 0) {
+      modalContent.innerHTML = `
+        <div class="text-center py-8">
+          <p class="text-gray-400">This playlist has no tracks.</p>
+          <button onclick="loadUserPlaylists()" class="mt-4 px-4 py-2 bg-cyan-500 text-gray-900 rounded font-semibold hover:bg-cyan-400 transition">
+            Back to Playlists
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    const tracksHtml = tracks.map((track, index) => {
+      const duration = formatDuration(track.duration_ms);
+      return `
+        <div class="flex items-center justify-between p-3 bg-gray-800 rounded hover:bg-gray-700 transition group">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            ${track.cover_url ? `
+              <img src="${escapeHtml(track.cover_url)}" alt="${escapeHtml(track.name)}" class="w-10 h-10 rounded object-cover flex-shrink-0">
+            ` : `
+              <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" />
+                </svg>
+              </div>
+            `}
+            <div class="min-w-0 flex-1">
+              <p class="font-semibold text-white truncate">${escapeHtml(track.name)}</p>
+              <p class="text-sm text-gray-400 truncate">${escapeHtml(track.artist)} • ${escapeHtml(track.album)}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 ml-2">
+            <span class="text-gray-400 text-sm whitespace-nowrap">${duration}</span>
+            <button onclick="playTrack('${escapeSingleQuotes(track.uri)}')" class="opacity-0 group-hover:opacity-100 transition p-2 hover:bg-cyan-500 rounded" title="Play">
+              <svg class="w-5 h-5 text-cyan-400 hover:text-gray-900" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+              </svg>
+            </button>
+            <button onclick="addToQueue('${escapeSingleQuotes(track.uri)}', {title: '${escapeHtml(track.name)}', artist: '${escapeHtml(track.artist)}', album: '${escapeHtml(track.album)}'})" class="opacity-0 group-hover:opacity-100 transition p-2 hover:bg-cyan-500 rounded" title="Add to Queue">
+              <svg class="w-5 h-5 text-cyan-400 hover:text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const backButton = `
+      <button onclick="loadUserPlaylists()" class="mb-4 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back
+      </button>
+    `;
+
+    const playAllButton = tracks && tracks.length > 0 ? `
+      <button onclick="playPlaylist('${escapeSingleQuotes(playlist.uri)}', '${escapeSingleQuotes(playlist.name)}')" class="mb-4 w-full px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-gray-900 rounded font-semibold transition">
+        Play Playlist
+      </button>
+    ` : '';
+
+    modalContent.innerHTML = `
+      <div>
+        ${backButton}
+        <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg p-4 mb-4 flex gap-4">
+          ${playlist.image ? `
+            <img src="${escapeHtml(playlist.image)}" alt="${escapeHtml(playlist.name)}" class="w-24 h-24 rounded object-cover">
+          ` : `
+            <div class="w-24 h-24 bg-cyan-700 rounded flex items-center justify-center">
+              <svg class="w-12 h-12 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 3a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V3zM2 9a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V9zm0 6a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2zM11 3a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zM11 9a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zm0 6a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6z" />
+              </svg>
+            </div>
+          `}
+          <div class="flex flex-col justify-between">
+            <div>
+              <p class="text-gray-900 text-xs opacity-80">PLAYLIST</p>
+              <p class="text-gray-900 font-bold text-lg line-clamp-2">${escapeHtml(playlist.name)}</p>
+            </div>
+            <p class="text-gray-900 text-sm">${playlist.track_count} songs • ${escapeHtml(playlist.owner)}</p>
+          </div>
+        </div>
+        ${playAllButton}
+        <div class="space-y-3 max-h-80 overflow-y-auto">
+          ${tracksHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  function showAddToPlaylistModal(trackUri, trackName) {
+    /**
+     * Show a modal to select which playlist to add a track to
+     */
+    const modal = document.getElementById('artistModal');
+    const modalContent = document.getElementById('artistModalContent');
+
+    if (!modal || !modalContent) {
+      console.error('Modal elements not found');
+      return;
+    }
+
+    // Show loading state
+    modalContent.innerHTML = `
+      <div class="flex items-center justify-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+      </div>
+    `;
+    modal.style.display = 'flex';
+
+    // Fetch user's playlists
+    fetch('/music/api/playlists/user/?limit=50', {
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success' && data.data.playlists.length > 0) {
+        displayPlaylistSelectModal(data.data.playlists, trackUri, trackName);
+      } else {
+        throw new Error('No playlists found');
+      }
+    })
+    .catch(error => {
+      console.error('Error loading playlists:', error);
+      modalContent.innerHTML = `
+        <div class="text-center py-8">
+          <p class="text-red-400">Failed to load playlists.</p>
+          <p class="text-gray-400 text-sm mt-2">${escapeHtml(error.message)}</p>
+          <button onclick="document.getElementById('artistModal').style.display='none'" class="mt-4 px-4 py-2 bg-cyan-500 text-gray-900 rounded font-semibold hover:bg-cyan-400 transition">
+            Close
+          </button>
+        </div>
+      `;
+    });
+  }
+
+  function displayPlaylistSelectModal(playlists, trackUri, trackName) {
+    /**
+     * Display playlists for user to select
+     */
+    const modal = document.getElementById('artistModal');
+    const modalContent = document.getElementById('artistModalContent');
+
+    const playlistsHtml = playlists.map((playlist) => `
+      <button onclick="addTrackToPlaylist('${escapeSingleQuotes(playlist.id)}', '${escapeSingleQuotes(trackUri)}', '${escapeSingleQuotes(playlist.name)}', '${escapeSingleQuotes(trackName)}')" class="w-full flex items-center justify-between p-3 bg-gray-800 rounded hover:bg-cyan-600 transition group">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          ${playlist.image ? `
+            <img src="${escapeHtml(playlist.image)}" alt="${escapeHtml(playlist.name)}" class="w-10 h-10 rounded object-cover flex-shrink-0">
+          ` : `
+            <div class="w-10 h-10 bg-cyan-500 rounded flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 3a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V3zM2 9a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V9zm0 6a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2zM11 3a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zM11 9a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zm0 6a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6z" />
+              </svg>
+            </div>
+          `}
+          <div class="min-w-0 flex-1">
+            <p class="font-semibold text-white truncate text-left">${escapeHtml(playlist.name)}</p>
+            <p class="text-sm text-gray-400 truncate">${playlist.track_count} tracks</p>
+          </div>
+        </div>
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-cyan-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    `).join('');
+
+    modalContent.innerHTML = `
+      <div>
+        <h3 class="text-lg font-bold text-cyan-400 mb-4">Add to Playlist</h3>
+        <p class="text-gray-400 text-sm mb-4">Track: <span class="text-white font-semibold">${escapeHtml(trackName)}</span></p>
+        <div class="space-y-2 max-h-96 overflow-y-auto">
+          ${playlistsHtml}
+        </div>
+        <button onclick="document.getElementById('artistModal').style.display='none'" class="mt-4 w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-semibold transition">
+          Cancel
+        </button>
+      </div>
+    `;
+  }
+
+  function addTrackToPlaylist(playlistId, trackUri, playlistName, trackName) {
+    /**
+     * Add a track to a playlist
+     */
+    fetch('/music/api/playlists/add-track/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        playlist_id: playlistId,
+        track_uris: [trackUri]
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        showNotification(`Added to ${escapeHtml(playlistName)}`, 'success');
+        document.getElementById('artistModal').style.display = 'none';
+      } else {
+        showNotification(data.message || 'Failed to add track', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error adding track to playlist:', error);
+      showNotification('Failed to add track to playlist', 'error');
+    });
+  }
+
   // ==================== Color Extraction ====================
 
   function extractDominantColor(img) {
@@ -1244,6 +1844,98 @@
   function getActiveDeviceId() {
     const activeDevice = document.querySelector('.device-item.active');
     return activeDevice ? activeDevice.getAttribute('data-device-id') : null;
+  }
+
+  function showDeviceSelector(devices) {
+    /**
+     * Show a modal to select a device for playback
+     */
+    const modal = document.getElementById('artistModal');
+    const modalContent = document.getElementById('artistModalContent');
+
+    if (!modal || !modalContent) {
+      console.error('Modal elements not found');
+      return;
+    }
+
+    const devicesHtml = devices.map((device) => `
+      <div class="flex items-center gap-3 p-4 bg-gray-800 rounded hover:bg-gray-700 transition cursor-pointer" onclick="selectDeviceAndPlay('${escapeSingleQuotes(device.id)}')">
+        <div class="w-10 h-10 rounded flex items-center justify-center flex-shrink-0 ${device.is_active ? 'bg-cyan-500' : 'bg-gray-700'}">
+          ${device.type === 'Smartphone' ? `
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4z" />
+            </svg>
+          ` : `
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm14 0H4v8h12V5z" />
+            </svg>
+          `}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-white">${escapeHtml(device.name)}</p>
+          <p class="text-sm text-gray-400">${escapeHtml(device.type)}${device.is_active ? ' • Active' : ''}</p>
+        </div>
+      </div>
+    `).join('');
+
+    modalContent.innerHTML = `
+      <div class="space-y-3">
+        <h3 class="text-lg font-bold text-cyan-400 mb-4">Select a Device</h3>
+        ${devicesHtml}
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+    modalContent.scrollTop = 0;
+  }
+
+  function selectDeviceAndPlay(deviceId) {
+    /**
+     * Select a device and play the pending track or playlist
+     */
+    const modal = document.getElementById('artistModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+
+    // Transfer playback to device
+    fetch('{% url "music:transfer_playback" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `device_id=${deviceId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        // Update active device indicator
+        document.querySelectorAll('.device-item').forEach(item => {
+          item.classList.remove('active');
+          if (item.getAttribute('data-device-id') === deviceId) {
+            item.classList.add('active');
+          }
+        });
+
+        // Play pending track or playlist
+        const syroPlayer = window.syroPlayer || {};
+        if (syroPlayer.pendingTrackUri) {
+          playTrackOnDevice(syroPlayer.pendingTrackUri, deviceId);
+          delete syroPlayer.pendingTrackUri;
+        } else if (syroPlayer.pendingPlaylistUri) {
+          playPlaylistOnDevice(syroPlayer.pendingPlaylistUri, syroPlayer.pendingPlaylistName, deviceId);
+          delete syroPlayer.pendingPlaylistUri;
+          delete syroPlayer.pendingPlaylistName;
+        }
+      } else {
+        showNotification('Failed to switch device', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error selecting device:', error);
+      showNotification('Failed to switch device', 'error');
+    });
   }
 
   function togglePlayPause() {
@@ -1481,7 +2173,7 @@
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRFToken': getCsrfToken()
+          'X-CSRFToken': '{{ csrf_token }}'
         },
         signal: abortController.signal
       })
@@ -2040,7 +2732,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken()
+                'X-CSRFToken': '{{ csrf_token }}'
             },
             body: JSON.stringify({ 
                 device_id: deviceId 
@@ -2078,16 +2770,21 @@
   // Add function to show notifications
   function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
-    notification.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
-        type === 'success' ? 'bg-green-500' : 
-        type === 'error' ? 'bg-red-500' : 
-        'bg-blue-500'
-    } text-white`;
+    const bgClass = type === 'success' ? 'border-green-500/30 text-green-200' :
+                    type === 'error' ? 'border-red-500/30 text-red-200' :
+                    'border-blue-500/30 text-blue-200';
+
+    notification.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg z-50 font-satoshi border backdrop-blur-md bg-black/40 shadow-lg ${bgClass}`;
     notification.textContent = message;
+
+    // Add fade-in animation
+    notification.style.animation = 'fadeIn 0.3s ease-in';
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
-        notification.remove();
+        notification.style.animation = 'fadeOut 0.3s ease-out forwards';
+        setTimeout(() => notification.remove(), 300);
     }, 3000);
   }
 
@@ -2271,6 +2968,117 @@
 
     console.log('Advanced features initialized');
   }
+
+  /* ==================== Lyrics Functions ==================== */
+  let currentTrackId = null;
+  let currentTrackName = null;
+  let currentArtistName = null;
+
+  // Update track info when playback state changes
+  function updateCurrentTrackInfo() {
+    const trackNameEl = document.getElementById('trackName');
+    const artistNameEl = document.getElementById('artistName');
+    
+    if (trackNameEl) {
+      currentTrackName = trackNameEl.textContent;
+    }
+    if (artistNameEl) {
+      currentArtistName = artistNameEl.textContent;
+    }
+    
+    // Try to extract track ID from Spotify data if available
+    // This will be set when we fetch current playback state
+  }
+
+  async function toggleLyrics() {
+    updateCurrentTrackInfo();
+    
+    if (!currentTrackName || !currentArtistName) {
+      alert('No track is currently playing');
+      return;
+    }
+    
+    await fetchAndShowLyrics(currentTrackName, currentArtistName, currentTrackId);
+  }
+
+  async function fetchAndShowLyrics(trackName, artistName, spotifyTrackId = null) {
+    const modal = document.getElementById('lyricsModal');
+    const content = document.getElementById('lyricsContent');
+    const trackNameEl = document.getElementById('lyricsTrackName');
+    const artistNameEl = document.getElementById('lyricsArtistName');
+    const sourceEl = document.getElementById('lyricsSource');
+    
+    // Show modal with loading state
+    modal.style.display = 'flex';
+    trackNameEl.textContent = trackName;
+    artistNameEl.textContent = artistName;
+    content.innerHTML = `
+      <div style="text-align: center; padding: 3rem 1rem;">
+        <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid rgba(192, 192, 192, 0.3); border-top-color: rgba(192, 192, 192, 0.8); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.6);">Loading lyrics...</p>
+      </div>
+    `;
+    sourceEl.innerHTML = '';
+    
+    try {
+      // Build query parameters
+      let url = `/api/lyrics/?track_name=${encodeURIComponent(trackName)}&artist_name=${encodeURIComponent(artistName)}`;
+      if (spotifyTrackId) {
+        url += `&spotify_track_id=${encodeURIComponent(spotifyTrackId)}`;
+      }
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        credentials: 'same-origin'
+      });
+      
+      const data = await response.json();
+      
+      if (data.status === 'success' && data.data && data.data.lyrics) {
+        content.innerHTML = data.data.lyrics.replace(/\n/g, '<br>');
+        sourceEl.innerHTML = `Lyrics provided by ${data.data.source || 'Genius'}`;
+      } else {
+        content.innerHTML = `
+          <div style="text-align: center; padding: 3rem 1rem;">
+            <p style="color: rgba(255, 255, 255, 0.6); font-size: 1.2rem; margin-bottom: 1rem;">😔</p>
+            <p style="color: rgba(255, 255, 255, 0.7);">Lyrics not available for this track</p>
+            <p style="color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; margin-top: 0.5rem;">Try searching on Genius.com</p>
+          </div>
+        `;
+        sourceEl.innerHTML = '';
+      }
+    } catch (error) {
+      console.error('Error fetching lyrics:', error);
+      content.innerHTML = `
+        <div style="text-align: center; padding: 3rem 1rem;">
+          <p style="color: rgba(255, 107, 157, 0.8); font-size: 1.2rem; margin-bottom: 1rem;">⚠️</p>
+          <p style="color: rgba(255, 255, 255, 0.7);">Error loading lyrics</p>
+          <p style="color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; margin-top: 0.5rem;">${error.message}</p>
+        </div>
+      `;
+      sourceEl.innerHTML = '';
+    }
+  }
+
+  function closeLyricsModal() {
+    const modal = document.getElementById('lyricsModal');
+    modal.style.display = 'none';
+  }
+
+  // Close modal when clicking outside
+  document.addEventListener('click', function(event) {
+    const lyricsModal = document.getElementById('lyricsModal');
+    if (event.target === lyricsModal) {
+      closeLyricsModal();
+    }
+  });
+
+  // Update track info periodically
+  setInterval(updateCurrentTrackInfo, 5000);
 </script>
 <script src="{% static 'js/features.js' %}"></script>
 
