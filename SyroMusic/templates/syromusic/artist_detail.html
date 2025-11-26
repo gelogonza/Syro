@@ -76,7 +76,7 @@
 
 {% block content %}
 <div class="container">
-  <a href="{% url 'music:artist_list' %}" style="color: #663399; text-decoration: none; margin-bottom: 1rem; display: inline-block;">
+  <a href="{% url 'music:artist_list' %}" style="color: #00FFFF; text-decoration: none; margin-bottom: 1rem; display: inline-block; font-weight: 600;">
     ← Back to Artists
   </a>
 
@@ -118,8 +118,8 @@
                placeholder="Search for songs..."
                style="width: 100%; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white;">
       </div>
-      <button onclick="performSearch()" 
-              style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #663399, #bd70f4); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+      <button onclick="performSearch()"
+              class="btn-primary">
         Search
       </button>
     </div>
@@ -132,7 +132,7 @@
   </div>
 
   <div style="text-align: center; margin-top: 3rem;">
-    <a href="{% url 'music:artist_list' %}" class="btn" style="background-color: #663399;">
+    <a href="{% url 'music:artist_list' %}" class="btn-primary">
       ← Back to Artists
     </a>
   </div>
@@ -275,12 +275,12 @@
           </div>
         </div>
         <div style="display: flex; gap: 0.5rem;">
-          <button onclick='playTrack("${track.uri}", ${JSON.stringify({name: track.name}).replace(/'/g, "\\'")})' 
-                  style="padding: 0.5rem 1rem; background: linear-gradient(135deg, #10b981, #22c55e); border: none; border-radius: 6px; color: black; font-weight: 600; cursor: pointer; font-size: 0.875rem;">
+          <button onclick='playTrack("${track.uri}", ${JSON.stringify({name: track.name}).replace(/'/g, "\\'")})'
+                  style="padding: 0.5rem 1rem; background: linear-gradient(135deg, #00FFFF, #0088FF); border: none; border-radius: 6px; color: #000000; font-weight: 600; cursor: pointer; font-size: 0.875rem;">
             ▶ Play
           </button>
-          <button onclick='addToQueue("${track.uri}", "${track.name.replace(/"/g, '&quot;')}")' 
-                  style="padding: 0.5rem 1rem; background: transparent; border: 1px solid #10b981; border-radius: 6px; color: #10b981; font-weight: 600; cursor: pointer; font-size: 0.875rem;">
+          <button onclick='addToQueue("${track.uri}", "${track.name.replace(/"/g, '&quot;')}")'
+                  style="padding: 0.5rem 1rem; background: transparent; border: 1px solid #00FFFF; border-radius: 6px; color: #00FFFF; font-weight: 600; cursor: pointer; font-size: 0.875rem;">
             + Queue
           </button>
         </div>

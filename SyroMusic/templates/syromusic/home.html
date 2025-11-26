@@ -332,13 +332,13 @@
     </p>
     
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 fade-in-up delay-200">
-      <a href="{% url 'music:search' %}" 
-         class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold bg-gradient-to-r from-primary to-accent text-white hover-glow transition-all shadow-lg pulse-glow">
+      <a href="{% url 'music:search' %}"
+         class="btn-primary inline-flex items-center justify-center">
         <span class="iconify h-5 w-5 mr-2" data-icon="mdi:magnify"></span>
         Explore Music
       </a>
-      <a href="{% url 'music:artist_list' %}" 
-         class="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold border border-primary/50 hover:bg-primary/10 transition-all backdrop-blur-sm">
+      <a href="{% url 'music:artist_list' %}"
+         class="btn-secondary inline-flex items-center justify-center">
         <span class="iconify h-5 w-5 mr-2" data-icon="mdi:account-group"></span>
         Browse Artists
       </a>
@@ -406,9 +406,9 @@
         Link your Spotify account to unlock unlimited access to millions of songs and sync your playlists
       </p>
       <a href="{% url 'music:spotify_login' %}"
-         class="spotify-connect-button inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold bg-gradient-to-r from-primary to-accent text-white hover-glow transition-all shadow-lg relative">
-        <span class="iconify h-5 w-5 mr-2" data-icon="mdi:spotify" style="position: relative; z-index: 1;"></span>
-        <span style="position: relative; z-index: 1;">Connect Now</span>
+         class="btn-spotify spotify-connect-button inline-flex items-center justify-center">
+        <span class="iconify h-5 w-5 mr-2" data-icon="mdi:spotify"></span>
+        <span>Connect Now</span>
       </a>
     </div>
   </div>

@@ -70,8 +70,8 @@
         </div>
       {% endfor %}
 
-      <button type="submit" 
-              class="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-semibold hover-glow flex items-center justify-center group">
+      <button type="submit"
+              class="w-full btn-primary flex items-center justify-center group">
         <i data-lucide="user-plus" class="h-5 w-5 mr-2 group-hover:scale-110 transition-transform"></i>
         Create Account
       </button>
@@ -88,9 +88,9 @@
     </div>
 
     <!-- Spotify Login -->
-    <a href="{% url 'music:spotify_login' %}" 
-       class="w-full py-3 rounded-lg border border-border hover:bg-secondary flex items-center justify-center group transition-colors">
-      <i data-lucide="music-2" class="h-5 w-5 mr-2 text-primary"></i>
+    <a href="{% url 'music:spotify_login' %}"
+       class="w-full btn-spotify flex items-center justify-center">
+      <i data-lucide="music-2" class="h-5 w-5 mr-2"></i>
       <span>Sign up with Spotify</span>
     </a>
 

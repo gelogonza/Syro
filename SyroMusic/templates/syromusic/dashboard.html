@@ -91,9 +91,9 @@
       </div>
       <form method="post" action="{% url 'music:spotify_disconnect' %}" class="inline">
         {% csrf_token %}
-        <button type="submit" 
+        <button type="submit"
                 onclick="return confirm('Are you sure you want to disconnect your Spotify account?');"
-                class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/50 hover:border-red-500 transition-colors">
+                class="btn-danger inline-flex items-center justify-center text-sm">
           <i data-lucide="unlink" class="h-4 w-4 mr-2"></i>
           Disconnect
         </button>
@@ -135,8 +135,8 @@
             <span>Stream music directly in the app</span>
           </li>
         </ul>
-        <a href="{% url 'music:spotify_login' %}" 
-           class="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold bg-gradient-to-r from-primary to-accent text-black hover-glow">
+        <a href="{% url 'music:spotify_login' %}"
+           class="btn-spotify inline-flex items-center justify-center text-sm">
           <i data-lucide="music-2" class="h-5 w-5 mr-2"></i>
           Connect Spotify Now
         </a>
