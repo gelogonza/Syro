@@ -31,7 +31,7 @@ def sync_user_spotify_stats(user_id, time_range='medium_term'):
             return False
 
         # Create Spotify service with fresh token
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
 
         # Fetch top artists
         top_artists = sp.get_top_artists(time_range=time_range, limit=50)
@@ -111,7 +111,7 @@ def sync_user_recently_played(user_id):
             return False
 
         # Create Spotify service with fresh token
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
 
         # Fetch recently played tracks
         recently_played = sp.get_recently_played(limit=50)
@@ -174,7 +174,7 @@ def sync_user_profile_data(user_id):
             return False
 
         # Create Spotify service with fresh token
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
 
         # Fetch current user info
         user_info = sp.get_current_user()
@@ -212,7 +212,7 @@ def sync_user_saved_tracks_count(user_id):
             return False
 
         # Create Spotify service with fresh token
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
 
         # Fetch saved tracks (we just need the first result to get the total)
         saved_tracks = sp.get_saved_tracks(limit=1)

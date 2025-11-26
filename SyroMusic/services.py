@@ -2,8 +2,8 @@
 Spotify API Service - Wrapper for Spotify Web API interactions
 """
 
+import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from spotipy import Spotify
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
@@ -15,323 +15,119 @@ logger = logging.getLogger(__name__)
 class SpotifyService:
     """Service to handle all Spotify API interactions."""
 
-    def __init__(self, access_token=None):
+    def __init__(self, spotify_user):
         """Initialize Spotify service with optional access token."""
-        self.access_token = access_token
-        self.sp = Spotify(auth=access_token) if access_token else None
+        self.spotify_user = spotify_user
+        self.sp = self._get_client()
 
-    @staticmethod
-    def get_auth_manager():
-        """Get SpotifyOAuth manager for authentication."""
-        return SpotifyOAuth(
-            client_id=settings.SPOTIPY_CLIENT_ID,
-            client_secret=settings.SPOTIPY_CLIENT_SECRET,
-            redirect_uri=settings.SPOTIPY_REDIRECT_URI,
-            scope=[
-                'user-read-private',
-                'user-read-email',
-                'user-read-playback-state',
-                'user-modify-playback-state',
-                'user-library-read',
-                'user-library-modify',
-                'playlist-read-private',
-                'playlist-read-collaborative',
-                'playlist-modify-public',
-                'playlist-modify-private',
-                'user-top-read',
-                'user-read-recently-played',
-                'user-follow-read',
-                'user-follow-modify',
-                'streaming',
-            ]
-        )
+    def _get_client(self):
+        # Check if token needs refresh
+        if self.spotify_user.is_token_expired():
+            self._refresh_token()
 
-    @staticmethod
-    def get_authorization_url():
-        """Get the Spotify authorization URL."""
-        auth = SpotifyService.get_auth_manager()
-        return auth.get_authorize_url()
+        return spotipy.Spotify(auth=self.spotify_user.access_token)
 
-    @staticmethod
-    def get_access_token(code):
-        """Exchange authorization code for access token."""
+    def _refresh_token(self):
         try:
-            auth = SpotifyService.get_auth_manager()
-            token_info = auth.get_access_token(code)
-            return token_info
-        except Exception as e:
-            logger.error(f"Error getting access token: {str(e)}")
-            return None
-
-    @staticmethod
-    def refresh_access_token(refresh_token):
-        """Refresh an expired access token using refresh token."""
-        try:
-            auth = SpotifyService.get_auth_manager()
-            token_info = auth.refresh_access_token(refresh_token)
-            return token_info
-        except Exception as e:
-            logger.error(f"Error refreshing access token: {str(e)}")
-            return None
-
-    def get_current_user(self):
-        """Get current user profile information."""
-        try:
-            if not self.sp:
-                return None
-            user_info = self.sp.current_user()
-            return user_info
-        except Exception as e:
-            logger.error(f"Error fetching current user: {str(e)}")
-            return None
-
-    def get_top_artists(self, time_range='medium_term', limit=50):
-        """
-        Get user's top artists.
-        time_range: 'short_term' (4 weeks), 'medium_term' (6 months), 'long_term' (all time)
-        """
-        try:
-            if not self.sp:
-                return []
-            artists = self.sp.current_user_top_artists(
-                time_range=time_range,
-                limit=limit
+            sp_oauth = SpotifyOAuth(
+                client_id=settings.SPOTIPY_CLIENT_ID,
+                client_secret=settings.SPOTIPY_CLIENT_SECRET,
+                redirect_uri=settings.SPOTIPY_REDIRECT_URI,
+                scope="user-read-private user-read-email user-library-read user-top-read user-read-recently-played playlist-modify-public playlist-modify-private user-read-playback-state user-modify-playback-state streaming"
             )
-            return artists.get('items', [])
-        except Exception as e:
-            logger.error(f"Error fetching top artists: {str(e)}")
-            return []
+            token_info = sp_oauth.refresh_access_token(self.spotify_user.refresh_token)
 
-    def get_top_tracks(self, time_range='medium_term', limit=50):
+            self.spotify_user.access_token = token_info['access_token']
+            if 'refresh_token' in token_info:
+                self.spotify_user.refresh_token = token_info['refresh_token']
+            self.spotify_user.expires_at = timezone.now() + timezone.timedelta(seconds=token_info['expires_in'])
+            self.spotify_user.save()
+            logger.info(f"Refreshed token for user {self.spotify_user.user.username}")
+        except Exception as e:
+            logger.error(f"Error refreshing token: {str(e)}")
+            raise
+
+    def search(self, query, type='track,artist,album', limit=10):
         """
-        Get user's top tracks.
-        time_range: 'short_term' (4 weeks), 'medium_term' (6 months), 'long_term' (all time)
-        """
-        try:
-            if not self.sp:
-                return []
-            tracks = self.sp.current_user_top_tracks(
-                time_range=time_range,
-                limit=limit
-            )
-            return tracks.get('items', [])
-        except Exception as e:
-            logger.error(f"Error fetching top tracks: {str(e)}")
-            return []
-
-    def get_recently_played(self, limit=50):
-        """Get user's recently played tracks."""
-        try:
-            if not self.sp:
-                return []
-            recent = self.sp.current_user_recently_played(limit=limit)
-            return recent.get('items', [])
-        except Exception as e:
-            logger.error(f"Error fetching recently played: {str(e)}")
-            return []
-
-    def get_saved_tracks(self, limit=50, offset=0):
-        """Get user's saved tracks (liked songs)."""
-        try:
-            if not self.sp:
-                return []
-            tracks = self.sp.current_user_saved_tracks(limit=limit, offset=offset)
-            return tracks.get('items', [])
-        except Exception as e:
-            logger.error(f"Error fetching saved tracks: {str(e)}")
-            return []
-
-    def get_audio_features(self, track_ids):
-        """
-        Get audio features for one or more tracks.
-        Spotify limits to 100 tracks per request, so handle batching.
+        Search Spotify for tracks, artists, and albums.
         """
         try:
-            if not self.sp or not track_ids:
-                return []
-
-            # Batch requests in groups of 100
-            all_features = []
-            for i in range(0, len(track_ids), 100):
-                batch = track_ids[i:i+100]
-                features = self.sp.audio_features(batch)
-                all_features.extend([f for f in features if f])  # Filter out None values
-
-            return all_features
+            return self.sp.search(q=query, type=type, limit=limit)
         except Exception as e:
-            logger.error(f"Error fetching audio features: {str(e)}")
-            return []
-
-    def get_available_genres(self):
-        """Get list of all available genres from Spotify."""
-        try:
-            if not self.sp:
-                return []
-            genres = self.sp.recommendation_genre_seeds()
-            return genres.get('genres', [])
-        except Exception as e:
-            logger.error(f"Error fetching genres: {str(e)}")
-            return []
-
-    def get_recommendations_by_genre_and_features(self, genre, energy=None, valence=None, limit=20):
-        """
-        Get track recommendations based on genre and optional audio features.
-
-        Args:
-            genre: Genre seed string
-            energy: Target energy (0-1), or None to skip
-            valence: Target valence/mood (0-1), or None to skip
-            limit: Number of recommendations (max 100)
-        """
-        try:
-            if not self.sp or not genre:
-                return []
-
-            kwargs = {
-                'seed_genres': [genre],
-                'limit': min(limit, 100)
-            }
-
-            # Add audio feature targets if provided
-            if energy is not None:
-                kwargs['target_energy'] = max(0, min(1, energy))
-            if valence is not None:
-                kwargs['target_valence'] = max(0, min(1, valence))
-
-            recommendations = self.sp.recommendations(**kwargs)
-            return recommendations.get('tracks', [])
-        except Exception as e:
-            logger.error(f"Error fetching recommendations: {str(e)}")
-            return []
-
-    def get_current_playlists(self, limit=50):
-        """Get user's playlists."""
-        try:
-            if not self.sp:
-                return []
-            playlists = self.sp.current_user_playlists(limit=limit)
-            return playlists.get('items', [])
-        except Exception as e:
-            logger.error(f"Error fetching playlists: {str(e)}")
-            return []
-
-    def get_playlist_tracks(self, playlist_id, limit=100):
-        """Get tracks from a specific playlist."""
-        try:
-            if not self.sp:
-                return []
-            tracks = self.sp.playlist_tracks(playlist_id, limit=limit)
-            return tracks.get('items', [])
-        except Exception as e:
-            logger.error(f"Error fetching playlist tracks: {str(e)}")
-            return []
-
-    def search(self, query, search_type='track', limit=20):
-        """
-        Search for tracks, artists, albums, or playlists.
-        search_type can be: 'track', 'artist', 'album', 'playlist'
-        """
-        try:
-            if not self.sp:
-                return []
-            results = self.sp.search(q=query, type=search_type, limit=limit)
-            key = f"{search_type}s"
-            return results.get(key, {}).get('items', [])
-        except Exception as e:
-            logger.error(f"Error searching Spotify: {str(e)}")
-            return []
-
-    def get_artist_info(self, artist_id):
-        """Get detailed information about an artist."""
-        try:
-            if not self.sp:
+            logger.error(f"Spotify search error: {str(e)}")
+            # Try one retry with token refresh if it was an auth error
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                return self.sp.search(q=query, type=type, limit=limit)
+            except Exception as retry_error:
+                logger.error(f"Retry failed: {str(retry_error)}")
                 return None
-            artist = self.sp.artist(artist_id)
-            return artist
+
+    def get_current_track(self):
+        try:
+            return self.sp.current_user_playing_track()
         except Exception as e:
-            logger.error(f"Error fetching artist info: {str(e)}")
+            logger.error(f"Error getting current track: {str(e)}")
             return None
 
-    def get_album_info(self, album_id):
-        """Get detailed information about an album."""
+    def get_recently_played(self, limit=20):
         try:
-            if not self.sp:
-                return None
-            album = self.sp.album(album_id)
-            return album
+            return self.sp.current_user_recently_played(limit=limit)
         except Exception as e:
-            logger.error(f"Error fetching album info: {str(e)}")
+            logger.error(f"Error getting recently played: {str(e)}")
             return None
 
-    def create_playlist(self, name, description='', public=False):
-        """Create a new playlist for the user."""
+    def get_top_artists(self, limit=20, time_range='medium_term'):
         try:
-            if not self.sp:
-                return None
-            playlist = self.sp.user_playlist_create(
-                user=None,  # Current user
-                name=name,
-                public=public,
-                description=description
-            )
-            return playlist
+            return self.sp.current_user_top_artists(limit=limit, time_range=time_range)
+        except Exception as e:
+            logger.error(f"Error getting top artists: {str(e)}")
+            return None
+
+    def get_top_tracks(self, limit=20, time_range='medium_term'):
+        try:
+            return self.sp.current_user_top_tracks(limit=limit, time_range=time_range)
+        except Exception as e:
+            logger.error(f"Error getting top tracks: {str(e)}")
+            return None
+
+    def get_queue(self):
+        try:
+            return self.sp.queue()
+        except Exception as e:
+            logger.error(f"Error getting queue: {str(e)}")
+            return None
+
+    def add_to_queue(self, uri):
+        try:
+            self.sp.add_to_queue(uri)
+            return True
+        except Exception as e:
+            logger.error(f"Error adding to queue: {str(e)}")
+            return False
+
+    def create_playlist(self, name, description="", public=True):
+        try:
+            user_id = self.sp.current_user()['id']
+            return self.sp.user_playlist_create(user_id, name, public, description)
         except Exception as e:
             logger.error(f"Error creating playlist: {str(e)}")
             return None
 
-    def add_tracks_to_playlist(self, playlist_id, track_ids):
-        """Add tracks to a playlist."""
+    def add_tracks_to_playlist(self, playlist_id, track_uris):
         try:
-            if not self.sp:
-                return False
-            # Spotify API has a limit of 100 tracks per request
-            for i in range(0, len(track_ids), 100):
-                batch = track_ids[i:i + 100]
-                self.sp.playlist_add_items(playlist_id, batch)
-            return True
+            return self.sp.playlist_add_items(playlist_id, track_uris)
         except Exception as e:
             logger.error(f"Error adding tracks to playlist: {str(e)}")
-            return False
-
-    def remove_tracks_from_playlist(self, playlist_id, track_ids):
-        """Remove tracks from a playlist."""
-        try:
-            if not self.sp:
-                return False
-            for i in range(0, len(track_ids), 100):
-                batch = track_ids[i:i + 100]
-                self.sp.playlist_remove_all_occurrences_of_items(playlist_id, batch)
-            return True
-        except Exception as e:
-            logger.error(f"Error removing tracks from playlist: {str(e)}")
-            return False
-
-    def get_track_info(self, track_id):
-        """Get detailed information about a track."""
-        try:
-            if not self.sp:
-                return None
-            track = self.sp.track(track_id)
-            return track
-        except Exception as e:
-            logger.error(f"Error fetching track info: {str(e)}")
             return None
 
-    def get_recommendations(self, seed_artists=None, seed_tracks=None, seed_genres=None, limit=20):
-        """Get recommendations based on seeds."""
+    def get_user_playlists(self, limit=50):
         try:
-            if not self.sp:
-                return []
-            recommendations = self.sp.recommendations(
-                seed_artists=seed_artists,
-                seed_tracks=seed_tracks,
-                seed_genres=seed_genres,
-                limit=limit
-            )
-            return recommendations.get('tracks', [])
+            return self.sp.current_user_playlists(limit=limit)
         except Exception as e:
-            logger.error(f"Error fetching recommendations: {str(e)}")
-            return []
+            logger.error(f"Error getting user playlists: {str(e)}")
+            return None
 
     # ============================================================
     # Playback Control Methods
@@ -359,24 +155,33 @@ class SpotifyService:
             logger.error(f"Error fetching devices: {str(e)}")
             return []
 
-    def start_playback(self, context_uri=None, uris=None, device_id=None, offset=0):
-        """
-        Start playback of a track/album/playlist.
-        Either context_uri or uris should be provided.
-        """
+    def start_playback(self, device_id=None, context_uri=None, uris=None, offset=None):
+        """Start or resume playback."""
         try:
-            if not self.sp:
-                return False
-            self.sp.start_playback(
-                context_uri=context_uri,
-                uris=uris,
-                device_id=device_id,
-                offset={'position': offset} if offset else None
-            )
+            kwargs = {}
+            if device_id:
+                kwargs['device_id'] = device_id
+            if context_uri:
+                kwargs['context_uri'] = context_uri
+            if uris:
+                kwargs['uris'] = uris
+            if offset is not None:
+                kwargs['offset'] = offset
+
+            logger.info(f"Starting playback with kwargs: {kwargs}")
+            self.sp.start_playback(**kwargs)
             return True
         except Exception as e:
             logger.error(f"Error starting playback: {str(e)}")
-            return False
+            # Try refreshing token and retry
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                self.sp.start_playback(**kwargs)
+                return True
+            except Exception as retry_error:
+                logger.error(f"Retry failed: {str(retry_error)}")
+                return False
 
     def pause_playback(self, device_id=None):
         """Pause current playback."""
@@ -447,16 +252,23 @@ class SpotifyService:
             logger.error(f"Error setting volume: {str(e)}")
             return False
 
-    def transfer_playback(self, device_id, play=True):
-        """Transfer playback to another device."""
+    def transfer_playback(self, device_id, force_play=True):
+        """Transfer playback to a specific device."""
         try:
-            if not self.sp:
-                return False
-            self.sp.transfer_playback(device_id, play=play)
+            logger.info(f"Transferring playback to device: {device_id}")
+            self.sp.transfer_playback(device_id=device_id, force_play=force_play)
             return True
         except Exception as e:
             logger.error(f"Error transferring playback: {str(e)}")
-            return False
+            # Try refreshing token and retry
+            try:
+                self._refresh_token()
+                self.sp = spotipy.Spotify(auth=self.spotify_user.access_token)
+                self.sp.transfer_playback(device_id=device_id, force_play=force_play)
+                return True
+            except Exception as retry_error:
+                logger.error(f"Retry failed: {str(retry_error)}")
+                return False
 
     def add_to_queue(self, uri, device_id=None):
         """Add a track to the current queue."""
@@ -506,6 +318,104 @@ class SpotifyService:
         except Exception as e:
             logger.error(f"Error setting shuffle: {str(e)}")
             return False
+
+    @staticmethod
+    def refresh_access_token(refresh_token):
+        """Refresh Spotify access token using refresh token (static method for TokenManager)."""
+        try:
+            sp_oauth = SpotifyOAuth(
+                client_id=settings.SPOTIPY_CLIENT_ID,
+                client_secret=settings.SPOTIPY_CLIENT_SECRET,
+                redirect_uri=settings.SPOTIPY_REDIRECT_URI,
+                scope="user-read-private user-read-email user-library-read user-top-read user-read-recently-played playlist-modify-public playlist-modify-private user-read-playback-state user-modify-playback-state streaming"
+            )
+            token_info = sp_oauth.refresh_access_token(refresh_token)
+            return token_info
+        except Exception as e:
+            logger.error(f"Error refreshing access token: {str(e)}")
+            return None
+
+    def get_audio_features(self, track_ids):
+        """Get audio features for multiple tracks."""
+        try:
+            if isinstance(track_ids, str):
+                track_ids = [track_ids]
+            return self.sp.audio_features(track_ids)
+        except Exception as e:
+            logger.error(f"Error getting audio features: {str(e)}")
+            return None
+
+    def get_available_genres(self):
+        """Get list of available genre seeds."""
+        try:
+            return self.sp.recommendation_genre_seeds()
+        except Exception as e:
+            logger.error(f"Error getting available genres: {str(e)}")
+            return None
+
+    def get_recommendations(self, seed_genres=None, seed_artists=None, seed_tracks=None, **kwargs):
+        """Get recommendations based on seeds."""
+        try:
+            return self.sp.recommendations(
+                seed_genres=seed_genres,
+                seed_artists=seed_artists,
+                seed_tracks=seed_tracks,
+                **kwargs
+            )
+        except Exception as e:
+            logger.error(f"Error getting recommendations: {str(e)}")
+            return None
+
+    def get_recommendations_by_genre_and_features(self, genre, energy=None, valence=None, limit=20):
+        """Get recommendations by genre and audio features."""
+        try:
+            kwargs = {
+                'seed_genres': [genre] if isinstance(genre, str) else genre,
+                'limit': limit
+            }
+            if energy is not None:
+                kwargs['target_energy'] = energy
+            if valence is not None:
+                kwargs['target_valence'] = valence
+
+            return self.sp.recommendations(**kwargs)
+        except Exception as e:
+            logger.error(f"Error getting recommendations by genre and features: {str(e)}")
+            return None
+
+    def get_current_user(self):
+        """Get current authenticated user's profile information."""
+        try:
+            return self.sp.current_user()
+        except Exception as e:
+            logger.error(f"Error getting current user: {str(e)}")
+            return None
+
+    @staticmethod
+    def get_access_token(code):
+        """Exchange authorization code for access token (static method for OAuth callback)."""
+        try:
+            sp_oauth = SpotifyOAuth(
+                client_id=settings.SPOTIPY_CLIENT_ID,
+                client_secret=settings.SPOTIPY_CLIENT_SECRET,
+                redirect_uri=settings.SPOTIPY_REDIRECT_URI,
+                scope="user-read-private user-read-email user-library-read user-top-read user-read-recently-played playlist-modify-public playlist-modify-private user-read-playback-state user-modify-playback-state streaming"
+            )
+            token_info = sp_oauth.get_access_token(code)
+            return token_info
+        except Exception as e:
+            logger.error(f"Error getting access token: {str(e)}")
+            return None
+
+    @staticmethod
+    def get_user_profile_from_token(access_token):
+        """Get user profile from access token (static method for OAuth callback)."""
+        try:
+            sp = spotipy.Spotify(auth=access_token)
+            return sp.current_user()
+        except Exception as e:
+            logger.error(f"Error getting user profile from token: {str(e)}")
+            return None
 
 
 class TokenManager:

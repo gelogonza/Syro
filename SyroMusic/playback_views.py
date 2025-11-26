@@ -27,14 +27,8 @@ def player_page(request):
             messages.warning(request, 'Please connect your Spotify account to use the player.')
             return redirect('music:dashboard')
 
-        # Refresh token if needed
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            messages.error(request, 'Failed to refresh Spotify token. Please reconnect.')
-            return redirect('music:dashboard')
-
         # Get current playback and devices
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
         current_playback = sp.get_current_playback()
         devices = sp.get_available_devices()
 
@@ -112,11 +106,7 @@ def play_track(request):
         if not uri:
             return JsonResponse({'status': 'error', 'message': 'URI required'}, status=400)
 
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
-
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
 
         # Determine if this is a track URI or context URI (album/playlist)
         if 'track:' in uri:
@@ -143,11 +133,6 @@ def play_pause(request):
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
         device_id = request.POST.get('device_id')
 
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
-
-        sp = SpotifyService(access_token=access_token)
         playback = sp.get_current_playback()
 
         if playback and playback.get('is_playing'):
@@ -174,11 +159,6 @@ def next_track(request):
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
         device_id = request.POST.get('device_id')
 
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
-
-        sp = SpotifyService(access_token=access_token)
         success = sp.next_track(device_id=device_id)
 
         if success:
@@ -198,11 +178,6 @@ def previous_track(request):
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
         device_id = request.POST.get('device_id')
 
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
-
-        sp = SpotifyService(access_token=access_token)
         success = sp.previous_track(device_id=device_id)
 
         if success:
@@ -226,11 +201,6 @@ def seek(request):
         if not position_ms:
             return JsonResponse({'status': 'error', 'message': 'Position required'}, status=400)
 
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
-
-        sp = SpotifyService(access_token=access_token)
         success = sp.seek_to_position(int(position_ms), device_id=device_id)
 
         if success:
@@ -258,11 +228,6 @@ def set_volume(request):
         if not 0 <= volume <= 100:
             return JsonResponse({'status': 'error', 'message': 'Volume must be 0-100'}, status=400)
 
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
-
-        sp = SpotifyService(access_token=access_token)
         success = sp.set_volume(volume, device_id=device_id)
 
         if success:
@@ -285,11 +250,6 @@ def transfer_playback(request):
         if not device_id:
             return JsonResponse({'status': 'error', 'message': 'Device ID required'}, status=400)
 
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
-
-        sp = SpotifyService(access_token=access_token)
         success = sp.transfer_playback(device_id, play=True)
 
         if success:
@@ -310,11 +270,6 @@ def set_shuffle(request):
         state = request.POST.get('state', 'false').lower() == 'true'
         device_id = request.POST.get('device_id')
 
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
-
-        sp = SpotifyService(access_token=access_token)
         success = sp.set_shuffle(state, device_id=device_id)
 
         # Update local queue
@@ -344,11 +299,6 @@ def set_repeat(request):
         if mode not in ['off', 'context', 'track']:
             return JsonResponse({'status': 'error', 'message': 'Invalid repeat mode'}, status=400)
 
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
-
-        sp = SpotifyService(access_token=access_token)
         success = sp.set_repeat(mode, device_id=device_id)
 
         # Update local queue
@@ -380,7 +330,7 @@ def get_playback_state(request):
         if not access_token:
             return JsonResponse({'status': 'error', 'message': 'Token expired'}, status=401)
 
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
         playback = sp.get_current_playback()
 
         if not playback:
@@ -420,7 +370,7 @@ def get_available_devices(request):
         if not access_token:
             return JsonResponse({'status': 'error', 'message': 'Token expired'}, status=401)
 
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
         devices = sp.get_available_devices()
 
         if not devices:
@@ -481,12 +431,7 @@ def add_to_queue(request):
         if not track_uri:
             return JsonResponse({'status': 'error', 'message': 'Track URI required'}, status=400)
 
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return JsonResponse({'status': 'error', 'message': 'Token refresh failed'}, status=401)
-
-        # Add to Spotify's queue
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
         success = sp.add_to_queue(track_uri)
 
         if success:
@@ -535,7 +480,7 @@ def get_queue(request):
             return JsonResponse({'status': 'error', 'message': 'Token expired'}, status=401)
 
         # Get Spotify's queue
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
         spotify_queue = sp.get_queue()
 
         # Get local queue
@@ -585,3 +530,92 @@ def clear_queue(request):
 
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_devices(request):
+    """Get available Spotify devices."""
+    try:
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+        service = SpotifyService(spotify_user)
+        
+        logger.info(f"Fetching devices for user {request.user.username}")
+        devices_data = service.get_devices()
+        
+        if not devices_data or 'devices' not in devices_data:
+            logger.warning("No devices data returned from Spotify")
+            return Response({'devices': []}, status=200)
+        
+        devices = devices_data.get('devices', [])
+        logger.info(f"Found {len(devices)} devices: {[d.get('name') for d in devices]}")
+        
+        return Response({'devices': devices}, status=200)
+        
+    except SpotifyUser.DoesNotExist:
+        logger.error(f"No SpotifyUser found for {request.user.username}")
+        return Response(
+            {'error': 'Spotify account not connected'}, 
+            status=400
+        )
+    except Exception as e:
+        logger.error(f"Error fetching devices: {str(e)}", exc_info=True)
+        return Response(
+            {'error': f'Failed to fetch devices: {str(e)}'}, 
+            status=500
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def transfer_playback(request):
+    """Transfer playback to a specific device."""
+    try:
+        device_id = request.data.get('device_id')
+        if not device_id:
+            return Response(
+                {'error': 'device_id is required'}, 
+                status=400
+            )
+        
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+        service = SpotifyService(spotify_user)
+        
+        logger.info(f"Attempting to transfer playback to device: {device_id}")
+        
+        # Transfer playback
+        success = service.transfer_playback(device_id, force_play=False)
+        
+        if success:
+            logger.info(f"Successfully transferred playback to device: {device_id}")
+            return Response({
+                'message': 'Playback transferred successfully',
+                'device_id': device_id
+            }, status=200)
+        else:
+            logger.error(f"Failed to transfer playback to device: {device_id}")
+            return Response(
+                {'error': 'Failed to transfer playback'}, 
+                status=500
+            )
+        
+    except SpotifyUser.DoesNotExist:
+        logger.error(f"No SpotifyUser found for {request.user.username}")
+        return Response(
+            {'error': 'Spotify account not connected'}, 
+            status=400
+        )
+    except Exception as e:
+        logger.error(f"Error transferring playback: {str(e)}", exc_info=True)
+        return Response(
+            {'error': f'Failed to transfer playback: {str(e)}'}, 
+            status=500
+        )

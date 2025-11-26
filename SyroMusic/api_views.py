@@ -11,6 +11,9 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import Count
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .models import (
     Artist, Album, Song, Playlist,
@@ -857,15 +860,7 @@ def sonic_aura_api(request):
         spotify_user = SpotifyUser.objects.get(user=user)
 
         # Refresh token if needed
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return Response(
-                {'status': 'error', 'message': 'Could not refresh Spotify token'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-        # Create Spotify service with fresh token
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
 
         # Fetch last 50 recently played tracks
         recently_played = sp.get_recently_played(limit=50)
@@ -990,15 +985,7 @@ def genre_seeds_api(request):
         spotify_user = SpotifyUser.objects.get(user=user)
 
         # Refresh token if needed
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return Response(
-                {'status': 'error', 'message': 'Could not refresh Spotify token'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-        # Create Spotify service with fresh token
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
 
         # Fetch available genres
         genres = sp.get_available_genres()
@@ -1056,15 +1043,7 @@ def frequency_randomizer_api(request):
             )
 
         # Refresh token if needed
-        access_token = TokenManager.refresh_user_token(spotify_user)
-        if not access_token:
-            return Response(
-                {'status': 'error', 'message': 'Could not refresh Spotify token'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-        # Create Spotify service with fresh token
-        sp = SpotifyService(access_token=access_token)
+        sp = SpotifyService(spotify_user)
 
         # Map color to audio features (energy + valence) with enhanced algorithm
         energy = None

@@ -161,8 +161,11 @@ class SpotifyUser(models.Model):
         return f"Spotify: {self.spotify_username or self.spotify_id}"
 
     def is_token_expired(self):
-        """Check if the access token has expired."""
-        return timezone.now() >= self.token_expires_at
+        """Check if the Spotify access token has expired."""
+        if not self.token_expires_at:
+            return True
+        # Add 5 minute buffer to refresh before actual expiry
+        return timezone.now() >= (self.token_expires_at - timezone.timedelta(minutes=5))
 
     class Meta:
         ordering = ['-updated_at']

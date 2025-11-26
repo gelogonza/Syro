@@ -10,13 +10,18 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import cache_page
 from django.core.paginator import Paginator
+from django.conf import settings
 from datetime import timedelta
+from spotipy.oauth2 import SpotifyOAuth
+import logging
 
 from .models import (
     Artist, Album, Song, Playlist,
     SpotifyUser, UserListeningStats, UserListeningActivity
 )
 from .services import SpotifyService, TokenManager
+
+logger = logging.getLogger(__name__)
 
 
 @cache_page(60 * 15)  # Cache for 15 minutes
@@ -183,8 +188,7 @@ def spotify_callback(request):
             return redirect('login')
 
         # Get Spotify user info
-        sp = SpotifyService(access_token=token_info['access_token'])
-        spotify_user_info = sp.get_current_user()
+        spotify_user_info = SpotifyService.get_user_profile_from_token(token_info['access_token'])
 
         if not spotify_user_info:
             messages.error(request, 'Failed to fetch user information from Spotify.')

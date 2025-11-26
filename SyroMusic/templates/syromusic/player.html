@@ -1714,30 +1714,64 @@
     });
   }
 
-  function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 ${
-      type === 'success' ? 'bg-green-500' :
-      type === 'error' ? 'bg-red-500' :
-      'bg-blue-500'
-    } text-white font-medium`;
-    notification.textContent = message;
-    notification.style.transform = 'translateX(400px)';
+  // ==================== Device Selection ====================
+
+  async function selectDevice(deviceId, deviceName) {
+    console.log('Selecting device:', deviceId, deviceName);
     
+    try {
+        const response = await fetch('/music/api/playback/transfer/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({ 
+                device_id: deviceId 
+            })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log('Successfully transferred to device:', deviceName);
+            showNotification(`Switched to ${deviceName}`, 'success');
+            
+            // Close the device modal
+            document.getElementById('deviceModal').classList.add('hidden');
+            
+            // Refresh devices to show active device
+            setTimeout(() => {
+                loadDevices();
+            }, 1000);
+            
+            // Refresh playback state
+            setTimeout(() => {
+                updatePlayer();
+            }, 1500);
+        } else {
+            console.error('Device transfer failed:', data.error);
+            showNotification(`Failed to switch device: ${data.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error selecting device:', error);
+        showNotification('Error switching device', 'error');
+    }
+  }
+
+  // Add function to show notifications
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500' : 
+        type === 'error' ? 'bg-red-500' : 
+        'bg-blue-500'
+    } text-white`;
+    notification.textContent = message;
     document.body.appendChild(notification);
     
-    // Animate in
     setTimeout(() => {
-      notification.style.transform = 'translateX(0)';
-    }, 10);
-    
-    // Animate out and remove
-    setTimeout(() => {
-      notification.style.transform = 'translateX(400px)';
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
+        notification.remove();
     }, 3000);
   }
 
