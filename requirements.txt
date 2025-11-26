@@ -22,7 +22,7 @@ idna==3.6
 kombu==5.4.2
 lyricsgenius==3.0.1
 packaging==25.0
-Pillow==10.1.0
+Pillow==11.0.0
 prompt_toolkit==3.0.52
 pycparser==2.23
 python-dateutil==2.9.0.post0
