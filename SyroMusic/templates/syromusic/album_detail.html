@@ -177,8 +177,10 @@
           }
 
           // Find best match (exact or close match)
-          const matchingAlbum = albums.find(a => a.name && a.name.toLowerCase() === albumName.toLowerCase())
-                             || albums.find(a => a.name && a.name.toLowerCase().includes(albumName.toLowerCase()))
+          // API returns 'title' field from local search, 'name' from Spotify search
+          const getAlbumName = (a) => a.title || a.name;
+          const matchingAlbum = albums.find(a => getAlbumName(a).toLowerCase() === albumName.toLowerCase())
+                             || albums.find(a => getAlbumName(a).toLowerCase().includes(albumName.toLowerCase()))
                              || albums[0];  // Fallback to first result
 
           if (!matchingAlbum || !matchingAlbum.id) {
@@ -187,7 +189,8 @@
           }
 
           const albumId = matchingAlbum.id;
-          console.log(`Found album: ${matchingAlbum.name} (${albumId})`);
+          const albumTitle = getAlbumName(matchingAlbum);
+          console.log(`Found album: ${albumTitle} (${albumId})`);
 
           // Fetch tracks for this album
           const tracksResponse = await fetch(`/music/api/albums/tracks/?album_id=${albumId}`, {
