@@ -248,9 +248,24 @@
         <a href="{% url 'home' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Home
         </a>
-        <a href="{% url 'music:player' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
-          Player
-        </a>
+
+        <!-- The 4 Phases -->
+        <div class="pt-2 pb-2">
+          <p class="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Discovery Phases</p>
+          <a href="{% url 'music:player' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
+            🎵 The Deck (Player)
+          </a>
+          <a href="{% url 'music:the_crate_page' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
+            🎨 The Crate (Colors)
+          </a>
+          <a href="{% url 'music:sonic_aura_page' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
+            ✨ Sonic Aura (Vibe)
+          </a>
+          <a href="{% url 'music:frequency_page' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
+            🌀 The Frequency
+          </a>
+        </div>
+
         <a href="{% url 'music:search' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Search
         </a>
@@ -259,12 +274,6 @@
         </a>
         <a href="{% url 'music:wrapped' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Wrapped
-        </a>
-        <a href="{% url 'music:artist_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
-          Artists
-        </a>
-        <a href="{% url 'music:album_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
-          Albums
         </a>
         <a href="{% url 'music:playlist_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Playlists
@@ -314,6 +323,18 @@
           <a href="{% url 'music:dashboard' %}" class="nav-link px-4 py-2 text-white transition relative">
             Dashboard
           </a>
+          <a href="{% url 'music:player' %}" class="nav-link px-4 py-2 text-white transition relative">
+            🎵 Deck
+          </a>
+          <a href="{% url 'music:the_crate_page' %}" class="nav-link px-4 py-2 text-white transition relative">
+            🎨 Crate
+          </a>
+          <a href="{% url 'music:sonic_aura_page' %}" class="nav-link px-4 py-2 text-white transition relative">
+            ✨ Aura
+          </a>
+          <a href="{% url 'music:frequency_page' %}" class="nav-link px-4 py-2 text-white transition relative">
+            🌀 Freq
+          </a>
           <a href="{% url 'music:search' %}" class="nav-link px-4 py-2 text-white transition relative">
             Search
           </a>
@@ -322,15 +343,6 @@
           </a>
           <a href="{% url 'music:wrapped' %}" class="nav-link px-4 py-2 text-white transition relative">
             Wrapped
-          </a>
-          <a href="{% url 'music:player' %}" class="nav-link px-4 py-2 text-white transition relative">
-            Player
-          </a>
-          <a href="{% url 'music:artist_list' %}" class="nav-link px-4 py-2 text-white transition relative">
-            Artists
-          </a>
-          <a href="{% url 'music:album_list' %}" class="nav-link px-4 py-2 text-white transition relative">
-            Albums
           </a>
           <a href="{% url 'music:playlist_list' %}" class="nav-link px-4 py-2 text-white transition relative">
             Playlists
