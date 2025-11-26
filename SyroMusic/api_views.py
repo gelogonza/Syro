@@ -793,7 +793,7 @@ def albums_by_color_api(request):
     try:
         from .models import Album
 
-        color = request.query_params.get('color', '').strip()
+        color = request.GET.get('color', '').strip()
 
         if not color or not color.startswith('#') or len(color) != 7:
             return Response(
@@ -808,7 +808,7 @@ def albums_by_color_api(request):
 
         # Paginate results
         paginator = Paginator(albums, 20)
-        page_number = request.query_params.get('page', 1)
+        page_number = request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
 
         album_data = [
@@ -852,8 +852,12 @@ def color_palette_api(request):
     try:
         from .models import Album
 
-        # Get all unique colors with counts
-        color_stats = Album.objects.values('dominant_color').annotate(
+        # Get all unique colors with counts, excluding null/empty values
+        color_stats = Album.objects.exclude(
+            dominant_color__isnull=True
+        ).exclude(
+            dominant_color__exact=''
+        ).values('dominant_color').annotate(
             count=Count('id')
         ).order_by('-count')
 
@@ -862,8 +866,16 @@ def color_palette_api(request):
                 'color': stat['dominant_color'],
                 'count': stat['count'],
             }
-            for stat in color_stats
+            for stat in color_stats if stat['dominant_color']
         ]
+
+        if not colors:
+            return Response({
+                'status': 'warning',
+                'data': [],
+                'total_unique_colors': 0,
+                'message': 'No albums with color data available. Colors are being extracted from album artwork.',
+            }, status=status.HTTP_200_OK)
 
         return Response({
             'status': 'success',
@@ -903,19 +915,27 @@ def sonic_aura_api(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Extract track IDs and basic info
+        # Extract track IDs, basic info, and artist IDs
         track_ids = []
+        artist_ids_set = set()
         tracks_info = []
         for item in recently_played:
             track = item.get('track', {})
             track_id = track.get('id')
             if track_id:
                 track_ids.append(track_id)
+                track_artists = track.get('artists', [])
+                artist_name = track_artists[0]['name'] if track_artists else 'Unknown'
+
+                # Collect artist IDs for genre fetching
+                for artist in track_artists:
+                    artist_ids_set.add(artist.get('id'))
+
                 tracks_info.append({
                     'id': track_id,
                     'name': track.get('name', 'Unknown'),
-                    'artist': track['artists'][0]['name'] if track.get('artists') else 'Unknown',
-                    'genres': track.get('genres', []),
+                    'artist': artist_name,
+                    'artists': track_artists,
                 })
 
         # Fetch audio features for all tracks
@@ -926,13 +946,30 @@ def sonic_aura_api(request):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+        # Fetch genres from artists (Spotify tracks don't have genres)
+        genre_counts = {}
+        if artist_ids_set:
+            try:
+                artist_ids_list = list(artist_ids_set)
+                # Fetch artists in batches of 50 (Spotify limit)
+                for i in range(0, len(artist_ids_list), 50):
+                    batch = artist_ids_list[i:i+50]
+                    artists_data = sp.sp.artists(batch)
+                    if artists_data and 'artists' in artists_data:
+                        for artist in artists_data['artists']:
+                            if artist:
+                                for genre in artist.get('genres', []):
+                                    genre_counts[genre] = genre_counts.get(genre, 0) + 1
+            except Exception as genre_error:
+                logger.warning(f"Could not fetch artist genres: {str(genre_error)}")
+
         # Calculate Vibe Score and mood metrics
         avg_danceability = 0
         avg_energy = 0
         avg_valence = 0
         avg_acousticness = 0
         avg_instrumentalness = 0
-        mood_color_components = {'r': 0, 'g': 0, 'b': 0}
+        valid_feature_count = 0
 
         for features in audio_features:
             if not features:
@@ -942,36 +979,32 @@ def sonic_aura_api(request):
             avg_valence += features.get('valence', 0)
             avg_acousticness += features.get('acousticness', 0)
             avg_instrumentalness += features.get('instrumentalness', 0)
+            valid_feature_count += 1
 
-        count = len(audio_features)
-        if count > 0:
-            avg_danceability /= count
-            avg_energy /= count
-            avg_valence /= count
-            avg_acousticness /= count
-            avg_instrumentalness /= count
+        if valid_feature_count > 0:
+            avg_danceability /= valid_feature_count
+            avg_energy /= valid_feature_count
+            avg_valence /= valid_feature_count
+            avg_acousticness /= valid_feature_count
+            avg_instrumentalness /= valid_feature_count
 
         # Calculate Vibe Score (0-100)
         vibe_score = int((avg_danceability + avg_energy + avg_valence) / 3 * 100)
 
-        # Generate mood color based on audio features
+        # Generate mood color based on audio features with proper RGB clamping
         # High energy/valence = warm colors (red/yellow)
         # Low energy/valence = cool colors (blue/purple)
         # High acousticness = green tint
-        r = int(avg_energy * 255)  # Energy -> Red
-        g = int(avg_acousticness * 150 + avg_valence * 105)  # Acousticness + Valence -> Green
-        b = int((1 - avg_energy) * 150 + avg_valence * 105)  # Inverse energy + Valence -> Blue
+        r = int(max(0, min(255, avg_energy * 255)))
+        g = int(max(0, min(255, avg_acousticness * 150 + avg_valence * 105)))
+        b = int(max(0, min(255, (1 - avg_energy) * 150 + avg_valence * 105)))
 
         mood_color = f'#{r:02x}{g:02x}{b:02x}'
 
-        # Get top genres from listening history
-        genre_counts = {}
-        for track_info in tracks_info:
-            for genre in track_info.get('genres', []):
-                genre_counts[genre] = genre_counts.get(genre, 0) + 1
-
+        # Get top genres from artist data
         top_genres = sorted(genre_counts.items(), key=lambda x: x[1], reverse=True)[:5]
-        top_genre = top_genres[0][0] if top_genres else 'Unknown'
+        top_genre = top_genres[0][0] if top_genres else 'Varied'
+        all_top_genres = [genre[0] for genre in top_genres]
 
         response = Response({
             'status': 'success',
@@ -979,6 +1012,7 @@ def sonic_aura_api(request):
                 'vibe_score': vibe_score,
                 'mood_color': mood_color,
                 'top_genre': top_genre,
+                'top_genres': all_top_genres,
                 'danceability': round(avg_danceability, 2),
                 'energy': round(avg_energy, 2),
                 'valence': round(avg_valence, 2),

@@ -23,7 +23,8 @@
       "Bash(source:*)",
       "Bash(git push:*)",
       "Bash(python manage.py migrate:*)",
-      "Bash(python manage.py makemigrations:*)"
+      "Bash(python manage.py makemigrations:*)",
+      "Bash(xargs ls:*)"
     ],
     "deny": [],
     "ask": []
