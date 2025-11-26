@@ -141,6 +141,27 @@ class SpotifyService:
             logger.error(f"Error fetching saved tracks: {str(e)}")
             return []
 
+    def get_audio_features(self, track_ids):
+        """
+        Get audio features for one or more tracks.
+        Spotify limits to 100 tracks per request, so handle batching.
+        """
+        try:
+            if not self.sp or not track_ids:
+                return []
+
+            # Batch requests in groups of 100
+            all_features = []
+            for i in range(0, len(track_ids), 100):
+                batch = track_ids[i:i+100]
+                features = self.sp.audio_features(batch)
+                all_features.extend([f for f in features if f])  # Filter out None values
+
+            return all_features
+        except Exception as e:
+            logger.error(f"Error fetching audio features: {str(e)}")
+            return []
+
     def get_current_playlists(self, limit=50):
         """Get user's playlists."""
         try:

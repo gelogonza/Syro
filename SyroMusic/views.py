@@ -396,3 +396,16 @@ def wrapped_view(request):
     except Exception as e:
         messages.error(request, f'Error loading wrapped: {str(e)}')
         return redirect('music:dashboard')
+
+
+@login_required
+def sonic_aura_page(request):
+    """Display Sonic Aura page for user to discover their music vibe."""
+    try:
+        # Check if user has Spotify connected
+        spotify_user = SpotifyUser.objects.get(user=request.user)
+    except SpotifyUser.DoesNotExist:
+        messages.error(request, 'Please connect your Spotify account first to use Sonic Aura.')
+        return redirect('music:spotify_login')
+
+    return render(request, 'SyroMusic/sonic_aura.html')

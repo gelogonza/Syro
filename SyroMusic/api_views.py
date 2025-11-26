@@ -840,3 +840,134 @@ def color_palette_api(request):
             {'status': 'error', 'message': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def sonic_aura_api(request):
+    """
+    Generate Sonic Aura stats for current user.
+    Returns listening stats with vibe score, top genres, and mood color.
+    """
+    try:
+        from .services import SpotifyService, TokenManager
+        from .models import SpotifyUser
+
+        user = request.user
+        spotify_user = SpotifyUser.objects.get(user=user)
+
+        # Refresh token if needed
+        access_token = TokenManager.refresh_user_token(spotify_user)
+        if not access_token:
+            return Response(
+                {'status': 'error', 'message': 'Could not refresh Spotify token'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Create Spotify service with fresh token
+        sp = SpotifyService(access_token=access_token)
+
+        # Fetch last 50 recently played tracks
+        recently_played = sp.get_recently_played(limit=50)
+        if not recently_played:
+            return Response(
+                {'status': 'error', 'message': 'No recently played tracks found'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Extract track IDs and basic info
+        track_ids = []
+        tracks_info = []
+        for item in recently_played:
+            track = item.get('track', {})
+            track_id = track.get('id')
+            if track_id:
+                track_ids.append(track_id)
+                tracks_info.append({
+                    'id': track_id,
+                    'name': track.get('name', 'Unknown'),
+                    'artist': track['artists'][0]['name'] if track.get('artists') else 'Unknown',
+                    'genres': track.get('genres', []),
+                })
+
+        # Fetch audio features for all tracks
+        audio_features = sp.get_audio_features(track_ids)
+        if not audio_features:
+            return Response(
+                {'status': 'error', 'message': 'Could not fetch audio features'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # Calculate Vibe Score and mood metrics
+        avg_danceability = 0
+        avg_energy = 0
+        avg_valence = 0
+        avg_acousticness = 0
+        avg_instrumentalness = 0
+        mood_color_components = {'r': 0, 'g': 0, 'b': 0}
+
+        for features in audio_features:
+            if not features:
+                continue
+            avg_danceability += features.get('danceability', 0)
+            avg_energy += features.get('energy', 0)
+            avg_valence += features.get('valence', 0)
+            avg_acousticness += features.get('acousticness', 0)
+            avg_instrumentalness += features.get('instrumentalness', 0)
+
+        count = len(audio_features)
+        if count > 0:
+            avg_danceability /= count
+            avg_energy /= count
+            avg_valence /= count
+            avg_acousticness /= count
+            avg_instrumentalness /= count
+
+        # Calculate Vibe Score (0-100)
+        vibe_score = int((avg_danceability + avg_energy + avg_valence) / 3 * 100)
+
+        # Generate mood color based on audio features
+        # High energy/valence = warm colors (red/yellow)
+        # Low energy/valence = cool colors (blue/purple)
+        # High acousticness = green tint
+        r = int(avg_energy * 255)  # Energy -> Red
+        g = int(avg_acousticness * 150 + avg_valence * 105)  # Acousticness + Valence -> Green
+        b = int((1 - avg_energy) * 150 + avg_valence * 105)  # Inverse energy + Valence -> Blue
+
+        mood_color = f'#{r:02x}{g:02x}{b:02x}'
+
+        # Get top genres from listening history
+        genre_counts = {}
+        for track_info in tracks_info:
+            for genre in track_info.get('genres', []):
+                genre_counts[genre] = genre_counts.get(genre, 0) + 1
+
+        top_genres = sorted(genre_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        top_genre = top_genres[0][0] if top_genres else 'Unknown'
+
+        return Response({
+            'status': 'success',
+            'data': {
+                'vibe_score': vibe_score,
+                'mood_color': mood_color,
+                'top_genre': top_genre,
+                'danceability': round(avg_danceability, 2),
+                'energy': round(avg_energy, 2),
+                'valence': round(avg_valence, 2),
+                'acousticness': round(avg_acousticness, 2),
+                'instrumentalness': round(avg_instrumentalness, 2),
+                'track_count': len(recently_played),
+            }
+        })
+
+    except SpotifyUser.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'No Spotify account connected'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error in sonic_aura_api: {str(e)}")
+        return Response(
+            {'status': 'error', 'message': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

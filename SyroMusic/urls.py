@@ -9,6 +9,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('stats/', views.stats_dashboard, name='stats_dashboard'),
     path('wrapped/', views.wrapped_view, name='wrapped'),
+    path('sonic-aura/', views.sonic_aura_page, name='sonic_aura_page'),
     path('sync/', views.sync_spotify_stats, name='sync_spotify_stats'),
 
     # List views
@@ -82,4 +83,7 @@ urlpatterns = [
     # Color-based Discovery (Phase 2 - The Crate)
     path('api/albums/by-color/', api_views.albums_by_color_api, name='albums_by_color'),
     path('api/color-palette/', api_views.color_palette_api, name='color_palette'),
+
+    # Sonic Aura Stats (Phase 3 - Shareable cards)
+    path('api/sonic-aura/', api_views.sonic_aura_api, name='sonic_aura'),
 ]
