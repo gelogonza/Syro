@@ -46,120 +46,10 @@
 </div>
 
 {% if query %}
-  <!-- Results -->
+  <!-- Results - Spotify Only -->
   <div class="space-y-8">
-    {% if results.artists %}
-      <div>
-        <h2 class="text-2xl font-bold mb-4 flex items-center">
-          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:microphone"></span>
-          Artists
-        </h2>
-        <div class="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {% for artist in results.artists %}
-            <a href="{% url 'music:artist_detail' artist.id %}" 
-               class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all text-center group">
-              <div class="h-24 w-24 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <span class="iconify h-10 w-10 text-primary" data-icon="mdi:account"></span>
-              </div>
-              <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ artist.name }}</div>
-            </a>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
 
-    {% if results.albums %}
-      <div>
-        <h2 class="text-2xl font-bold mb-4 flex items-center">
-          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:album"></span>
-          Albums
-        </h2>
-        <div class="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {% for album in results.albums %}
-            <a href="{% url 'music:album_detail' album.id %}" 
-               class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all group">
-              <div class="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                <span class="iconify h-12 w-12 text-primary" data-icon="mdi:disc"></span>
-              </div>
-              <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ album.title }}</div>
-              <div class="text-sm text-muted-foreground line-clamp-1">{{ album.artist.name }}</div>
-            </a>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
 
-    {% if results.songs %}
-      <div>
-        <h2 class="text-2xl font-bold mb-4 flex items-center">
-          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:music"></span>
-          Tracks
-        </h2>
-        <div class="glass rounded-xl border border-border overflow-hidden">
-          {% for song in results.songs %}
-            <div class="p-4 border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors flex items-center justify-between group">
-              <div class="flex items-center gap-3 flex-1 min-w-0">
-                {% if song.album.cover_url %}
-                  <img src="{{ song.album.cover_url }}" alt="{{ song.album.title }}" class="h-12 w-12 rounded-lg object-cover flex-shrink-0">
-                {% else %}
-                  <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
-                    <span class="iconify h-6 w-6 text-primary" data-icon="mdi:music-note"></span>
-                  </div>
-                {% endif %}
-                <div class="flex-1 min-w-0">
-                  <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ song.title }}</div>
-                  <div class="text-sm text-muted-foreground line-clamp-1">
-                    {{ song.album.artist.name }} • {{ song.album.title }}
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onclick="playTrack('spotify:track:{{ song.spotify_id }}', {
-                  name: '{{ song.title|escapejs }}',
-                  artist: '{{ song.album.artist.name|escapejs }}',
-                  album: '{{ song.album.title|escapejs }}'
-                })"
-                  class="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-medium text-sm hover-glow flex-shrink-0 border-0 cursor-pointer">
-                  <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:play"></span>
-                  Play
-                </button>
-                <button onclick="addToQueue('spotify:track:{{ song.spotify_id }}', '{{ song.title|escapejs }}')"
-                  class="px-4 py-2 rounded-lg border border-primary text-primary font-medium text-sm hover:bg-primary/10 flex-shrink-0">
-                  <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-plus"></span>
-                  Queue
-                </button>
-                <button onclick="openAddToPlaylistModal({{ song.id }}, '{{ song.spotify_id }}', '{{ song.title|escapejs }}', 'local')"
-                  class="px-4 py-2 rounded-lg border border-accent text-accent font-medium text-sm hover:bg-accent/10 flex-shrink-0">
-                  <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-music"></span>
-                  Playlist
-                </button>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
-
-    {% if results.playlists %}
-      <div>
-        <h2 class="text-2xl font-bold mb-4 flex items-center">
-          <span class="iconify h-6 w-6 mr-2 text-primary" data-icon="mdi:playlist-music"></span>
-          Playlists
-        </h2>
-        <div class="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {% for playlist in results.playlists %}
-            <a href="{% url 'music:playlist_detail' playlist.id %}" 
-               class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all group">
-              <div class="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                <span class="iconify h-12 w-12 text-primary" data-icon="mdi:playlist-play"></span>
-              </div>
-              <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">{{ playlist.title }}</div>
-              <div class="text-sm text-muted-foreground line-clamp-1">{{ playlist.songs.count }} songs</div>
-            </a>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
 
     <!-- Spotify Results -->
     {% if results.spotify_artists %}
@@ -172,8 +62,16 @@
           {% for artist in results.spotify_artists %}
             <button onclick="loadArtistTracks('{{ artist.id }}', '{{ artist.name|escapejs }}')"
                class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all text-center group cursor-pointer w-full">
-              {% if artist.images %}
-                <img src="{{ artist.images.0.url }}" alt="{{ artist.name }}" class="h-24 w-24 mx-auto rounded-full object-cover mb-3 group-hover:scale-110 transition-transform">
+              {% if artist.images|length > 0 %}
+                {% with artist_img=artist.images|first %}
+                  {% if artist_img.url %}
+                    <img src="{{ artist_img.url }}" alt="{{ artist.name }}" class="h-24 w-24 mx-auto rounded-full object-cover mb-3 group-hover:scale-110 transition-transform" loading="lazy">
+                  {% else %}
+                    <div class="h-24 w-24 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <span class="iconify h-10 w-10 text-primary" data-icon="mdi:account"></span>
+                    </div>
+                  {% endif %}
+                {% endwith %}
               {% else %}
                 <div class="h-24 w-24 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                   <span class="iconify h-10 w-10 text-primary" data-icon="mdi:account"></span>
@@ -198,9 +96,17 @@
         <div class="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {% for album in results.spotify_albums %}
             <div class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all group cursor-pointer"
-               onclick="playTrack('{{ album.uri }}')">
-              {% if album.images %}
-                <img src="{{ album.images.0.url }}" alt="{{ album.name }}" class="aspect-square rounded-lg object-cover mb-3 group-hover:scale-105 transition-transform">
+               onclick="loadAlbumTracks('{{ album.id }}', '{{ album.name|escapejs }}')">
+              {% if album.images|length > 0 %}
+                {% with album_img=album.images|first %}
+                  {% if album_img.url %}
+                    <img src="{{ album_img.url }}" alt="{{ album.name }}" class="aspect-square rounded-lg object-cover mb-3 group-hover:scale-105 transition-transform" loading="lazy">
+                  {% else %}
+                    <div class="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                      <span class="iconify h-12 w-12 text-primary" data-icon="mdi:disc"></span>
+                    </div>
+                  {% endif %}
+                {% endwith %}
               {% else %}
                 <div class="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
                   <span class="iconify h-12 w-12 text-primary" data-icon="mdi:disc"></span>
@@ -211,8 +117,8 @@
                 {% for artist in album.artists %}{{ artist.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
               </div>
               <div class="mt-2 flex items-center text-sm text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                <span class="iconify h-4 w-4 mr-1" data-icon="mdi:play-circle"></span>
-                Play Album
+                <span class="iconify h-4 w-4 mr-1" data-icon="mdi:music"></span>
+                View Tracks
               </div>
             </div>
           {% endfor %}
@@ -230,8 +136,16 @@
           {% for track in results.spotify_tracks %}
             <div class="p-4 border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors flex items-center justify-between group">
               <div class="flex items-center gap-3 flex-1 min-w-0">
-                {% if track.album.images %}
-                  <img src="{{ track.album.images.0.url }}" alt="{{ track.name }}" class="h-10 w-10 rounded-lg object-cover flex-shrink-0">
+                {% if track.album.images|length > 0 %}
+                  {% with img_url=track.album.images|first %}
+                    {% if img_url.url %}
+                      <img src="{{ img_url.url }}" alt="{{ track.name }}" class="h-10 w-10 rounded-lg object-cover flex-shrink-0" loading="lazy">
+                    {% else %}
+                      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+                        <span class="iconify h-5 w-5 text-primary" data-icon="mdi:music-note"></span>
+                      </div>
+                    {% endif %}
+                  {% endwith %}
                 {% else %}
                   <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
                     <span class="iconify h-5 w-5 text-primary" data-icon="mdi:music-note"></span>
@@ -281,8 +195,16 @@
           {% for playlist in results.spotify_playlists %}
             <a href="{{ playlist.external_urls.spotify }}" target="_blank" rel="noopener noreferrer"
                class="glass rounded-xl p-4 border border-border hover-glow hover:scale-105 transition-all group">
-              {% if playlist.images %}
-                <img src="{{ playlist.images.0.url }}" alt="{{ playlist.name }}" class="aspect-square rounded-lg object-cover mb-3 group-hover:scale-105 transition-transform">
+              {% if playlist.images|length > 0 %}
+                {% with playlist_img=playlist.images|first %}
+                  {% if playlist_img.url %}
+                    <img src="{{ playlist_img.url }}" alt="{{ playlist.name }}" class="aspect-square rounded-lg object-cover mb-3 group-hover:scale-105 transition-transform" loading="lazy">
+                  {% else %}
+                    <div class="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                      <span class="iconify h-12 w-12 text-primary" data-icon="mdi:playlist-play"></span>
+                    </div>
+                  {% endif %}
+                {% endwith %}
               {% else %}
                 <div class="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
                   <span class="iconify h-12 w-12 text-primary" data-icon="mdi:playlist-play"></span>
@@ -637,13 +559,43 @@
 
       if (data.status === 'success') {
         displayArtistTracks(data.data);
-        showNotification(`Found ${data.data.count} tracks from ${artistName}`, 'success');
+        showNotification(`Found ${data.data.tracks.length} tracks from ${artistName}`, 'success');
       } else {
         showNotification(data.message || 'Failed to load artist tracks', 'error');
       }
     } catch (error) {
       console.error('Error loading artist tracks:', error);
       showNotification('Failed to load artist tracks. Please try again.', 'error');
+    }
+  }
+
+  // Load album's tracks from Spotify
+  async function loadAlbumTracks(albumId, albumName) {
+    try {
+      showNotification(`Loading ${albumName}'s tracks...`, 'success');
+
+      const response = await fetch(`/music/api/spotify/album/${albumId}/tracks/`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to load album tracks: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        displayAlbumTracks(data.album, data.tracks);
+        showNotification(`Found ${data.tracks.length} tracks from ${albumName}`, 'success');
+      } else {
+        showNotification(data.message || 'Failed to load album tracks', 'error');
+      }
+    } catch (error) {
+      console.error('Error loading album tracks:', error);
+      showNotification('Failed to load album tracks. Please try again.', 'error');
     }
   }
 
@@ -718,6 +670,77 @@
     if (resultsContainer) {
       resultsContainer.insertAdjacentHTML('afterbegin', html);
       // Scroll to the artist section
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // Display album tracks in the results section
+  function displayAlbumTracks(album, tracks) {
+    // Create album header section
+    let html = `
+      <div class="mb-8">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-32 h-32 rounded-lg overflow-hidden flex-shrink-0">
+            ${album.images && album.images.length > 0 ?
+              `<img src="${album.images[0].url}" alt="${album.name}" class="w-full h-full object-cover">` :
+              `<div class="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                <span class="iconify h-16 w-16 text-primary" data-icon="mdi:disc"></span>
+              </div>`}
+          </div>
+          <div>
+            <h2 class="text-3xl font-bold">${album.name}</h2>
+            <p class="text-muted-foreground">${album.artists.map(a => a.name).join(', ')}</p>
+            <p class="text-sm text-muted-foreground mt-2">Released: ${album.release_date || 'Unknown'}</p>
+            <p class="text-sm text-muted-foreground">${tracks.length} tracks</p>
+          </div>
+        </div>
+
+        <h3 class="text-2xl font-bold mb-4">Tracks</h3>
+        <div class="glass rounded-xl border border-border overflow-hidden">
+    `;
+
+    // Add each track
+    tracks.forEach((track, index) => {
+      html += `
+        <div class="p-4 border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors flex items-center justify-between group">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <div class="text-muted-foreground font-semibold text-sm min-w-fit">${index + 1}</div>
+            ${track.album && track.album.images && track.album.images.length > 0 ?
+              `<img src="${track.album.images[0].url}" alt="${track.name}" class="h-10 w-10 rounded-lg object-cover flex-shrink-0">` :
+              `<div class="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+                <span class="iconify h-5 w-5 text-primary" data-icon="mdi:music-note"></span>
+              </div>`}
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold line-clamp-1 group-hover:text-primary transition-colors">${track.name}</div>
+              <div class="text-sm text-muted-foreground line-clamp-1">${track.artists.map(a => a.name).join(', ')} • ${Math.floor(track.duration_ms / 60000)}:${(Math.floor((track.duration_ms % 60000) / 1000)).toString().padStart(2, '0')}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onclick="playTrack('${track.uri}')"
+                    class="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-black font-medium text-sm hover-glow flex-shrink-0">
+              <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:play"></span>
+              Play
+            </button>
+            <button onclick="addToQueue('${track.uri}', '${track.name.replace(/'/g, "\\'")}' )"
+                    class="px-4 py-2 rounded-lg border border-primary text-primary font-medium text-sm hover:bg-primary/10 flex-shrink-0">
+              <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-plus"></span>
+              Queue
+            </button>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+
+    // Insert at the beginning of results
+    const resultsContainer = document.querySelector('.space-y-8');
+    if (resultsContainer) {
+      resultsContainer.insertAdjacentHTML('afterbegin', html);
+      // Scroll to the album section
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }

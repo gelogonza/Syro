@@ -69,20 +69,20 @@ def search(request):
                         sp = SpotifyService(spotify_user)
 
                         if search_type in ['all', 'artist']:
-                            spotify_artists = sp.search(query, 'artist', limit=5)
-                            results['spotify_artists'] = spotify_artists
+                            spotify_artists_response = sp.search(query, 'artist', limit=5)
+                            results['spotify_artists'] = spotify_artists_response.get('artists', {}).get('items', []) if spotify_artists_response else []
 
                         if search_type in ['all', 'album']:
-                            spotify_albums = sp.search(query, 'album', limit=5)
-                            results['spotify_albums'] = spotify_albums
+                            spotify_albums_response = sp.search(query, 'album', limit=5)
+                            results['spotify_albums'] = spotify_albums_response.get('albums', {}).get('items', []) if spotify_albums_response else []
 
                         if search_type in ['all', 'track']:
-                            spotify_tracks = sp.search(query, 'track', limit=5)
-                            results['spotify_tracks'] = spotify_tracks
+                            spotify_tracks_response = sp.search(query, 'track', limit=5)
+                            results['spotify_tracks'] = spotify_tracks_response.get('tracks', {}).get('items', []) if spotify_tracks_response else []
 
                         if search_type in ['all', 'playlist']:
-                            spotify_playlists = sp.search(query, 'playlist', limit=5)
-                            results['spotify_playlists'] = spotify_playlists
+                            spotify_playlists_response = sp.search(query, 'playlist', limit=5)
+                            results['spotify_playlists'] = spotify_playlists_response.get('playlists', {}).get('items', []) if spotify_playlists_response else []
             except Exception as e:
                 messages.warning(request, f'Could not search Spotify: {str(e)}')
 
