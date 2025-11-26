@@ -28,6 +28,7 @@ class Album(models.Model):
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
     release_date = models.DateField(db_index=True)
     cover_url = models.URLField(blank=True, null=True)
+    spotify_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     dominant_color = models.CharField(max_length=7, default='#1a1a2e', blank=True, db_index=True)
     color_extracted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)

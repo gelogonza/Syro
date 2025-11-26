@@ -209,6 +209,7 @@ class Command(BaseCommand):
                 artist=artist,
                 release_date=release_date,
                 cover_url=cover_url,
+                spotify_id=album_data.get('id'),
             )
 
             return True

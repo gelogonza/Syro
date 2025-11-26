@@ -152,26 +152,32 @@
     if (loadingIndicator) {
       async function loadSpotifyTracks() {
         try {
+          const spotifyId = '{{ album.spotify_id|escapejs }}';
           const albumName = '{{ album.title|escapejs }}';
           const artistName = '{{ album.artist.name|escapejs }}';
 
-          // Search for the album in Spotify
-          const searchResponse = await fetch(`/music/api/search/?q=${encodeURIComponent(albumName + ' ' + artistName)}&type=album`, {
-            headers: {'X-Requested-With': 'XMLHttpRequest'}
-          });
+          let albumId = spotifyId;
 
-          if (!searchResponse.ok) throw new Error('Search failed');
+          // If no Spotify ID stored, search for the album in Spotify
+          if (!albumId) {
+            const searchResponse = await fetch(`/music/api/search/?q=${encodeURIComponent(albumName + ' ' + artistName)}&type=album`, {
+              headers: {'X-Requested-With': 'XMLHttpRequest'}
+            });
 
-          const searchData = await searchResponse.json();
-          const albums = searchData.data?.albums || [];
-          const matchingAlbum = albums.find(a => a.name.toLowerCase().includes(albumName.toLowerCase()));
+            if (!searchResponse.ok) throw new Error('Search failed');
 
-          if (!matchingAlbum) {
-            throw new Error('Album not found in Spotify');
+            const searchData = await searchResponse.json();
+            const albums = searchData.data?.albums || [];
+            const matchingAlbum = albums.find(a => a.name.toLowerCase().includes(albumName.toLowerCase()));
+
+            if (!matchingAlbum) {
+              throw new Error('Album not found in Spotify');
+            }
+            albumId = matchingAlbum.id;
           }
 
           // Fetch tracks for this album
-          const tracksResponse = await fetch(`/music/api/albums/tracks/?album_id=${matchingAlbum.id}`, {
+          const tracksResponse = await fetch(`/music/api/albums/tracks/?album_id=${albumId}`, {
             headers: {'X-Requested-With': 'XMLHttpRequest'}
           });
 
