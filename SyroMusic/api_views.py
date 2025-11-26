@@ -400,16 +400,19 @@ def sync_spotify_stats_api(request):
         try:
             # Try async execution with Celery
             from .tasks import sync_all_user_data
-            task = sync_all_user_data.delay(request.user.id)
+            try:
+                task = sync_all_user_data.delay(request.user.id)
+                serializer = SyncStatusSerializer({
+                    'status': 'syncing',
+                    'message': 'Your Spotify stats are being synced. This may take a minute.',
+                    'task_id': task.id,
+                })
+                return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            except Exception as celery_error:
+                # Catch any Celery-related errors and fall back to sync
+                raise celery_error
 
-            serializer = SyncStatusSerializer({
-                'status': 'syncing',
-                'message': 'Your Spotify stats are being synced. This may take a minute.',
-                'task_id': task.id,
-            })
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-
-        except (ConnectionError, RuntimeError) as e:
+        except Exception as e:
             # Celery broker is unavailable, run synchronously instead
             logger.warning(f"Celery connection failed for user {request.user.id}: {str(e)}. Running sync synchronously.")
 
