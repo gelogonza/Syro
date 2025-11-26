@@ -587,11 +587,11 @@
 
       const data = await response.json();
 
-      if (data.status === 'success') {
-        displayAlbumTracks(data.album, data.tracks);
-        showNotification(`Found ${data.tracks.length} tracks from ${albumName}`, 'success');
+      if (data.status === 'success' && data.data) {
+        displayAlbumTracks(data.data.album, data.data.tracks);
+        showNotification(`Found ${data.data.tracks.length} tracks from ${albumName}`, 'success');
       } else {
-        showNotification(data.message || 'Failed to load album tracks', 'error');
+        throw new Error(data.message || 'Failed to load album tracks');
       }
     } catch (error) {
       console.error('Error loading album tracks:', error);

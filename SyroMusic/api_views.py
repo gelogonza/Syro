@@ -1452,16 +1452,18 @@ def spotify_album_tracks_api(request, album_id):
         return Response(
             {
                 'status': 'success',
-                'album': {
-                    'id': album_data.get('id'),
-                    'name': album_data.get('name'),
-                    'artists': album_data.get('artists', []),
-                    'images': album_data.get('images', []),
-                    'release_date': album_data.get('release_date'),
-                    'total_tracks': album_data.get('total_tracks', 0)
-                },
-                'tracks': tracks,
-                'count': len(tracks)
+                'data': {
+                    'album': {
+                        'id': album_data.get('id'),
+                        'name': album_data.get('name'),
+                        'artists': album_data.get('artists', []),
+                        'images': album_data.get('images', []),
+                        'release_date': album_data.get('release_date'),
+                        'total_tracks': album_data.get('total_tracks', 0)
+                    },
+                    'tracks': tracks,
+                    'count': len(tracks)
+                }
             }
         )
 
