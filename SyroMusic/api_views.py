@@ -1435,9 +1435,13 @@ def spotify_album_tracks_api(request, album_id):
             if not track:
                 continue
 
+            # Extract artist names from Spotify artist objects
+            artist_names = ', '.join([a['name'] for a in track.get('artists', [])])
+
             tracks.append({
                 'id': track.get('id'),
                 'name': track.get('name'),
+                'artist': artist_names if artist_names else 'Unknown Artist',
                 'artists': track.get('artists', []),
                 'album': {
                     'name': album_data.get('name'),
