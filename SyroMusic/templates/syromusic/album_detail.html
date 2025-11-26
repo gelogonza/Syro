@@ -152,29 +152,42 @@
     if (loadingIndicator) {
       async function loadSpotifyTracks() {
         try {
-          const spotifyId = '{{ album.spotify_id|escapejs }}';
           const albumName = '{{ album.title|escapejs }}';
           const artistName = '{{ album.artist.name|escapejs }}';
 
-          let albumId = spotifyId;
+          // Search for the album in Spotify
+          console.log(`Searching for album: ${albumName} by ${artistName}`);
 
-          // If no Spotify ID stored, search for the album in Spotify
-          if (!albumId) {
-            const searchResponse = await fetch(`/music/api/search/?q=${encodeURIComponent(albumName + ' ' + artistName)}&type=album`, {
-              headers: {'X-Requested-With': 'XMLHttpRequest'}
-            });
+          const searchResponse = await fetch(`/music/api/search/?q=${encodeURIComponent(albumName + ' ' + artistName)}&type=album`, {
+            headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}'}
+          });
 
-            if (!searchResponse.ok) throw new Error('Search failed');
-
-            const searchData = await searchResponse.json();
-            const albums = searchData.data?.albums || [];
-            const matchingAlbum = albums.find(a => a.name.toLowerCase().includes(albumName.toLowerCase()));
-
-            if (!matchingAlbum) {
-              throw new Error('Album not found in Spotify');
-            }
-            albumId = matchingAlbum.id;
+          if (!searchResponse.ok) {
+            const errorText = await searchResponse.text();
+            console.error('Search response error:', searchResponse.status, errorText);
+            throw new Error(`Search failed: ${searchResponse.status}`);
           }
+
+          const searchData = await searchResponse.json();
+          console.log('Search results:', searchData);
+
+          const albums = searchData.data?.albums || searchData.data || [];
+          if (!Array.isArray(albums)) {
+            throw new Error('Invalid search response format');
+          }
+
+          // Find best match (exact or close match)
+          const matchingAlbum = albums.find(a => a.name && a.name.toLowerCase() === albumName.toLowerCase())
+                             || albums.find(a => a.name && a.name.toLowerCase().includes(albumName.toLowerCase()))
+                             || albums[0];  // Fallback to first result
+
+          if (!matchingAlbum || !matchingAlbum.id) {
+            console.error('No matching album found in results:', albums);
+            throw new Error('Album not found in Spotify');
+          }
+
+          const albumId = matchingAlbum.id;
+          console.log(`Found album: ${matchingAlbum.name} (${albumId})`);
 
           // Fetch tracks for this album
           const tracksResponse = await fetch(`/music/api/albums/tracks/?album_id=${albumId}`, {
@@ -211,7 +224,9 @@
         } catch (error) {
           console.error('Error loading Spotify tracks:', error);
           loadingIndicator.style.display = 'none';
-          document.getElementById('noTracksMessage').style.display = 'block';
+          const noTracksMsg = document.getElementById('noTracksMessage');
+          noTracksMsg.textContent = `Failed to load tracks: ${error.message}`;
+          noTracksMsg.style.display = 'block';
         }
       }
 
