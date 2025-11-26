@@ -6,11 +6,14 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from SyroMusic.models import Album
 import io
-import urllib.request
-from PIL import Image
 import logging
+import requests
+from PIL import Image
 
 logger = logging.getLogger(__name__)
+
+# Disable SSL verification warning
+requests.packages.urllib3.disable_warnings()
 
 
 class Command(BaseCommand):
@@ -66,8 +69,9 @@ class Command(BaseCommand):
 
                 # Download album cover image
                 try:
-                    response = urllib.request.urlopen(album.cover_url, timeout=10)
-                    img = Image.open(io.BytesIO(response.read())).convert('RGB')
+                    response = requests.get(album.cover_url, timeout=10, verify=False)
+                    response.raise_for_status()
+                    img = Image.open(io.BytesIO(response.content)).convert('RGB')
                 except Exception as e:
                     self.stdout.write(self.style.WARNING(f'  Failed to download: {str(e)}'))
                     failed_count += 1

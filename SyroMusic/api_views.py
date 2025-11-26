@@ -1271,14 +1271,14 @@ def frequency_randomizer_api(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def artist_tracks_api(request):
+def artist_tracks_api(request, artist_id):
     """
     Fetch top tracks for a Spotify artist.
+    URL parameters:
+    - artist_id: Spotify artist ID (required, in URL path)
     Query parameters:
-    - artist_id: Spotify artist ID (required)
     - limit: Number of tracks to return (default: 20, max: 50)
     """
-    artist_id = request.GET.get('artist_id')
     limit = min(int(request.GET.get('limit', 20)), 50)
 
     if not artist_id:
