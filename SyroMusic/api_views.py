@@ -387,21 +387,49 @@ class SpotifyUserViewSet(viewsets.ReadOnlyModelViewSet):
 def sync_spotify_stats_api(request):
     """
     API endpoint to trigger a manual sync of Spotify statistics.
+    Falls back to synchronous execution if Celery broker is unavailable.
     """
     try:
-        from .tasks import sync_all_user_data
+        from .tasks import (
+            sync_user_profile_data,
+            sync_user_spotify_stats,
+            sync_user_recently_played,
+            sync_user_saved_tracks_count
+        )
 
-        # Trigger the background sync task
-        task = sync_all_user_data.delay(request.user.id)
+        try:
+            # Try async execution with Celery
+            from .tasks import sync_all_user_data
+            task = sync_all_user_data.delay(request.user.id)
 
-        serializer = SyncStatusSerializer({
-            'status': 'syncing',
-            'message': 'Your Spotify stats are being synced. This may take a minute.',
-            'task_id': task.id,
-        })
-        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            serializer = SyncStatusSerializer({
+                'status': 'syncing',
+                'message': 'Your Spotify stats are being synced. This may take a minute.',
+                'task_id': task.id,
+            })
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
+        except (ConnectionError, RuntimeError) as e:
+            # Celery broker is unavailable, run synchronously instead
+            logger.warning(f"Celery connection failed for user {request.user.id}: {str(e)}. Running sync synchronously.")
+
+            # Execute sync tasks synchronously
+            sync_user_profile_data(request.user.id)
+            sync_user_spotify_stats(request.user.id, 'short_term')
+            sync_user_spotify_stats(request.user.id, 'medium_term')
+            sync_user_spotify_stats(request.user.id, 'long_term')
+            sync_user_recently_played(request.user.id)
+            sync_user_saved_tracks_count(request.user.id)
+
+            serializer = SyncStatusSerializer({
+                'status': 'completed',
+                'message': 'Your Spotify stats have been synced successfully.',
+                'task_id': None,
+            })
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Exception as e:
+        logger.error(f"Error syncing stats for user {request.user.id}: {str(e)}")
         return Response(
             {
                 'status': 'error',

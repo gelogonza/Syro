@@ -293,16 +293,39 @@ def dashboard(request):
 
 @login_required(login_url='login')
 def sync_spotify_stats(request):
-    """Trigger a manual sync of Spotify statistics."""
+    """Trigger a manual sync of Spotify statistics. Falls back to synchronous execution if Celery unavailable."""
     try:
-        from .tasks import sync_all_user_data
+        from .tasks import (
+            sync_user_profile_data,
+            sync_user_spotify_stats as sync_stats,
+            sync_user_recently_played,
+            sync_user_saved_tracks_count
+        )
 
-        # Trigger the background sync task
-        sync_all_user_data.delay(request.user.id)
+        try:
+            # Try async execution with Celery
+            from .tasks import sync_all_user_data
+            sync_all_user_data.delay(request.user.id)
+            messages.success(request, 'Syncing your Spotify stats... This may take a minute.')
+            return redirect('music:dashboard')
 
-        messages.success(request, 'Syncing your Spotify stats... This may take a minute.')
-        return redirect('music:dashboard')
+        except (ConnectionError, RuntimeError) as e:
+            # Celery broker is unavailable, run synchronously
+            logger.warning(f"Celery connection failed for user {request.user.id}: {str(e)}. Running sync synchronously.")
+
+            # Execute sync tasks synchronously
+            sync_user_profile_data(request.user.id)
+            sync_stats(request.user.id, 'short_term')
+            sync_stats(request.user.id, 'medium_term')
+            sync_stats(request.user.id, 'long_term')
+            sync_user_recently_played(request.user.id)
+            sync_user_saved_tracks_count(request.user.id)
+
+            messages.success(request, 'Your Spotify stats have been synced successfully!')
+            return redirect('music:dashboard')
+
     except Exception as e:
+        logger.error(f"Error syncing stats for user {request.user.id}: {str(e)}")
         messages.error(request, f'Error syncing stats: {str(e)}')
         return redirect('music:dashboard')
 
