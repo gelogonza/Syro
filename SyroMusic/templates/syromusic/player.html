@@ -909,29 +909,31 @@
 </div>
 
 <!-- Lyrics Modal -->
-<div id="lyricsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.90); z-index: 1000; align-items: center; justify-content: center; padding: 2rem;">
-  <div style="background: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(26, 26, 26, 0.95) 100%); border: 1px solid rgba(192, 192, 192, 0.3); border-radius: 16px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 2rem; position: relative; box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);">
+<div id="lyricsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.92); z-index: 1000; align-items: center; justify-content: center; padding: 2rem; backdrop-filter: blur(4px);">
+  <div style="background: linear-gradient(135deg, rgba(10, 10, 10, 0.98) 0%, rgba(26, 26, 26, 0.98) 50%, rgba(15, 52, 96, 0.3) 100%); border: 1px solid rgba(192, 192, 192, 0.4); border-radius: 20px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 2.5rem; position: relative; box-shadow: 0 0 60px rgba(16, 185, 129, 0.2), 0 0 30px rgba(192, 192, 192, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);">
     <!-- Close Button -->
-    <button onclick="closeLyricsModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: rgba(192, 192, 192, 0.8); font-size: 1.5rem; cursor: pointer; z-index: 1001; transition: color 0.2s;">
+    <button onclick="closeLyricsModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: rgba(192, 192, 192, 0.8); font-size: 1.5rem; cursor: pointer; z-index: 1001; transition: all 0.3s ease; padding: 0.5rem;">
       ✕
     </button>
+    <button onclick="closeLyricsModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: rgba(192, 192, 192, 0.8); font-size: 1.5rem; cursor: pointer; z-index: 1001; transition: all 0.3s ease; padding: 0.5rem;" onmouseover="this.style.color='rgba(16, 185, 129, 0.9)'; this.style.textShadow='0 0 10px rgba(16, 185, 129, 0.6)';" onmouseout="this.style.color='rgba(192, 192, 192, 0.8)'; this.style.textShadow='none';">
+    </button>
 
-    <!-- Track Info -->
-    <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(192, 192, 192, 0.2);">
-      <h2 id="lyricsTrackName" style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem;"></h2>
-      <p id="lyricsArtistName" style="font-size: 1rem; color: rgba(255, 255, 255, 0.7);"></p>
+    <!-- Track Info with Glow -->
+    <div style="text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(16, 185, 129, 0.3);">
+      <h2 id="lyricsTrackName" style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 0%, #e8e8e8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; text-shadow: 0 0 20px rgba(16, 185, 129, 0.3); letter-spacing: -0.5px;"></h2>
+      <p id="lyricsArtistName" style="font-size: 1.1rem; color: rgba(16, 185, 129, 0.9); font-weight: 500; text-transform: uppercase; letter-spacing: 1px;"></p>
     </div>
 
-    <!-- Lyrics Content -->
-    <div id="lyricsContent" style="color: rgba(255, 255, 255, 0.9); line-height: 2; font-size: 1.1rem; white-space: pre-wrap; text-align: center; font-family: 'Inter', sans-serif;">
+    <!-- Lyrics Content with Glow Effects -->
+    <div id="lyricsContent" style="color: rgba(255, 255, 255, 0.95); line-height: 2.2; font-size: 1.15rem; white-space: pre-wrap; text-align: center; font-family: 'Inter', sans-serif; text-shadow: 0 0 20px rgba(16, 185, 129, 0.15); margin: 1rem 0;">
       <div style="text-align: center; padding: 3rem 1rem;">
-        <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid rgba(192, 192, 192, 0.3); border-top-color: rgba(192, 192, 192, 0.8); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.6);">Loading lyrics...</p>
+        <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid rgba(16, 185, 129, 0.4); border-top-color: rgba(16, 185, 129, 1); border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);"></div>
+        <p style="margin-top: 1rem; color: rgba(16, 185, 129, 0.8);">Loading lyrics...</p>
       </div>
     </div>
 
     <!-- Source Attribution -->
-    <div id="lyricsSource" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(192, 192, 192, 0.2); text-align: center; color: rgba(255, 255, 255, 0.5); font-size: 0.85rem;">
+    <div id="lyricsSource" style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(16, 185, 129, 0.2); text-align: center; color: rgba(16, 185, 129, 0.7); font-size: 0.9rem; font-weight: 500;">
     </div>
   </div>
 </div>
@@ -939,6 +941,19 @@
 <style>
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+
+  @keyframes glowPulse {
+    0%, 100% {
+      text-shadow: 0 0 10px rgba(16, 185, 129, 0.3), 0 0 20px rgba(16, 185, 129, 0.1);
+    }
+    50% {
+      text-shadow: 0 0 20px rgba(16, 185, 129, 0.6), 0 0 40px rgba(16, 185, 129, 0.3);
+    }
+  }
+
+  #lyricsContent {
+    animation: glowPulse 4s ease-in-out infinite;
   }
 </style>
 
@@ -3014,15 +3029,15 @@
     artistNameEl.textContent = artistName;
     content.innerHTML = `
       <div style="text-align: center; padding: 3rem 1rem;">
-        <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid rgba(192, 192, 192, 0.3); border-top-color: rgba(192, 192, 192, 0.8); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.6);">Loading lyrics...</p>
+        <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid rgba(16, 185, 129, 0.4); border-top-color: rgba(16, 185, 129, 1); border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);"></div>
+        <p style="margin-top: 1rem; color: rgba(16, 185, 129, 0.8);">Loading lyrics...</p>
       </div>
     `;
     sourceEl.innerHTML = '';
     
     try {
       // Build query parameters
-      let url = `/api/lyrics/?track_name=${encodeURIComponent(trackName)}&artist_name=${encodeURIComponent(artistName)}`;
+      let url = `/api/v1/lyrics/?track_name=${encodeURIComponent(trackName)}&artist_name=${encodeURIComponent(artistName)}`;
       if (spotifyTrackId) {
         url += `&spotify_track_id=${encodeURIComponent(spotifyTrackId)}`;
       }
@@ -3039,14 +3054,18 @@
       const data = await response.json();
       
       if (data.status === 'success' && data.data && data.data.lyrics) {
-        content.innerHTML = data.data.lyrics.replace(/\n/g, '<br>');
-        sourceEl.innerHTML = `Lyrics provided by ${data.data.source || 'Genius'}`;
+        // Format lyrics with better styling
+        const formattedLyrics = data.data.lyrics
+          .replace(/\n\n/g, '</p><p style="margin: 1.5rem 0;"></p>')
+          .replace(/\n/g, '<br>');
+        content.innerHTML = `<p style="margin: 0;">${formattedLyrics}</p>`;
+        sourceEl.innerHTML = `<span style="color: rgba(16, 185, 129, 0.8);">✦ Lyrics provided by <strong>${data.data.source || 'Genius'}</strong> ✦</span>`;
       } else {
         content.innerHTML = `
           <div style="text-align: center; padding: 3rem 1rem;">
-            <p style="color: rgba(255, 255, 255, 0.6); font-size: 1.2rem; margin-bottom: 1rem;">😔</p>
-            <p style="color: rgba(255, 255, 255, 0.7);">Lyrics not available for this track</p>
-            <p style="color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; margin-top: 0.5rem;">Try searching on Genius.com</p>
+            <p style="color: rgba(16, 185, 129, 0.6); font-size: 1.2rem; margin-bottom: 1rem;">✗</p>
+            <p style="color: rgba(255, 255, 255, 0.8);">Lyrics not available for this track</p>
+            <p style="color: rgba(16, 185, 129, 0.6); font-size: 0.9rem; margin-top: 1rem;">Try searching on <a href="https://genius.com" target="_blank" style="color: rgba(16, 185, 129, 0.9); text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(16, 185, 129, 0.5);">Genius.com</a></p>
           </div>
         `;
         sourceEl.innerHTML = '';
