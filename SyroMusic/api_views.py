@@ -881,41 +881,48 @@ def playback_analytics_api(request):
 
 @api_view(['GET'])
 def track_lyrics_api(request):
-    """Get lyrics for a track."""
+    """Get lyrics for a track.
+
+    Query params:
+    - track_name: Song title (required)
+    - artist_name: Artist name (required)
+    - spotify_track_id: Spotify track ID (optional, used for caching)
+    """
     try:
         spotify_track_id = request.GET.get('spotify_track_id')
-        track_name = request.GET.get('track_name', '')
-        artist_name = request.GET.get('artist_name', '')
+        track_name = request.GET.get('track_name', '').strip()
+        artist_name = request.GET.get('artist_name', '').strip()
 
-        if not spotify_track_id:
+        # Require track name and artist name
+        if not track_name or not artist_name:
             return Response(
-                {'status': 'error', 'message': 'spotify_track_id required'},
+                {'status': 'error', 'message': 'track_name and artist_name are required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Check if lyrics are already cached
-        lyrics = TrackLyrics.objects.filter(spotify_track_id=spotify_track_id).first()
+        # Check if lyrics are already cached (only if spotify_track_id provided)
+        if spotify_track_id:
+            lyrics = TrackLyrics.objects.filter(spotify_track_id=spotify_track_id).first()
+            if lyrics:
+                return Response({
+                    'status': 'success',
+                    'data': {
+                        'lyrics': lyrics.lyrics,
+                        'source': lyrics.lyrics_source,
+                        'is_explicit': lyrics.is_explicit,
+                        'track_name': lyrics.track_name,
+                        'artist_name': lyrics.artist_name,
+                    }
+                })
 
-        if lyrics:
-            return Response({
-                'status': 'success',
-                'data': {
-                    'lyrics': lyrics.lyrics,
-                    'source': lyrics.lyrics_source,
-                    'is_explicit': lyrics.is_explicit,
-                    'track_name': lyrics.track_name,
-                    'artist_name': lyrics.artist_name,
-                }
-            })
-        
-        # If not cached, fetch from Genius
-        if track_name and artist_name:
-            from .services import LyricsService
-            try:
-                fetched_lyrics = LyricsService.fetch_lyrics(track_name, artist_name)
+        # Fetch from Genius
+        from .services import LyricsService
+        try:
+            fetched_lyrics = LyricsService.fetch_lyrics(track_name, artist_name)
 
-                if fetched_lyrics:
-                    # Cache the lyrics
+            if fetched_lyrics:
+                # Cache the lyrics (only if spotify_track_id provided)
+                if spotify_track_id:
                     lyrics = TrackLyrics.objects.create(
                         spotify_track_id=spotify_track_id,
                         track_name=track_name,
@@ -925,25 +932,26 @@ def track_lyrics_api(request):
                         is_explicit=fetched_lyrics.get('is_explicit', False)
                     )
 
-                    return Response({
-                        'status': 'success',
-                        'data': {
-                            'lyrics': lyrics.lyrics,
-                            'source': lyrics.lyrics_source,
-                            'is_explicit': lyrics.is_explicit,
-                            'track_name': lyrics.track_name,
-                            'artist_name': lyrics.artist_name,
-                        }
-                    })
-            except Exception as fetch_error:
-                logger.error(f"Error fetching lyrics for {track_name} by {artist_name}: {str(fetch_error)}")
-                return Response(
-                    {'status': 'not_found', 'message': f'Could not fetch lyrics: {str(fetch_error)}'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({
+                    'status': 'success',
+                    'data': {
+                        'lyrics': fetched_lyrics['lyrics'],
+                        'source': fetched_lyrics.get('source', 'genius'),
+                        'is_explicit': fetched_lyrics.get('is_explicit', False),
+                        'track_name': track_name,
+                        'artist_name': artist_name,
+                    }
+                })
+
+        except Exception as fetch_error:
+            logger.error(f"Error fetching lyrics for {track_name} by {artist_name}: {str(fetch_error)}")
+            return Response(
+                {'status': 'not_found', 'message': f'Could not fetch lyrics: {str(fetch_error)}'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         return Response(
-            {'status': 'not_found', 'message': 'Lyrics not available. Make sure track_name and artist_name are provided.'},
+            {'status': 'not_found', 'message': 'Lyrics not available for this track.'},
             status=status.HTTP_404_NOT_FOUND
         )
 

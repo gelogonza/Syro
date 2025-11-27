@@ -2531,14 +2531,29 @@
     console.log('Playing track:', trackUri);
     const deviceId = getActiveDeviceId();
 
-    // If no active device, fetch devices and show selector
+    // If no active device, try web player or fetch devices
     if (!deviceId) {
-      console.log('No active device, fetching devices...');
+      console.log('No active device, checking for web player...');
+
+      // Try to use the web playback SDK if available (global deviceId variable)
+      if (typeof player !== 'undefined' && player && typeof window.deviceId !== 'undefined' && window.deviceId) {
+        console.log('Using web player');
+        playTrackOnWebPlayer(trackUri);
+        return;
+      }
+
+      // Fallback: fetch available devices
       fetch('{% url "music:get_devices" %}')
         .then(response => response.json())
         .then(data => {
           if (!data.devices || data.devices.length === 0) {
-            showNotification('No Spotify devices available. Open Spotify on a device.', 'error');
+            // No devices available, try web player
+            if (typeof player !== 'undefined' && player) {
+              console.log('No devices found, using web player');
+              playTrackOnWebPlayer(trackUri);
+            } else {
+              showNotification('No Spotify devices or web player available. Make sure Spotify is running or enable browser playback.', 'error');
+            }
             return;
           }
 
@@ -2556,12 +2571,57 @@
         })
         .catch(error => {
           console.error('Error fetching devices:', error);
-          showNotification('Failed to fetch devices', 'error');
+          // Fallback to web player
+          if (typeof player !== 'undefined' && player) {
+            console.log('Device fetch failed, using web player');
+            playTrackOnWebPlayer(trackUri);
+          } else {
+            showNotification('Failed to fetch devices and no web player available', 'error');
+          }
         });
       return;
     }
 
     playTrackOnDevice(trackUri, deviceId);
+  }
+
+  // Play track using Spotify Web Playback SDK
+  function playTrackOnWebPlayer(trackUri) {
+    if (typeof player === 'undefined' || !player) {
+      showNotification('Web player not available. Please refresh the page.', 'error');
+      return;
+    }
+
+    if (typeof window.deviceId === 'undefined' || !window.deviceId) {
+      showNotification('Web player device not ready. Please wait a moment and try again.', 'error');
+      return;
+    }
+
+    // Use Spotify API to play on the web player device
+    fetch('{% url "music:play_track" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        track_uri: trackUri,
+        device_id: window.deviceId  // Use the web player device ID
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        showNotification('Now playing on browser', 'success');
+        updatePlaybackState();
+      } else {
+        showNotification(data.message || 'Failed to play track', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showNotification('Error playing track on web player', 'error');
+    });
   }
 
   function playTrackOnDevice(trackUri, deviceId) {
@@ -2805,8 +2865,9 @@
 
   // ==================== Spotify Web Playback SDK ====================
 
-  let player;
-  let deviceId;
+  // Initialize player and deviceId as window properties for global access
+  window.player = null;
+  window.deviceId = null;
 
   function initializeSpotifyPlayer() {
     window.onSpotifyWebPlaybackSDKReady = () => {
@@ -2817,44 +2878,45 @@
         return;
       }
 
-      player = new Spotify.Player({
+      window.player = new Spotify.Player({
         name: 'Syro Web Player',
         getOAuthToken: cb => { cb(token); },
         volume: 0.5
       });
 
       // Error handling
-      player.addListener('initialization_error', ({ message }) => {
+      window.player.addListener('initialization_error', ({ message }) => {
         console.error('Initialization Error:', message);
       });
 
-      player.addListener('authentication_error', ({ message }) => {
+      window.player.addListener('authentication_error', ({ message }) => {
         console.error('Authentication Error:', message);
       });
 
-      player.addListener('account_error', ({ message }) => {
+      window.player.addListener('account_error', ({ message }) => {
         console.error('Account Error:', message);
       });
 
-      player.addListener('playback_error', ({ message }) => {
+      window.player.addListener('playback_error', ({ message }) => {
         console.error('Playback Error:', message);
       });
 
       // Playback status updates
-      player.addListener('player_state_changed', state => {
+      window.player.addListener('player_state_changed', state => {
         if (!state) return;
         console.log('Player state changed:', state);
         updatePlaybackState();
       });
 
-      // Ready
-      player.addListener('ready', ({ device_id }) => {
+      // Ready - capture device ID for browser playback
+      window.player.addListener('ready', ({ device_id }) => {
         console.log('Ready with Device ID', device_id);
-        deviceId = device_id;
+        window.deviceId = device_id;
+        console.log('Web player device ready for playback:', device_id);
       });
 
       // Connect to the player
-      player.connect().then(success => {
+      window.player.connect().then(success => {
         if (success) {
           console.log('The Web Playback SDK successfully connected to Spotify!');
         }
@@ -2892,9 +2954,9 @@
     // Remove any Spotify SDK elements that might appear
     removeSpotifySDKElements();
 
-    // Initialize Spotify Web Playback SDK
-    // DISABLED: Creates unwanted "Now Playing" modal window
-    // initializeSpotifyPlayer();
+    // Initialize Spotify Web Playback SDK for browser-based playback
+    // This allows playback without needing a Spotify device
+    initializeSpotifyPlayer();
 
     // Initialize new features
     initializeAdvancedFeatures();
