@@ -347,15 +347,49 @@
   <!-- Spotify Web Playback SDK Initialization -->
   <!-- Must define callback BEFORE SDK script loads! -->
   <script>
+    console.log('⏳ Setting up Spotify SDK initialization...');
+
+    // Track SDK loading status globally
+    window.spotifySDKLoaded = false;
+    window.spotifySDKReady = false;
+
     // Ensure callback exists in global scope before SDK script loads
     // The actual callback will be properly defined in player.html
     window.onSpotifyWebPlaybackSDKReady = window.onSpotifyWebPlaybackSDKReady || function() {
-      console.log('SDK ready callback triggered - waiting for player.html to define implementation');
+      console.log('✓ SDK ready callback triggered from SDK');
+      window.spotifySDKReady = true;
     };
+
+    // Monitor SDK script loading
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        if (typeof Spotify !== 'undefined') {
+          console.log('✓ Spotify object available on window.load');
+          window.spotifySDKLoaded = true;
+        }
+      }, 100);
+    });
   </script>
 
   <!-- Required for browser-based audio playback -->
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
+
+  <!-- Fallback: Monitor SDK loading and provide diagnostics -->
+  <script>
+    setTimeout(() => {
+      if (typeof Spotify === 'undefined') {
+        console.error('⚠️  Spotify SDK object not available after 3 seconds');
+        console.error('Possible causes:');
+        console.error('  - CDN (https://sdk.scdn.co/spotify-player.js) is unreachable');
+        console.error('  - Browser extension is blocking the script');
+        console.error('  - Network connectivity issue');
+        console.log('Try: Open DevTools → Network tab → check if spotify-player.js loaded');
+      } else {
+        console.log('✓ Spotify SDK loaded and available');
+        window.spotifySDKLoaded = true;
+      }
+    }, 3000);
+  </script>
   
   {% block extra_css %}{% endblock extra_css %}
 </head>

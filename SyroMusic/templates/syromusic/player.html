@@ -2997,22 +2997,38 @@
     setupPlayerSearch();
 
     // Monitor for Spotify SDK availability
-    console.log('Page loaded - monitoring for Spotify SDK...');
+    console.log('🎵 Player page loaded - checking Spotify SDK status...');
+    console.log('SDK Loaded flag:', window.spotifySDKLoaded);
+    console.log('SDK Ready flag:', window.spotifySDKReady);
+
     if (typeof Spotify === 'undefined') {
       console.warn('⏳ Spotify SDK not loaded yet - it may load shortly from CDN');
-      // SDK loads asynchronously - wait a bit and check again
-      setTimeout(() => {
-        if (typeof Spotify === 'undefined') {
-          console.error('❌ Spotify Web Playback SDK failed to load from CDN');
-          showNotification('Spotify SDK failed to load - check network', 'error');
-        } else {
-          console.log('✓ Spotify SDK loaded after delay');
+      console.warn('Will keep monitoring...');
+
+      // Keep checking for SDK to load
+      let sdkCheckAttempts = 0;
+      const sdkCheckInterval = setInterval(() => {
+        sdkCheckAttempts++;
+        if (typeof Spotify !== 'undefined') {
+          console.log('✓ Spotify SDK loaded after ' + sdkCheckAttempts + ' checks');
+          clearInterval(sdkCheckInterval);
+          window.spotifySDKLoaded = true;
+        } else if (sdkCheckAttempts > 20) {  // Stop checking after 10 seconds (20 x 500ms)
+          console.error('❌ Spotify SDK failed to load from CDN after 10 seconds');
+          console.error('Check:');
+          console.error('  1. Open DevTools → Network tab');
+          console.error('  2. Look for https://sdk.scdn.co/spotify-player.js');
+          console.error('  3. If it shows "blocked", a browser extension may be blocking it');
+          console.error('  4. Check if you have internet access to Spotify CDN');
+          showNotification('Spotify SDK failed to load - check console for details', 'error');
+          clearInterval(sdkCheckInterval);
         }
-      }, 3000);
+      }, 500);
     } else {
       console.log('✓ Spotify Web Playback SDK is available');
       console.log('✓ onSpotifyWebPlaybackSDKReady callback is ready');
       console.log('✓ Waiting for SDK to trigger the ready callback...');
+      window.spotifySDKLoaded = true;
     }
 
     // Hide Spotify modal UI after SDK is loaded (wait 1s for SDK to inject elements)
