@@ -335,31 +335,8 @@
     }
   }
 
-  async function playTrack(trackUri) {
-    try {
-      const response = await fetch('/music/api/playback/play/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({
-          uris: [trackUri]
-        })
-      });
-      
-      if (response.ok) {
-        // Redirect to player page
-        window.location.href = '{% url "music:player" %}';
-      } else {
-        const data = await response.json();
-        alert('Error playing track: ' + (data.error || 'Unknown error'));
-      }
-    } catch (error) {
-      console.error('Error playing track:', error);
-      alert('Failed to play track. Please make sure you have an active Spotify session.');
-    }
-  }
+  // playTrack is defined globally in player_modal.html (included in base.html)
+  // It handles device selection and shows proper toast notifications with song info
 
   async function playAlbum(albumUri) {
     try {

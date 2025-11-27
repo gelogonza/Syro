@@ -281,8 +281,9 @@
     .then(data => {
       if (data.status === 'success') {
         const trackName = trackInfo.name || 'Track';
-        const artist = trackInfo.artist ? ` by ${trackInfo.artist}` : '';
-        showToast(`Now playing: ${trackName}${artist}`, 'success');
+        const artist = trackInfo.artist || 'Unknown Artist';
+        const album = trackInfo.album ? ` • ${trackInfo.album}` : '';
+        showToast(`Now playing: ${trackName} by ${artist}${album}`, 'success');
       } else {
         showToast(data.message || 'Failed to play track', 'error');
       }

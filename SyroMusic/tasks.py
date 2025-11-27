@@ -41,10 +41,10 @@ def sync_user_spotify_stats(user_id, time_range='medium_term'):
             top_artists = top_artists_response.get('items', []) if isinstance(top_artists_response, dict) else top_artists_response
             artists_data = [
                 {
-                    'id': artist['id'],
-                    'name': artist['name'],
-                    'image': artist['images'][0]['url'] if artist.get('images') else None,
-                    'url': artist['external_urls'].get('spotify', ''),
+                    'id': artist.get('id', ''),
+                    'name': artist.get('name', 'Unknown'),
+                    'image': artist.get('images', [{}])[0].get('url') if artist.get('images') else None,
+                    'url': artist.get('external_urls', {}).get('spotify', ''),
                     'popularity': artist.get('popularity', 0),
                     'genres': artist.get('genres', []),
                 }
@@ -70,10 +70,10 @@ def sync_user_spotify_stats(user_id, time_range='medium_term'):
                 {
                     'id': track['id'],
                     'name': track['name'],
-                    'artist': track['artists'][0]['name'] if track.get('artists') else 'Unknown',
-                    'album': track['album']['name'] if track.get('album') else 'Unknown',
-                    'image': track['album']['images'][0]['url'] if track.get('album', {}).get('images') else None,
-                    'url': track['external_urls'].get('spotify', ''),
+                    'artist': ', '.join([artist['name'] for artist in track.get('artists', [])]) or 'Unknown',
+                    'album': track.get('album', {}).get('name', 'Unknown'),
+                    'image': track.get('album', {}).get('images', [{}])[0].get('url') if track.get('album', {}).get('images') else None,
+                    'url': track.get('external_urls', {}).get('spotify', ''),
                     'popularity': track.get('popularity', 0),
                     'duration_ms': track.get('duration_ms', 0),
                 }
@@ -141,8 +141,8 @@ def sync_user_recently_played(user_id):
                         user=user,
                         spotify_track_id=track.get('id'),
                         track_name=track.get('name', 'Unknown'),
-                        artist_name=track['artists'][0]['name'] if track.get('artists') else 'Unknown',
-                        album_name=track['album']['name'] if track.get('album') else 'Unknown',
+                        artist_name=', '.join([artist['name'] for artist in track.get('artists', [])]) or 'Unknown',
+                        album_name=track.get('album', {}).get('name', 'Unknown'),
                         played_at=played_at,
                         duration_ms=track.get('duration_ms', 0),
                     )
@@ -150,9 +150,9 @@ def sync_user_recently_played(user_id):
             # Update recently played in stats
             recently_played_data = [
                 {
-                    'id': item['track']['id'],
-                    'name': item['track']['name'],
-                    'artist': item['track']['artists'][0]['name'] if item['track'].get('artists') else 'Unknown',
+                    'id': item.get('track', {}).get('id', ''),
+                    'name': item.get('track', {}).get('name', 'Unknown'),
+                    'artist': ', '.join([artist['name'] for artist in item.get('track', {}).get('artists', [])]) or 'Unknown',
                     'played_at': item.get('played_at'),
                 }
                 for item in recently_played if isinstance(item, dict) and isinstance(item.get('track'), dict)
