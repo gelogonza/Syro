@@ -3035,24 +3035,23 @@
     setTimeout(() => {
       if (typeof Spotify === 'undefined' && window.spotifySDKLoaded === false) {
         console.log('');
-        console.log('⚠️  TROUBLESHOOTING GUIDE');
-        console.log('=======================');
-        console.log('The Spotify Web Playback SDK is not loading. Try:');
+        console.log('⚠️  SPOTIFY SDK BLOCKED BY BROWSER EXTENSION');
+        console.log('=============================================');
+        console.log('The Spotify Web Playback SDK is blocked.');
         console.log('');
-        console.log('1️⃣  Check your internet connection');
+        console.log('💡 SOLUTION: Use your Spotify app to control playback');
+        console.log('   - You can still search and browse music in this web app');
+        console.log('   - When you click "Play", it will play on your Spotify app');
+        console.log('   - Make sure Spotify app is open on any device');
         console.log('');
-        console.log('2️⃣  Open DevTools (F12) → Network tab → Reload (F5)');
-        console.log('   Look for "spotify-player.js" in the request list');
-        console.log('   - If status is 200: Script loaded but Spotify object missing');
-        console.log('   - If status shows "blocked": Browser extension is blocking it');
-        console.log('   - If not listed: CDN is unreachable from your network');
+        console.log('❌ NOT WORKING?');
+        console.log('   - Check that you have a Spotify app open');
+        console.log('   - Make sure you\\'re logged into the same Spotify account');
+        console.log('   - Try disabling browser extensions (Settings → Extensions)');
         console.log('');
-        console.log('3️⃣  If blocked by extension:');
-        console.log('   Temporarily disable extensions and refresh the page');
-        console.log('');
-        console.log('4️⃣  Alternative: Use Spotify app to control playback');
-        console.log('   You can still search and browse music in the web app');
-        console.log('');
+
+        // Disable web player UI and show fallback message
+        showNotification('Using Spotify app for playback - keep your Spotify app open', 'info');
       }
     }, 5000);
 
