@@ -3031,6 +3031,31 @@
       window.spotifySDKLoaded = true;
     }
 
+    // Show helpful message if SDK still hasn't loaded after initial setup
+    setTimeout(() => {
+      if (typeof Spotify === 'undefined' && window.spotifySDKLoaded === false) {
+        console.log('');
+        console.log('⚠️  TROUBLESHOOTING GUIDE');
+        console.log('=======================');
+        console.log('The Spotify Web Playback SDK is not loading. Try:');
+        console.log('');
+        console.log('1️⃣  Check your internet connection');
+        console.log('');
+        console.log('2️⃣  Open DevTools (F12) → Network tab → Reload (F5)');
+        console.log('   Look for "spotify-player.js" in the request list');
+        console.log('   - If status is 200: Script loaded but Spotify object missing');
+        console.log('   - If status shows "blocked": Browser extension is blocking it');
+        console.log('   - If not listed: CDN is unreachable from your network');
+        console.log('');
+        console.log('3️⃣  If blocked by extension:');
+        console.log('   Temporarily disable extensions and refresh the page');
+        console.log('');
+        console.log('4️⃣  Alternative: Use Spotify app to control playback');
+        console.log('   You can still search and browse music in the web app');
+        console.log('');
+      }
+    }, 5000);
+
     // Hide Spotify modal UI after SDK is loaded (wait 1s for SDK to inject elements)
     setTimeout(() => {
       // Only remove the "Now Playing" modal, not the actual player
