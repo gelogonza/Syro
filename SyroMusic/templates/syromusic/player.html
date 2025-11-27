@@ -2883,29 +2883,41 @@
       window.player = new Spotify.Player({
         name: 'Syro Web Player',
         getOAuthToken: cb => {
-          console.log('Token requested by SDK, providing token');
-          cb(token);
+          console.log('Token requested by SDK');
+          // The token might be stale, but SDK will request a refresh if needed
+          // For now, provide the current token
+          if (token && token.length > 0) {
+            console.log('Providing token to SDK');
+            cb(token);
+          } else {
+            console.error('Token missing when SDK requested it');
+            cb('');
+          }
         },
         volume: 0.5
       });
 
       console.log('Spotify Player created successfully');
 
-      // Error handling
+      // Error handling - show notifications for debugging
       window.player.addListener('initialization_error', ({ message }) => {
-        console.error('Initialization Error:', message);
+        console.error('❌ Initialization Error:', message);
+        showNotification('Spotify Init Error: ' + message, 'error');
       });
 
       window.player.addListener('authentication_error', ({ message }) => {
-        console.error('Authentication Error:', message);
+        console.error('❌ Authentication Error:', message);
+        showNotification('Spotify Auth Error: ' + message, 'error');
       });
 
       window.player.addListener('account_error', ({ message }) => {
-        console.error('Account Error:', message);
+        console.error('❌ Account Error (likely no Premium):', message);
+        showNotification('Spotify Account Error: ' + message + ' (Premium required)', 'error');
       });
 
       window.player.addListener('playback_error', ({ message }) => {
-        console.error('Playback Error:', message);
+        console.error('❌ Playback Error:', message);
+        showNotification('Spotify Playback Error: ' + message, 'error');
       });
 
       // Playback status updates
