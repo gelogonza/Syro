@@ -572,38 +572,42 @@ class LyricsService:
         try:
             import lyricsgenius
             from django.conf import settings
-            
+
             # Get Genius API token from settings
             genius_token = getattr(settings, 'GENIUS_API_TOKEN', None)
-            
+
             if not genius_token:
-                logger.warning("GENIUS_API_TOKEN not configured in settings")
+                logger.warning("GENIUS_API_TOKEN not configured in settings. Set GENIUS_API_TOKEN environment variable.")
                 return None
-            
-            # Initialize Genius API
+
+            # Initialize Genius API with timeout
             genius = lyricsgenius.Genius(
                 genius_token,
                 verbose=False,
                 remove_section_headers=True,
                 skip_non_songs=True,
-                excluded_terms=["(Remix)", "(Live)"]
+                excluded_terms=["(Remix)", "(Live)"],
+                timeout=10
             )
-            
+
             # Search for the song
+            logger.debug(f"Searching Genius for: {track_name} by {artist_name}")
             song = genius.search_song(track_name, artist_name)
-            
+
             if song and song.lyrics:
+                logger.debug(f"Found lyrics for {track_name} by {artist_name}")
                 return {
                     'lyrics': song.lyrics,
                     'source': 'genius',
                     'is_explicit': False  # Genius doesn't provide this info directly
                 }
-            
+
+            logger.warning(f"No lyrics found for {track_name} by {artist_name}")
             return None
-            
-        except ImportError:
+
+        except ImportError as ie:
             logger.error("lyricsgenius library not installed. Install with: pip install lyricsgenius")
             return None
         except Exception as e:
-            logger.error(f"Error fetching lyrics from Genius: {str(e)}")
+            logger.error(f"Error fetching lyrics from Genius for '{track_name}' by '{artist_name}': {str(e)}", exc_info=True)
             return None
