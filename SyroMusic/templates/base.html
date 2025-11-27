@@ -344,7 +344,16 @@
     }
   </style>
   
-  <!-- Spotify Web Playback SDK -->
+  <!-- Spotify Web Playback SDK Initialization -->
+  <!-- Must define callback BEFORE SDK script loads! -->
+  <script>
+    // Ensure callback exists in global scope before SDK script loads
+    // The actual callback will be properly defined in player.html
+    window.onSpotifyWebPlaybackSDKReady = window.onSpotifyWebPlaybackSDKReady || function() {
+      console.log('SDK ready callback triggered - waiting for player.html to define implementation');
+    };
+  </script>
+
   <!-- Required for browser-based audio playback -->
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
   
