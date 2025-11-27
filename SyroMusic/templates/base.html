@@ -376,14 +376,32 @@
 
   <!-- Fallback: Monitor SDK loading and provide diagnostics -->
   <script>
+    // Try to detect if script tag is being blocked
+    const spotifySDKScript = document.querySelector('script[src*="spotify-player"]');
+    if (spotifySDKScript) {
+      console.log('✓ Spotify SDK script tag found in DOM');
+      spotifySDKScript.addEventListener('error', (e) => {
+        console.error('❌ Spotify SDK script failed to load:', e);
+        window.spotifySDKError = 'Script load error: ' + e;
+      });
+    }
+
     setTimeout(() => {
       if (typeof Spotify === 'undefined') {
         console.error('⚠️  Spotify SDK object not available after 3 seconds');
         console.error('Possible causes:');
-        console.error('  - CDN (https://sdk.scdn.co/spotify-player.js) is unreachable');
-        console.error('  - Browser extension is blocking the script');
-        console.error('  - Network connectivity issue');
-        console.log('Try: Open DevTools → Network tab → check if spotify-player.js loaded');
+        console.error('  1. CDN (https://sdk.scdn.co/spotify-player.js) is unreachable');
+        console.error('  2. Browser extension is blocking the script (like installHook.js)');
+        console.error('  3. Network connectivity issue');
+        console.error('  4. Script loads but Spotify object is not created');
+        console.log('');
+        console.log('📋 Diagnostic steps:');
+        console.log('  1. Open DevTools (F12)');
+        console.log('  2. Go to Network tab');
+        console.log('  3. Reload page (F5)');
+        console.log('  4. Look for "spotify-player.js" in the list');
+        console.log('  5. Check if it shows as "blocked" or failed');
+        console.log('  6. If blocked, check browser extensions');
       } else {
         console.log('✓ Spotify SDK loaded and available');
         window.spotifySDKLoaded = true;
