@@ -1,0 +1,46 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c0c0c0;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8e8e8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="musicGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#000000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Main circle background with silver-prismatic gradient -->
+  <circle cx="100" cy="100" r="95" fill="url(#bgGradient)" stroke="#ffffff" stroke-width="2" opacity="0.9"/>
+
+  <!-- Outer ring for depth -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#d4d4ff" stroke-width="1" opacity="0.6"/>
+  <circle cx="100" cy="100" r="93" fill="none" stroke="#ffd4ff" stroke-width="1" opacity="0.4"/>
+
+  <!-- Music note group -->
+  <g transform="translate(100, 100)">
+    <!-- First note stem -->
+    <line x1="-15" y1="-20" x2="-15" y2="25" stroke="url(#musicGradient)" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Second note stem -->
+    <line x1="15" y1="-10" x2="15" y2="35" stroke="url(#musicGradient)" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Connector between stems -->
+    <path d="M -15 -20 Q 0 -25 15 -10" fill="none" stroke="url(#musicGradient)" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- First note head (circle) -->
+    <circle cx="-15" cy="30" r="7" fill="url(#musicGradient)"/>
+
+    <!-- Second note head (circle) -->
+    <circle cx="15" cy="40" r="7" fill="url(#musicGradient)"/>
+
+    <!-- Decorative elements around notes -->
+    <circle cx="-40" cy="-30" r="3" fill="#000000" opacity="0.3"/>
+    <circle cx="40" cy="50" r="3" fill="#000000" opacity="0.3"/>
+  </g>
+
+  <!-- Center highlight for shine effect -->
+  <circle cx="80" cy="80" r="30" fill="white" opacity="0.2"/>
+</svg>
