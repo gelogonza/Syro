@@ -71,7 +71,7 @@ ROOT_URLCONF = 'Syro.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'SyroMusic' / 'templates'],
+        'DIRS': [str(BASE_DIR / 'SyroMusic' / 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
