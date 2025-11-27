@@ -568,7 +568,13 @@ class LyricsService:
     
     @staticmethod
     def fetch_lyrics(track_name, artist_name):
-        """Fetch lyrics from Genius API."""
+        """Fetch lyrics from Genius API.
+
+        Tries multiple search strategies:
+        1. Full song + artist search
+        2. Just song title search
+        3. Song with primary artist only (for featured tracks)
+        """
         try:
             import lyricsgenius
             from django.conf import settings
@@ -587,10 +593,10 @@ class LyricsService:
                 remove_section_headers=True,
                 skip_non_songs=True,
                 excluded_terms=["(Remix)", "(Live)"],
-                timeout=10
+                timeout=15
             )
 
-            # Search for the song
+            # Search strategy 1: Full search with track name and artist
             logger.debug(f"Searching Genius for: {track_name} by {artist_name}")
             song = genius.search_song(track_name, artist_name)
 
@@ -599,10 +605,37 @@ class LyricsService:
                 return {
                     'lyrics': song.lyrics,
                     'source': 'genius',
-                    'is_explicit': False  # Genius doesn't provide this info directly
+                    'is_explicit': False
                 }
 
-            logger.warning(f"No lyrics found for {track_name} by {artist_name}")
+            # Search strategy 2: Try with just the track name
+            logger.debug(f"Retrying with just track name: {track_name}")
+            song = genius.search_song(track_name, artist=None)
+
+            if song and song.lyrics:
+                logger.debug(f"Found lyrics (track-only search) for {track_name}")
+                return {
+                    'lyrics': song.lyrics,
+                    'source': 'genius',
+                    'is_explicit': False
+                }
+
+            # Search strategy 3: Try with primary artist only (for featured tracks)
+            # Extract first artist from comma-separated list
+            if ',' in artist_name:
+                primary_artist = artist_name.split(',')[0].strip()
+                logger.debug(f"Retrying with primary artist only: {track_name} by {primary_artist}")
+                song = genius.search_song(track_name, primary_artist)
+
+                if song and song.lyrics:
+                    logger.debug(f"Found lyrics (primary artist) for {track_name} by {primary_artist}")
+                    return {
+                        'lyrics': song.lyrics,
+                        'source': 'genius',
+                        'is_explicit': False
+                    }
+
+            logger.warning(f"No lyrics found for {track_name} by {artist_name} after all search attempts")
             return None
 
         except ImportError as ie:
