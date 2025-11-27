@@ -5,23 +5,21 @@
 
 {% block extra_css %}
 <style>
-  /* Hide Spotify Web Playback SDK Modal and Now Playing Widget */
-  iframe[src*="spotify"],
-  div[class*="spotify"],
-  div[id*="spotify-player"],
+  /* Hide Spotify Web Playback SDK "Now Playing" Modal Only */
+  /* Be selective - we need the SDK to work, just hide the modal UI */
   div[class*="now-playing"],
   div[id*="now-playing"],
   div[class*="now_playing"],
   div[id*="now_playing"],
   div[data-testid*="now-playing"],
-  div[class*="spotify-widget"],
-  div[id*="spotify-widget"],
-  body > div[style*="position: fixed"][style*="z-index"],
-  body > iframe {
+  body > div[style*="position: fixed"][style*="z-index"] {
     display: none !important;
     visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
+  }
+
+  /* Hide iframes that might be Spotify widgets */
+  iframe[src*="spotify"] {
+    display: none !important;
   }
 
   /* Dark Theme Override for Player Page */
@@ -2927,12 +2925,6 @@
   // ==================== Initialization ====================
 
   document.addEventListener('DOMContentLoaded', function() {
-    // Remove any Spotify SDK injected elements
-    removeSpotifySDKElements();
-    
-    // Keep checking and removing Spotify SDK elements
-    setInterval(removeSpotifySDKElements, 1000);
-    
     // Apply dynamic background on load
     applyDynamicBackground();
 
@@ -2951,53 +2943,33 @@
     // Setup search functionality
     setupPlayerSearch();
 
-    // Remove any Spotify SDK elements that might appear
-    removeSpotifySDKElements();
-
     // Initialize Spotify Web Playback SDK for browser-based playback
     // This allows playback without needing a Spotify device
     initializeSpotifyPlayer();
+
+    // Hide Spotify modal UI after SDK is loaded (wait 1s for SDK to inject elements)
+    setTimeout(() => {
+      // Only remove the "Now Playing" modal, not the actual player
+      document.querySelectorAll(
+        'div[class*="now-playing"], div[id*="now-playing"], ' +
+        'div[class*="now_playing"], div[id*="now_playing"]'
+      ).forEach(el => {
+        console.log('Hiding Spotify Now Playing modal:', el);
+        el.style.display = 'none';
+        el.style.visibility = 'hidden';
+      });
+    }, 2000);
 
     // Initialize new features
     initializeAdvancedFeatures();
   });
 
   // ==================== Remove Spotify SDK Elements ====================
+  // DISABLED: This was too aggressive and broke the player
+  // Using CSS-based hiding instead (see player.html styles)
   function removeSpotifySDKElements() {
-    // Remove all Spotify iframes
-    document.querySelectorAll('iframe[src*="spotify"], iframe[src*="now-playing"]').forEach(el => {
-      console.log('Removing Spotify iframe:', el);
-      el.remove();
-    });
-
-    // Remove divs with Spotify/Now Playing in class or id
-    document.querySelectorAll(
-      'div[class*="spotify"], div[id*="spotify"], ' +
-      'div[class*="now-playing"], div[id*="now-playing"], ' +
-      'div[class*="now_playing"], div[id*="now_playing"], ' +
-      'div[class*="spotify-widget"], div[id*="spotify-widget"]'
-    ).forEach(el => {
-      console.log('Removing Spotify element:', el);
-      el.remove();
-    });
-
-    // Remove any fixed/modal divs that might be Spotify players
-    document.querySelectorAll('body > div').forEach(el => {
-      const style = window.getComputedStyle(el);
-      const zIndex = parseInt(style.zIndex) || 0;
-      if (style.position === 'fixed' && zIndex > 100) {
-        console.log('Removing fixed element with high z-index:', el, 'z-index:', zIndex);
-        el.remove();
-      }
-    });
-
-    // Remove any remaining body-level iframes
-    document.querySelectorAll('body > iframe').forEach(el => {
-      console.log('Removing body iframe:', el);
-      el.remove();
-    });
-
-    console.log('Spotify SDK elements removal complete');
+    // Function kept for backwards compatibility but disabled
+    console.log('removeSpotifySDKElements: Using CSS hiding instead');
   }
 
   /* ==================== Advanced Features Initialization ==================== */
