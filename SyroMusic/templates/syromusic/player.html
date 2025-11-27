@@ -2871,16 +2871,27 @@
     window.onSpotifyWebPlaybackSDKReady = () => {
       const token = '{{ spotify_user.access_token }}';
 
-      if (!token) {
-        console.log('No access token available');
+      console.log('Spotify SDK Ready - Token present:', !!token);
+      console.log('Spotify SDK Ready - Token length:', token ? token.length : 0);
+
+      if (!token || token.trim() === '') {
+        console.error('No valid access token available for Spotify Player');
+        showNotification('Spotify player unavailable - authentication issue', 'error');
         return;
       }
 
+      console.log('Initializing Spotify Web Playback SDK...');
+
       window.player = new Spotify.Player({
         name: 'Syro Web Player',
-        getOAuthToken: cb => { cb(token); },
+        getOAuthToken: cb => {
+          console.log('Token requested by SDK, providing token');
+          cb(token);
+        },
         volume: 0.5
       });
+
+      console.log('Spotify Player created successfully');
 
       // Error handling
       window.player.addListener('initialization_error', ({ message }) => {
@@ -2914,10 +2925,18 @@
       });
 
       // Connect to the player
+      console.log('Attempting to connect Spotify Player...');
       window.player.connect().then(success => {
         if (success) {
-          console.log('The Web Playback SDK successfully connected to Spotify!');
+          console.log('✓ The Web Playback SDK successfully connected to Spotify!');
+          showNotification('Spotify web player connected', 'success');
+        } else {
+          console.error('✗ Failed to connect Spotify Web Playback SDK');
+          showNotification('Failed to connect Spotify player', 'error');
         }
+      }).catch(error => {
+        console.error('Error connecting to Spotify:', error);
+        showNotification('Spotify connection error: ' + error.message, 'error');
       });
     };
   }
@@ -2943,9 +2962,16 @@
     // Setup search functionality
     setupPlayerSearch();
 
-    // Initialize Spotify Web Playback SDK for browser-based playback
-    // This allows playback without needing a Spotify device
-    initializeSpotifyPlayer();
+    // Check if Spotify SDK is available
+    if (typeof Spotify === 'undefined') {
+      console.error('Spotify Web Playback SDK not loaded - script may not have loaded');
+      showNotification('Spotify SDK failed to load', 'error');
+    } else {
+      console.log('✓ Spotify Web Playback SDK is available');
+      // Initialize Spotify Web Playback SDK for browser-based playback
+      // This allows playback without needing a Spotify device
+      initializeSpotifyPlayer();
+    }
 
     // Hide Spotify modal UI after SDK is loaded (wait 1s for SDK to inject elements)
     setTimeout(() => {
