@@ -33,6 +33,12 @@ if SECRET_KEY == 'django-insecure-dev-key-only-for-development' and config('DJAN
 DEBUG = config('DJANGO_DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+# Allow all onrender.com subdomains in production
+if 'onrender.com' in str(ALLOWED_HOSTS).lower():
+    ALLOWED_HOSTS.append('*.onrender.com')
+elif config('DJANGO_ENV', default='development') == 'production':
+    # If we're in production, add the specific Render domain
+    ALLOWED_HOSTS.extend(['*.onrender.com', 'syroapp-api.onrender.com'])
 
 
 # Application definition
