@@ -1,11 +1,7 @@
 """Root views for Syro project."""
-from django.http import JsonResponse
+from django.shortcuts import render
 
 
 def home(request):
-    """Return API status."""
-    return JsonResponse({
-        'status': 'ok',
-        'message': 'SyroApp API is running',
-        'version': '1.0.0'
-    })
+    """Render landing page."""
+    return render(request, 'syromusic/home.html')
