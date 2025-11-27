@@ -2545,13 +2545,9 @@
         .then(response => response.json())
         .then(data => {
           if (!data.devices || data.devices.length === 0) {
-            // No devices available, try web player
-            if (typeof player !== 'undefined' && player) {
-              console.log('No devices found, using web player');
-              playTrackOnWebPlayer(trackUri);
-            } else {
-              showNotification('No Spotify devices or web player available. Make sure Spotify is running or enable browser playback.', 'error');
-            }
+            // No devices available
+            console.error('No Spotify devices found');
+            showNotification('❌ No Spotify devices available. Please:\n1. Open Spotify on your phone, computer, or tablet\n2. Make sure you\'re logged in with the same account\n3. Try playing again', 'error');
             return;
           }
 
@@ -2586,12 +2582,14 @@
   // Play track using Spotify Web Playback SDK
   function playTrackOnWebPlayer(trackUri) {
     if (typeof player === 'undefined' || !player) {
-      showNotification('Web player not available. Please refresh the page.', 'error');
+      console.error('Spotify Web Player not initialized');
+      showNotification('⚠️ Browser playback not available. Please use a Spotify device (phone, computer, etc) to play music.', 'error');
       return;
     }
 
     if (typeof window.deviceId === 'undefined' || !window.deviceId) {
-      showNotification('Web player device not ready. Please wait a moment and try again.', 'error');
+      console.error('Web player device ID not set');
+      showNotification('⚠️ Web player device not ready. This feature requires Spotify Premium.', 'error');
       return;
     }
 
