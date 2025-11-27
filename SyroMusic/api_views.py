@@ -295,60 +295,142 @@ class UserStatsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def top_artists(self, request):
         """
-        Get top artists for a specific time range.
+        Get top artists for a specific time range, pulled directly from Spotify API.
         Query params:
         - time_range: 'short_term' (4 weeks), 'medium_term' (6 months), 'long_term' (all time)
         """
-        time_range = request.query_params.get('time_range', 'medium_term')
-        user = request.user
+        try:
+            time_range = request.query_params.get('time_range', 'medium_term')
+            user = request.user
 
-        listening_stats = get_object_or_404(UserListeningStats, user=user)
+            # Get Spotify user
+            spotify_user = get_object_or_404(SpotifyUser, user=user)
 
-        if time_range == 'short_term':
-            top_artists = listening_stats.top_artists_short_term
-            period_label = 'Last 4 Weeks'
-        elif time_range == 'long_term':
-            top_artists = listening_stats.top_artists_long_term
-            period_label = 'All Time'
-        else:  # medium_term
-            top_artists = listening_stats.top_artists_medium_term
-            period_label = 'Last 6 Months'
+            # Refresh token if needed
+            access_token = TokenManager.refresh_user_token(spotify_user)
+            if not access_token:
+                return Response(
+                    {'status': 'error', 'message': 'Failed to refresh Spotify token'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
 
-        return Response({
-            'time_range': time_range,
-            'period_label': period_label,
-            'top_artists': top_artists,
-            'count': len(top_artists) if top_artists else 0,
-        })
+            # Create Spotify service and fetch top artists directly from Spotify
+            sp = SpotifyService(spotify_user)
+            top_artists_response = sp.get_top_artists(time_range=time_range, limit=50)
+
+            # Extract artists from response
+            if top_artists_response:
+                top_artists = top_artists_response.get('items', []) if isinstance(top_artists_response, dict) else top_artists_response
+                artists_data = [
+                    {
+                        'id': artist.get('id', ''),
+                        'name': artist.get('name', 'Unknown'),
+                        'image': artist.get('images', [{}])[0].get('url') if artist.get('images') else None,
+                        'url': artist.get('external_urls', {}).get('spotify', ''),
+                        'popularity': artist.get('popularity', 0),
+                        'genres': artist.get('genres', []),
+                    }
+                    for artist in top_artists if isinstance(artist, dict)
+                ]
+            else:
+                artists_data = []
+
+            # Map time range to label
+            period_labels = {
+                'short_term': 'Last 4 Weeks',
+                'medium_term': 'Last 6 Months',
+                'long_term': 'All Time'
+            }
+
+            return Response({
+                'time_range': time_range,
+                'period_label': period_labels.get(time_range, 'Unknown'),
+                'top_artists': artists_data,
+                'count': len(artists_data),
+            })
+
+        except SpotifyUser.DoesNotExist:
+            return Response(
+                {'status': 'error', 'message': 'Spotify account not connected'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Error fetching top artists for user {request.user.id}: {str(e)}")
+            return Response(
+                {'status': 'error', 'message': f'Error fetching top artists: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=['get'])
     def top_tracks(self, request):
         """
-        Get top tracks for a specific time range.
+        Get top tracks for a specific time range, pulled directly from Spotify API.
         Query params:
         - time_range: 'short_term' (4 weeks), 'medium_term' (6 months), 'long_term' (all time)
         """
-        time_range = request.query_params.get('time_range', 'medium_term')
-        user = request.user
+        try:
+            time_range = request.query_params.get('time_range', 'medium_term')
+            user = request.user
 
-        listening_stats = get_object_or_404(UserListeningStats, user=user)
+            # Get Spotify user
+            spotify_user = get_object_or_404(SpotifyUser, user=user)
 
-        if time_range == 'short_term':
-            top_tracks = listening_stats.top_tracks_short_term
-            period_label = 'Last 4 Weeks'
-        elif time_range == 'long_term':
-            top_tracks = listening_stats.top_tracks_long_term
-            period_label = 'All Time'
-        else:  # medium_term
-            top_tracks = listening_stats.top_tracks_medium_term
-            period_label = 'Last 6 Months'
+            # Refresh token if needed
+            access_token = TokenManager.refresh_user_token(spotify_user)
+            if not access_token:
+                return Response(
+                    {'status': 'error', 'message': 'Failed to refresh Spotify token'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
 
-        return Response({
-            'time_range': time_range,
-            'period_label': period_label,
-            'top_tracks': top_tracks,
-            'count': len(top_tracks) if top_tracks else 0,
-        })
+            # Create Spotify service and fetch top tracks directly from Spotify
+            sp = SpotifyService(spotify_user)
+            top_tracks_response = sp.get_top_tracks(time_range=time_range, limit=50)
+
+            # Extract tracks from response
+            if top_tracks_response:
+                top_tracks = top_tracks_response.get('items', []) if isinstance(top_tracks_response, dict) else top_tracks_response
+                tracks_data = [
+                    {
+                        'id': track.get('id', ''),
+                        'name': track.get('name', 'Unknown'),
+                        'artist': ', '.join([artist['name'] for artist in track.get('artists', [])]) or 'Unknown',
+                        'album': track.get('album', {}).get('name', 'Unknown'),
+                        'image': track.get('album', {}).get('images', [{}])[0].get('url') if track.get('album', {}).get('images') else None,
+                        'url': track.get('external_urls', {}).get('spotify', ''),
+                        'popularity': track.get('popularity', 0),
+                        'duration_ms': track.get('duration_ms', 0),
+                    }
+                    for track in top_tracks if isinstance(track, dict)
+                ]
+            else:
+                tracks_data = []
+
+            # Map time range to label
+            period_labels = {
+                'short_term': 'Last 4 Weeks',
+                'medium_term': 'Last 6 Months',
+                'long_term': 'All Time'
+            }
+
+            return Response({
+                'time_range': time_range,
+                'period_label': period_labels.get(time_range, 'Unknown'),
+                'top_tracks': tracks_data,
+                'count': len(tracks_data),
+            })
+
+        except SpotifyUser.DoesNotExist:
+            return Response(
+                {'status': 'error', 'message': 'Spotify account not connected'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Error fetching top tracks for user {request.user.id}: {str(e)}")
+            return Response(
+                {'status': 'error', 'message': f'Error fetching top tracks: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 # ============================================================
@@ -447,6 +529,7 @@ def sync_spotify_stats_api(request):
 def get_stats_detailed_api(request):
     """
     API endpoint to get detailed statistics for a specific time range.
+    Pulls data directly from Spotify API.
     Query params:
     - time_range: 'short_term' (4 weeks), 'medium_term' (6 months), 'long_term' (all time)
     """
@@ -454,25 +537,71 @@ def get_stats_detailed_api(request):
         time_range = request.query_params.get('time_range', 'medium_term')
         user = request.user
 
-        listening_stats = get_object_or_404(UserListeningStats, user=user)
+        # Get Spotify user
+        spotify_user = get_object_or_404(SpotifyUser, user=user)
+
+        # Refresh token if needed
+        access_token = TokenManager.refresh_user_token(spotify_user)
+        if not access_token:
+            return Response(
+                {'status': 'error', 'message': 'Failed to refresh Spotify token'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Create Spotify service and fetch data directly from Spotify
+        sp = SpotifyService(spotify_user)
+
+        # Fetch top artists
+        top_artists_response = sp.get_top_artists(time_range=time_range, limit=50)
+        if top_artists_response:
+            top_artists_raw = top_artists_response.get('items', []) if isinstance(top_artists_response, dict) else top_artists_response
+            top_artists = [
+                {
+                    'id': artist.get('id', ''),
+                    'name': artist.get('name', 'Unknown'),
+                    'image': artist.get('images', [{}])[0].get('url') if artist.get('images') else None,
+                    'url': artist.get('external_urls', {}).get('spotify', ''),
+                    'popularity': artist.get('popularity', 0),
+                    'genres': artist.get('genres', []),
+                }
+                for artist in top_artists_raw if isinstance(artist, dict)
+            ]
+        else:
+            top_artists = []
+
+        # Fetch top tracks
+        top_tracks_response = sp.get_top_tracks(time_range=time_range, limit=50)
+        if top_tracks_response:
+            top_tracks_raw = top_tracks_response.get('items', []) if isinstance(top_tracks_response, dict) else top_tracks_response
+            top_tracks = [
+                {
+                    'id': track.get('id', ''),
+                    'name': track.get('name', 'Unknown'),
+                    'artist': ', '.join([artist['name'] for artist in track.get('artists', [])]) or 'Unknown',
+                    'album': track.get('album', {}).get('name', 'Unknown'),
+                    'image': track.get('album', {}).get('images', [{}])[0].get('url') if track.get('album', {}).get('images') else None,
+                    'url': track.get('external_urls', {}).get('spotify', ''),
+                    'popularity': track.get('popularity', 0),
+                    'duration_ms': track.get('duration_ms', 0),
+                }
+                for track in top_tracks_raw if isinstance(track, dict)
+            ]
+        else:
+            top_tracks = []
+
+        # Get total plays from local activity log
         total_plays = UserListeningActivity.objects.filter(user=user).count()
 
-        if time_range == 'short_term':
-            top_artists = listening_stats.top_artists_short_term
-            top_tracks = listening_stats.top_tracks_short_term
-            period_label = 'Last 4 Weeks'
-        elif time_range == 'long_term':
-            top_artists = listening_stats.top_artists_long_term
-            top_tracks = listening_stats.top_tracks_long_term
-            period_label = 'All Time'
-        else:  # medium_term
-            top_artists = listening_stats.top_artists_medium_term
-            top_tracks = listening_stats.top_tracks_medium_term
-            period_label = 'Last 6 Months'
+        # Map time range to label
+        period_labels = {
+            'short_term': 'Last 4 Weeks',
+            'medium_term': 'Last 6 Months',
+            'long_term': 'All Time'
+        }
 
         data = {
             'time_range': time_range,
-            'period_label': period_label,
+            'period_label': period_labels.get(time_range, 'Unknown'),
             'top_artists': top_artists,
             'top_tracks': top_tracks,
             'total_plays': total_plays,
@@ -481,7 +610,13 @@ def get_stats_detailed_api(request):
         serializer = StatsDetailedSerializer(data)
         return Response(serializer.data)
 
+    except SpotifyUser.DoesNotExist:
+        return Response(
+            {'status': 'error', 'message': 'Spotify account not connected'},
+            status=status.HTTP_404_NOT_FOUND
+        )
     except Exception as e:
+        logger.error(f"Error retrieving stats for user {user.id}: {str(e)}")
         return Response(
             {
                 'status': 'error',
