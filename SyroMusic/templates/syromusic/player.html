@@ -7,12 +7,12 @@
 <style>
   /* Hide Spotify Web Playback SDK "Now Playing" Modal Only */
   /* Be selective - we need the SDK to work, just hide the modal UI */
+  /* Only target Spotify SDK elements, nothing else */
   div[class*="now-playing"],
   div[id*="now-playing"],
   div[class*="now_playing"],
   div[id*="now_playing"],
-  div[data-testid*="now-playing"],
-  body > div[style*="position: fixed"][style*="z-index"] {
+  div[data-testid*="now-playing"] {
     display: none !important;
     visibility: hidden !important;
   }
@@ -228,6 +228,13 @@
   .content-wrapper {
     position: relative;
     z-index: 10;
+    pointer-events: auto;
+  }
+
+  /* Ensure all buttons and interactive elements are clickable on mobile */
+  button, a, input, select, textarea {
+    pointer-events: auto;
+    touch-action: auto;
   }
 
   /* Vinyl Record Styles */
