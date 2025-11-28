@@ -1157,7 +1157,7 @@
                 </div>
                 <div class="text-xs text-gray-500 flex-shrink-0">${duration}</div>
                 <button
-                  onclick="playTrackFromSearch('${escapeHtml(trackUri)}')"
+                  onclick="playTrackFromSearch('${escapeSingleQuotes(trackUri)}')"
                   class="hidden group-hover:flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-colors flex-shrink-0"
                   title="Play"
                 >
@@ -1263,7 +1263,7 @@
                 </div>
                 <div class="text-xs text-gray-500 flex-shrink-0">${duration}</div>
                 <button
-                  onclick="playTrackFromSearch('${escapeHtml(trackUri)}')"
+                  onclick="playTrackFromSearch('${escapeSingleQuotes(trackUri)}')"
                   class="hidden group-hover:flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-colors flex-shrink-0"
                   title="Play"
                 >
@@ -1279,7 +1279,7 @@
           if (tracks.length > 0 && tracks[0].uri) {
             playAllHtml = `
               <button
-                onclick="playTrackFromSearch('${escapeHtml(tracks[0].uri)}')"
+                onclick="playTrackFromSearch('${escapeSingleQuotes(tracks[0].uri)}')"
                 class="w-full mt-4 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-semibold transition-colors"
               >
                 Play Album
@@ -1513,7 +1513,7 @@
                 <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
               </svg>
             </button>
-            <button onclick="addToQueue('${escapeSingleQuotes(track.uri)}', {title: '${escapeHtml(track.name)}', artist: '${escapeHtml(track.artist)}', album: '${escapeHtml(track.album)}'})" class="opacity-0 group-hover:opacity-100 transition p-2 hover:bg-cyan-500 rounded" title="Add to Queue">
+            <button onclick="addToQueue('${escapeSingleQuotes(track.uri)}', {title: '${escapeSingleQuotes(track.name)}', artist: '${escapeSingleQuotes(track.artist)}', album: '${escapeSingleQuotes(track.album)}'})" class="opacity-0 group-hover:opacity-100 transition p-2 hover:bg-cyan-500 rounded" title="Add to Queue">
               <svg class="w-5 h-5 text-cyan-400 hover:text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
@@ -2514,7 +2514,7 @@
               </button>
               <button
                 class="control-btn !w-10 !h-10"
-                onclick="addToQueueFromSearch('${safeUri}', {title: '${escapeHtml(title)}', artist: '${safeArtist}', album: '${safeAlbum}'});"
+                onclick="addToQueueFromSearch('${safeUri}', {title: '${escapeSingleQuotes(title)}', artist: '${escapeSingleQuotes(safeArtist)}', album: '${escapeSingleQuotes(safeAlbum)}'});"
                 title="Add to Queue"
                 type="button"
               >
