@@ -170,17 +170,11 @@
                 </div>
               </div>
               <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity track-actions">
-                <button onclick="playTrack('{{ track.uri|escapejs }}', {
-                  name: '{{ track.name|escapejs }}',
-                  artist: '{% for artist in track.artists %}{{ artist.name|escapejs }}{% if not forloop.last %}, {% endif %}{% endfor %}',
-                  album: '{{ track.album.name|escapejs }}'
-                })"
-                   class="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium text-sm hover-glow flex-shrink-0">
+                <button onclick="playTrack('{{ track.uri|escapejs }}')" class="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-medium text-sm hover-glow flex-shrink-0">
                   <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:play"></span>
                   Play
                 </button>
-                <button onclick="addToQueue('{{ track.uri|escapejs }}', '{{ track.name|escapejs }}')"
-                   class="px-4 py-2 rounded-lg border border-primary text-primary font-medium text-sm hover:bg-primary/10 flex-shrink-0">
+                <button onclick="addToQueue('{{ track.uri|escapejs }}')" class="px-4 py-2 rounded-lg border border-primary text-primary font-medium text-sm hover:bg-primary/10 flex-shrink-0">
                   <span class="iconify h-4 w-4 mr-1 inline" data-icon="mdi:playlist-plus"></span>
                   Queue
                 </button>
