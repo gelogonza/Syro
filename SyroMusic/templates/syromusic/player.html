@@ -677,6 +677,13 @@
       transform: translateY(20px);
     }
   }
+
+  /* Show action buttons on mobile devices */
+  @media (max-width: 768px) {
+    .opacity-0.group-hover\:opacity-100 {
+      opacity: 1 !important;
+    }
+  }
 </style>
 {% endblock extra_css %}
 

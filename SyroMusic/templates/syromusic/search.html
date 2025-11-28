@@ -2,6 +2,17 @@
 
 {% block title %}Search Results - Syro{% endblock title %}
 
+{% block extra_css %}
+<style>
+  /* Show action buttons on mobile devices */
+  @media (max-width: 768px) {
+    .track-actions {
+      opacity: 1 !important;
+    }
+  }
+</style>
+{% endblock extra_css %}
+
 {% block content %}
 <!-- Search Bar -->
 <div class="glass rounded-2xl p-6 md:p-8 border border-primary/20 bg-gradient-to-br from-primary/10 to-accent/10 mb-8">
@@ -158,7 +169,7 @@
                   </div>
                 </div>
               </div>
-              <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity track-actions">
                 <button onclick="playTrack('{{ track.uri }}', {
                   name: '{{ track.name|escapejs }}',
                   artist: '{% for artist in track.artists %}{{ artist.name }}{% if not forloop.last %}, {% endif %}{% endfor %}',
