@@ -841,12 +841,7 @@
                 >
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                      <span class="iconify mr-2" data-icon="
-                        {% if device.type == 'Computer' %}mdi:laptop
-                        {% elif device.type == 'Smartphone' %}mdi:cellphone
-                        {% elif device.type == 'Speaker' %}mdi:speaker
-                        {% else %}mdi:devices{% endif %}
-                      "></span>
+                      <span class="iconify mr-2" data-icon="{% if device.type == 'Computer' %}mdi:laptop{% elif device.type == 'Smartphone' %}mdi:cellphone{% elif device.type == 'Speaker' %}mdi:speaker{% else %}mdi:devices{% endif %}"></span>
                       <span>{{ device.name }}</span>
                     </div>
                     {% if device.is_active %}
