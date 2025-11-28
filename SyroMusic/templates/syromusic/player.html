@@ -837,7 +837,7 @@
                 <div
                   class="device-item {% if device.is_active %}active{% endif %}"
                   data-device-id="{{ device.id }}"
-                  onclick="transferPlayback('{{ device.id }}')"
+                  onclick="transferPlayback('{{ device.id }}', event)"
                 >
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
@@ -1976,11 +1976,21 @@
       },
       body: `device_id=${deviceId || ''}`
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json();
+    })
     .then(data => {
       if (data.status === 'success') {
         updatePlaybackState();
+      } else {
+        console.error('Play/Pause failed:', data);
+        showNotification('Failed to toggle playback', 'error');
       }
+    })
+    .catch(error => {
+      console.error('Error toggling playback:', error);
+      showNotification('Error: Could not toggle playback', 'error');
     });
   }
 
@@ -1995,14 +2005,24 @@
       },
       body: `device_id=${deviceId || ''}`
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json();
+    })
     .then(data => {
       if (data.status === 'success') {
         setTimeout(() => {
           updatePlaybackState();
           applyDynamicBackground();
         }, 500);
+      } else {
+        console.error('Next track failed:', data);
+        showNotification('Failed to skip to next track', 'error');
       }
+    })
+    .catch(error => {
+      console.error('Error skipping to next track:', error);
+      showNotification('Error: Could not skip to next track', 'error');
     });
   }
 
@@ -2017,19 +2037,32 @@
       },
       body: `device_id=${deviceId || ''}`
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json();
+    })
     .then(data => {
       if (data.status === 'success') {
         setTimeout(() => {
           updatePlaybackState();
           applyDynamicBackground();
         }, 500);
+      } else {
+        console.error('Previous track failed:', data);
+        showNotification('Failed to skip to previous track', 'error');
       }
+    })
+    .catch(error => {
+      console.error('Error skipping to previous track:', error);
+      showNotification('Error: Could not skip to previous track', 'error');
     });
   }
 
   function setVolume(volume) {
-    document.getElementById('volumeValue').textContent = volume + '%';
+    const volumeEl = document.getElementById('volumeValue');
+    if (volumeEl) {
+      volumeEl.textContent = volume + '%';
+    }
     const deviceId = getActiveDeviceId();
 
     fetch('{% url "music:set_volume" %}', {
@@ -2039,10 +2072,17 @@
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: `volume=${volume}&device_id=${deviceId || ''}`
+    })
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json();
+    })
+    .catch(error => {
+      console.error('Error setting volume:', error);
     });
   }
 
-  function transferPlayback(deviceId) {
+  function transferPlayback(deviceId, event) {
     fetch('{% url "music:transfer_playback" %}', {
       method: 'POST',
       headers: {
@@ -2051,19 +2091,39 @@
       },
       body: `device_id=${deviceId}`
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json();
+    })
     .then(data => {
       if (data.status === 'success') {
         document.querySelectorAll('.device-item').forEach(item => {
           item.classList.remove('active');
         });
-        event.target.closest('.device-item').classList.add('active');
+        if (event && event.target) {
+          const deviceItem = event.target.closest('.device-item');
+          if (deviceItem) {
+            deviceItem.classList.add('active');
+          }
+        }
+        showNotification('Device switched successfully', 'success');
+      } else {
+        console.error('Transfer playback failed:', data);
+        showNotification('Failed to switch device', 'error');
       }
+    })
+    .catch(error => {
+      console.error('Error transferring playback:', error);
+      showNotification('Error: Could not switch device', 'error');
     });
   }
 
   function toggleShuffle() {
     const btn = document.getElementById('shuffleBtn');
+    if (!btn) {
+      console.error('Shuffle button not found');
+      return;
+    }
     const isActive = btn.classList.contains('active');
     const deviceId = getActiveDeviceId();
 
@@ -2075,16 +2135,31 @@
       },
       body: `state=${!isActive}&device_id=${deviceId || ''}`
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json();
+    })
     .then(data => {
       if (data.status === 'success') {
         btn.classList.toggle('active');
+        showNotification('Shuffle ' + (btn.classList.contains('active') ? 'enabled' : 'disabled'), 'success');
+      } else {
+        console.error('Shuffle toggle failed:', data);
+        showNotification('Failed to toggle shuffle', 'error');
       }
+    })
+    .catch(error => {
+      console.error('Error toggling shuffle:', error);
+      showNotification('Error: Could not toggle shuffle', 'error');
     });
   }
 
   function toggleRepeat() {
     const btn = document.getElementById('repeatBtn');
+    if (!btn) {
+      console.error('Repeat button not found');
+      return;
+    }
     const currentMode = btn.getAttribute('data-repeat-mode') || 'off';
     const modes = ['off', 'context', 'track'];
     const nextMode = modes[(modes.indexOf(currentMode) + 1) % modes.length];
@@ -2098,7 +2173,10 @@
       },
       body: `mode=${nextMode}&device_id=${deviceId || ''}`
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json();
+    })
     .then(data => {
       if (data.status === 'success') {
         btn.setAttribute('data-repeat-mode', nextMode);
@@ -2110,7 +2188,15 @@
         } else {
           btn.innerHTML = '<span class="iconify text-xl" data-icon="mdi:repeat"></span>';
         }
+        showNotification('Repeat: ' + (nextMode === 'off' ? 'Off' : nextMode === 'context' ? 'All' : 'One'), 'success');
+      } else {
+        console.error('Repeat toggle failed:', data);
+        showNotification('Failed to toggle repeat', 'error');
       }
+    })
+    .catch(error => {
+      console.error('Error toggling repeat:', error);
+      showNotification('Error: Could not toggle repeat', 'error');
     });
   }
 
@@ -3072,13 +3158,18 @@
     // Hide Spotify modal UI after SDK is loaded (wait 1s for SDK to inject elements)
     setTimeout(() => {
       // Only remove the "Now Playing" modal, not the actual player
+      // Be very selective to avoid hiding our own UI
       document.querySelectorAll(
         'div[class*="now-playing"], div[id*="now-playing"], ' +
         'div[class*="now_playing"], div[id*="now_playing"]'
       ).forEach(el => {
-        console.log('Hiding Spotify Now Playing modal:', el);
-        el.style.display = 'none';
-        el.style.visibility = 'hidden';
+        // Only hide if this is NOT a child of our content wrapper or main player elements
+        if (!el.closest('.content-wrapper') && !el.closest('.player-card') && !el.closest('.vinyl-container')) {
+          console.log('Hiding Spotify Now Playing modal:', el);
+          el.style.display = 'none !important';
+          el.style.visibility = 'hidden !important';
+          el.style.pointerEvents = 'none';
+        }
       });
     }, 2000);
 
