@@ -1329,17 +1329,27 @@
         'X-CSRFToken': '{{ csrf_token }}'
       }
     })
-    .then(response => response.json())
+    .then(response => {
+      console.log('Playlists API response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
-      if (data.status === 'success' && data.data.playlists.length > 0) {
+      console.log('Playlists data received:', data);
+      if (data.status === 'success' && data.data && data.data.playlists && data.data.playlists.length > 0) {
         displayUserPlaylists(data.data.playlists);
+      } else if (data.status === 'success' && (!data.data?.playlists || data.data.playlists.length === 0)) {
+        showNotification('No playlists found', 'info');
       } else {
+        console.error('Unexpected response format:', data);
         showNotification('No playlists found', 'info');
       }
     })
     .catch(error => {
       console.error('Error loading playlists:', error);
-      showNotification('Failed to load playlists', 'error');
+      showNotification('Failed to load playlists: ' + error.message, 'error');
     });
   }
 
@@ -2226,6 +2236,16 @@
     const searchInput = document.getElementById('playerSearchInput');
     const resultsDiv = document.getElementById('playerSearchResults');
 
+    // Add null checks - if elements don't exist, exit gracefully
+    if (!searchInput) {
+      console.warn('playerSearchInput element not found - search functionality disabled');
+      return;
+    }
+    if (!resultsDiv) {
+      console.warn('playerSearchResults element not found - search functionality disabled');
+      return;
+    }
+
     let searchTimeout;
     let abortController = null;
 
@@ -2251,6 +2271,7 @@
 
     searchInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
+        e.preventDefault(); // Prevent form submission
         clearTimeout(searchTimeout);
         performPlayerSearch();
       }
