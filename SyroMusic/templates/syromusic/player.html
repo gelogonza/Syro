@@ -837,7 +837,7 @@
                 <div
                   class="device-item {% if device.is_active %}active{% endif %}"
                   data-device-id="{{ device.id }}"
-                  onclick="transferPlayback('{{ device.id }}', event)"
+                  onclick="transferPlayback('{{ device.id|escapejs }}')"
                 >
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
@@ -2092,7 +2092,7 @@
     });
   }
 
-  function transferPlayback(deviceId, event) {
+  function transferPlayback(deviceId) {
     fetch('{% url "music:transfer_playback" %}', {
       method: 'POST',
       headers: {
@@ -2107,16 +2107,16 @@
     })
     .then(data => {
       if (data.status === 'success') {
+        // Update active device styling
         document.querySelectorAll('.device-item').forEach(item => {
-          item.classList.remove('active');
-        });
-        if (event && event.target) {
-          const deviceItem = event.target.closest('.device-item');
-          if (deviceItem) {
-            deviceItem.classList.add('active');
+          if (item.dataset.deviceId === deviceId) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
           }
-        }
+        });
         showNotification('Device switched successfully', 'success');
+        updatePlaybackState();
       } else {
         console.error('Transfer playback failed:', data);
         showNotification('Failed to switch device', 'error');
