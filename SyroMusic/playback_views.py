@@ -598,48 +598,31 @@ def get_devices(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def transfer_playback(request):
-    """Transfer playback to a specific device."""
+    """Transfer playback to a specific device (accepts JSON or form data)."""
     try:
-        device_id = request.data.get('device_id')
+        # DRF request.data parses both JSON and form-encoded bodies
+        device_id = (request.data.get('device_id') or '').strip() or None
         if not device_id:
-            return Response(
-                {'error': 'device_id is required'}, 
-                status=400
-            )
-        
+            return Response({'status': 'error', 'message': 'device_id is required'}, status=400)
+
         spotify_user = SpotifyUser.objects.get(user=request.user)
         service = SpotifyService(spotify_user)
-        
+
         logger.info(f"Attempting to transfer playback to device: {device_id}")
-        
-        # Transfer playback
-        success = service.transfer_playback(device_id, force_play=False)
-        
+        success = service.transfer_playback(device_id)  # force_play defaults to True
+
         if success:
             logger.info(f"Successfully transferred playback to device: {device_id}")
-            return Response({
-                'message': 'Playback transferred successfully',
-                'device_id': device_id
-            }, status=200)
+            return Response({'status': 'success', 'message': 'Transferred playback'}, status=200)
         else:
             logger.error(f"Failed to transfer playback to device: {device_id}")
-            return Response(
-                {'error': 'Failed to transfer playback'}, 
-                status=500
-            )
-        
+            return Response({'status': 'error', 'message': 'Failed to transfer playback'}, status=400)
+
     except SpotifyUser.DoesNotExist:
-        logger.error(f"No SpotifyUser found for {request.user.username}")
-        return Response(
-            {'error': 'Spotify account not connected'}, 
-            status=400
-        )
+        return Response({'status': 'error', 'message': 'Spotify account not connected'}, status=400)
     except Exception as e:
         logger.error(f"Error transferring playback: {str(e)}", exc_info=True)
-        return Response(
-            {'error': f'Failed to transfer playback: {str(e)}'},
-            status=500
-        )
+        return Response({'status': 'error', 'message': str(e)}, status=500)
 
 
 @login_required(login_url='login')
