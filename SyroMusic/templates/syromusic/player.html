@@ -32,6 +32,17 @@
     display: none;
   }
 
+  /* ==================== Dynamic Theme CSS Variables ==================== */
+  :root {
+    --theme-primary: rgb(16, 185, 129);
+    --theme-accent: rgb(34, 197, 94);
+    --theme-glow: rgba(16, 185, 129, 0.4);
+    --theme-glow-soft: rgba(16, 185, 129, 0.15);
+    --theme-bg1: rgba(16, 185, 129, 0.15);
+    --theme-bg2: rgba(34, 197, 94, 0.1);
+    --theme-bg3: rgba(16, 185, 129, 0.08);
+  }
+
   /* Breathing Gradient Mesh Animation */
   @keyframes breathing {
     0%, 100% {
@@ -165,9 +176,9 @@
     width: 100%;
     height: 100%;
     background:
-      radial-gradient(ellipse 1200px 800px at 20% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
-      radial-gradient(ellipse 1000px 900px at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
-      radial-gradient(ellipse 800px 1000px at 50% 50%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 1200px 800px at 20% 30%, var(--theme-bg1) 0%, transparent 40%),
+      radial-gradient(ellipse 1000px 900px at 80% 70%, var(--theme-bg2) 0%, transparent 40%),
+      radial-gradient(ellipse 800px 1000px at 50% 50%, var(--theme-bg3) 0%, transparent 50%),
       linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     background-size: 200% 200%, 200% 200%, 300% 300%, 100% 100%;
     background-position: 0% 50%, 100% 50%, 50% 50%, center;
@@ -244,8 +255,8 @@
     cursor: pointer;
   }
 
-  /* Larger touch target for progress bar on mobile */
-  .progress-container {
+  /* Touch target wrapper for progress bar */
+  .progress-wrapper {
     min-height: 20px;
     display: flex;
     align-items: center;
@@ -396,7 +407,7 @@
 
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ffffff 0%, #f0f0f0 100%);
+    background: linear-gradient(90deg, var(--theme-primary) 0%, var(--theme-accent) 100%);
     border-radius: 4px;
     transition: width 0.1s linear;
     box-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 0 24px rgba(255, 255, 255, 0.3);
@@ -445,7 +456,7 @@
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 100%);
     border-color: rgba(255, 255, 255, 0.35);
     transform: scale(1.08) translateY(-2px);
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 8px 24px var(--theme-glow);
   }
 
   .control-btn:active {
@@ -453,9 +464,9 @@
   }
 
   .control-btn.active {
-    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-accent) 100%);
     border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 28px rgba(16, 185, 129, 0.6);
+    box-shadow: 0 8px 28px var(--theme-glow);
   }
 
   .control-btn-lg {
@@ -511,25 +522,25 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-accent) 100%);
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 2px 8px var(--theme-glow);
     transition: all 0.2s ease;
   }
 
   .volume-slider::-webkit-slider-thumb:hover {
     transform: scale(1.2);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.6);
+    box-shadow: 0 4px 12px var(--theme-glow);
   }
 
   .volume-slider::-moz-range-thumb {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-accent) 100%);
     cursor: pointer;
     border: none;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 2px 8px var(--theme-glow);
   }
 
   /* Device Panel */
@@ -547,14 +558,14 @@
 
   .device-item:hover {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(16, 185, 129, 0.5);
+    border-color: var(--theme-glow);
     transform: translateX(4px);
   }
 
   .device-item.active {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(34, 197, 94, 0.15) 100%);
-    border-color: #10b981;
-    color: #10b981;
+    background: linear-gradient(135deg, var(--theme-glow-soft) 0%, var(--theme-glow-soft) 100%);
+    border-color: var(--theme-primary);
+    color: var(--theme-primary);
   }
 
   /* Search Section */
@@ -572,8 +583,8 @@
   .search-input:focus {
     outline: none;
     background: rgba(255, 255, 255, 0.08);
-    border-color: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 3px var(--theme-glow-soft);
   }
 
   .search-input::placeholder {
@@ -747,38 +758,35 @@
               <div class="vinyl-record {% if now_playing and now_playing.is_playing %}playing{% endif %}" id="vinylRecord">
                 <div class="vinyl-grooves"></div>
                 <div class="vinyl-label">
-                  {% if now_playing and now_playing.album_image_url %}
-                    <img
-                      src="{{ now_playing.album_image_url }}"
-                      alt="Album Art"
-                      id="albumArt"
-                      crossorigin="anonymous"
-                    />
-                  {% else %}
-                    <div class="w-full h-full bg-gray-800 flex items-center justify-center">
-                      <span class="iconify text-6xl text-gray-600" data-icon="mdi:music"></span>
-                    </div>
-                  {% endif %}
+                  <img
+                    src="{% if now_playing and now_playing.album_image_url %}{{ now_playing.album_image_url }}{% endif %}"
+                    alt="Album Art"
+                    id="albumArt"
+                    crossorigin="anonymous"
+                    class="w-full h-full object-cover"
+                    style="{% if not now_playing or not now_playing.album_image_url %}display:none{% endif %}"
+                  />
+                  <div id="albumArtFallback" class="w-full h-full bg-gray-800 flex items-center justify-center{% if now_playing and now_playing.album_image_url %} hidden{% endif %}">
+                    <span class="iconify text-6xl text-gray-600" data-icon="mdi:music"></span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Track Info -->
-          {% if now_playing and now_playing.track_name %}
+          <!-- Track Info — always rendered so JS can update it -->
           <div class="text-center mb-8">
-            <h1 class="track-name" id="trackName">{{ now_playing.track_name }}</h1>
-            <p class="artist-name" id="artistName">{{ now_playing.artist_name }}</p>
-            {% if now_playing.album_name %}
-              <p class="album-name" id="albumNameDisplay">{{ now_playing.album_name }}</p>
-            {% endif %}
+            <h1 class="track-name" id="trackName">{% if now_playing and now_playing.track_name %}{{ now_playing.track_name }}{% endif %}</h1>
+            <p class="artist-name" id="artistName">{% if now_playing %}{{ now_playing.artist_name }}{% endif %}</p>
+            <p class="album-name" id="albumNameDisplay">{% if now_playing %}{{ now_playing.album_name }}{% endif %}</p>
           </div>
-          {% endif %}
 
           <!-- Progress Bar -->
           <div class="mb-6">
-            <div class="progress-container mb-2" id="progressBar">
-              <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            <div class="progress-wrapper mb-2">
+              <div class="progress-container w-full" id="progressBar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+              </div>
             </div>
             <div class="flex justify-between time-display">
               <span id="currentTime">0:00</span>
@@ -1795,46 +1803,94 @@
     }
   }
 
+  function applyThemeColors(primary, accent1, accent2) {
+    /**
+     * Updates all CSS variables so the entire page reflects the album's palette.
+     */
+    const root = document.documentElement;
+    const p = primary || 'rgb(16, 185, 129)';
+    const a1 = accent1 || p;
+    const a2 = accent2 || p;
+
+    // Convert rgb(...) to rgba(..., opacity) helper
+    const rgba = (color, alpha) => color.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
+
+    root.style.setProperty('--theme-primary', p);
+    root.style.setProperty('--theme-accent', a1);
+    root.style.setProperty('--theme-glow', rgba(p, 0.5));
+    root.style.setProperty('--theme-glow-soft', rgba(p, 0.15));
+    root.style.setProperty('--theme-bg1', rgba(p, 0.20));
+    root.style.setProperty('--theme-bg2', rgba(a1, 0.12));
+    root.style.setProperty('--theme-bg3', rgba(a2, 0.08));
+
+    // Update progress bar fill directly (CSS gradient vars sometimes need a nudge)
+    const fill = document.getElementById('progressFill');
+    if (fill) fill.style.background = `linear-gradient(90deg, ${p} 0%, ${a1} 100%)`;
+
+    // Update control-btn-lg (play button) glow
+    const playBtn = document.getElementById('playPauseBtn');
+    if (playBtn) playBtn.style.boxShadow = `0 12px 40px ${rgba(p, 0.5)}, 0 0 60px ${rgba(p, 0.3)}`;
+  }
+
   function applyDynamicBackground() {
     const albumArt = document.getElementById('albumArt');
     const dynamicBg = document.getElementById('dynamicBg');
 
-    if (!albumArt || !dynamicBg) return;
+    if (!dynamicBg) return;
+
+    // If no albumArt image or it hasn't loaded, keep animated gradient
+    if (!albumArt || !albumArt.src || albumArt.style.display === 'none' || !albumArt.naturalWidth) {
+      if (albumArt && albumArt.src && albumArt.style.display !== 'none') {
+        // Image exists but not loaded yet — wait for it
+        albumArt.onload = () => applyDynamicBackground();
+        albumArt.onerror = () => console.warn('Album art failed; keeping default background');
+      }
+      return;
+    }
 
     const doUpdate = () => {
       // Ensure crossOrigin is set — required for canvas colour extraction
-      if (!albumArt.crossOrigin) {
-        albumArt.crossOrigin = 'anonymous';
+      if (!albumArt.crossOrigin) albumArt.crossOrigin = 'anonymous';
+
+      try {
+        const dominantColor = extractDominantColor(albumArt);
+        const accentColors = extractDominantColors(albumArt, 3);
+
+        const c0 = accentColors[0] || dominantColor;
+        const c1 = accentColors[1] || dominantColor;
+        const c2 = accentColors[2] || dominantColor;
+
+        const gradient = `
+          radial-gradient(circle at 20% 80%, ${dominantColor} 0%, ${c1} 40%, transparent 70%),
+          radial-gradient(circle at 80% 20%, ${c1} 0%, transparent 50%),
+          linear-gradient(135deg, ${dominantColor} 0%, ${c0} 50%, ${c2} 100%)
+        `;
+
+        dynamicBg.style.background = gradient;
+
+        // Apply theme colors to entire page UI
+        applyThemeColors(dominantColor, c0, c2);
+
+        console.log('Dynamic theme applied:', { dominant: dominantColor, accents: accentColors });
+      } catch (err) {
+        console.warn('Color extraction failed (CORS?):', err.message);
       }
-
-      const dominantColor = extractDominantColor(albumArt);
-      const accentColors = extractDominantColors(albumArt, 3);
-
-      const gradient = `
-        radial-gradient(circle at 20% 80%, ${dominantColor} 0%, ${accentColors[1] || dominantColor} 40%, transparent 70%),
-        radial-gradient(circle at 80% 20%, ${accentColors[1] || dominantColor} 0%, transparent 50%),
-        linear-gradient(135deg, ${dominantColor} 0%, ${accentColors[0] || dominantColor} 50%, ${accentColors[2] || dominantColor} 100%)
-      `;
-
-      dynamicBg.style.background = gradient;
-      dynamicBg.style.backgroundColor = dominantColor;
-
-      console.log('Dynamic background updated:', { dominant: dominantColor, accents: accentColors });
     };
 
     if (albumArt.complete && albumArt.naturalWidth > 0) {
       doUpdate();
     } else {
-      // Wait for image to load; overwrite any prior handler to avoid stacking
       albumArt.onload = doUpdate;
-      albumArt.onerror = () => {
-        // Image failed — keep the existing animated gradient
-        console.warn('Album art failed to load; keeping default background');
-      };
+      albumArt.onerror = () => console.warn('Album art failed to load; keeping default background');
     }
   }
 
   // ==================== Playback State Management ====================
+
+  // Module-level playback state — used by progress bar, seek, and other controls
+  let _currentDurationMs = 0;
+  let _currentProgressMs = 0;
+  let _currentTrackId = '';
 
   // ==================== Autoplay State ====================
   const autoplayState = {
@@ -1879,37 +1935,58 @@
           const progress = data.progress_ms || 0;
           const percentage = duration > 0 ? (progress / duration * 100) : 0;
 
-          document.getElementById('progressFill').style.width = percentage + '%';
-          document.getElementById('currentTime').textContent = formatTime(progress);
-          document.getElementById('duration').textContent = formatTime(duration);
+          // Store in module variables for seek and other controls
+          _currentDurationMs = duration;
+          _currentProgressMs = progress;
 
-          // Update play/pause button
+          // Update progress bar
+          const progressFill = document.getElementById('progressFill');
+          const currentTimeEl = document.getElementById('currentTime');
+          const durationEl = document.getElementById('duration');
+          if (progressFill) progressFill.style.width = percentage + '%';
+          if (currentTimeEl) currentTimeEl.textContent = formatTime(progress);
+          if (durationEl) durationEl.textContent = formatTime(duration);
+
+          // Update play/pause button and vinyl animation
           const playPauseBtn = document.getElementById('playPauseBtn');
           const vinylRecord = document.getElementById('vinylRecord');
 
           if (data.is_playing) {
-            playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:pause"></span>';
-            vinylRecord.classList.add('playing');
+            if (playPauseBtn) playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:pause"></span>';
+            if (vinylRecord) vinylRecord.classList.add('playing');
           } else {
-            playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:play"></span>';
-            vinylRecord.classList.remove('playing');
+            if (playPauseBtn) playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:play"></span>';
+            if (vinylRecord) vinylRecord.classList.remove('playing');
           }
 
-          // Update track info if changed
+          // Always update track info (elements always in DOM now)
           const trackNameEl = document.getElementById('trackName');
           const artistNameEl = document.getElementById('artistName');
           const albumNameDisplay = document.getElementById('albumNameDisplay');
-          const albumArt = document.getElementById('albumArt');
 
-          if (trackNameEl && data.track_name) trackNameEl.textContent = data.track_name;
-          if (artistNameEl && data.artist_name) artistNameEl.textContent = data.artist_name;
-          if (albumNameDisplay && data.album_name) albumNameDisplay.textContent = data.album_name;
+          if (trackNameEl) trackNameEl.textContent = data.track_name || '';
+          if (artistNameEl) artistNameEl.textContent = data.artist_name || '';
+          if (albumNameDisplay) albumNameDisplay.textContent = data.album_name || '';
 
           // Update album art + dynamic background when track changes
-          if (albumArt && data.album_image_url && albumArt.src !== data.album_image_url) {
+          const albumArt = document.getElementById('albumArt');
+          const albumArtFallback = document.getElementById('albumArtFallback');
+          const trackId = data.track_id || '';
+
+          if (albumArt && data.album_image_url && _currentTrackId !== trackId) {
+            _currentTrackId = trackId;
             albumArt.crossOrigin = 'anonymous';
+            albumArt.style.display = '';
             albumArt.src = data.album_image_url;
+            if (albumArtFallback) albumArtFallback.classList.add('hidden');
             albumArt.onload = () => applyDynamicBackground();
+            albumArt.onerror = () => {
+              albumArt.style.display = 'none';
+              if (albumArtFallback) albumArtFallback.classList.remove('hidden');
+            };
+          } else if (albumArt && !data.album_image_url) {
+            albumArt.style.display = 'none';
+            if (albumArtFallback) albumArtFallback.classList.remove('hidden');
           }
 
           // ── Autoplay detection ──────────────────────────────────────
@@ -1922,7 +1999,7 @@
             autoplayState.triggered = false;
           }
 
-          // Mark when we're near the end (≥ 97 % complete and still playing)
+          // Mark when we're near the end (≥ 97% complete and still playing)
           if (duration > 0 && progress / duration >= 0.97 && data.is_playing) {
             autoplayState.wasNearEnd = true;
           }
@@ -2279,59 +2356,73 @@
   }
 
   // Progress bar seek (mouse + touch)
+  // Uses _currentDurationMs module variable set by updatePlaybackState
   (function setupProgressBar() {
-    const bar = document.getElementById('progressBar');
-    if (!bar) return;
+    // Defer until DOM is ready — the bar element is after this script block
+    function init() {
+      const bar = document.getElementById('progressBar');
+      if (!bar) return;
 
-    let seekTimer = null;
+      let seekTimer = null;
+      let isSeeking = false;
 
-    function getDurationMs() {
-      const parts = document.getElementById('duration').textContent.split(':');
-      if (parts.length < 2) return 0;
-      const mins = parseInt(parts[0], 10);
-      const secs = parseInt(parts[1], 10);
-      if (isNaN(mins) || isNaN(secs)) return 0;
-      return (mins * 60 + secs) * 1000;
+      function seekAt(clientX) {
+        if (_currentDurationMs <= 0) return; // no track loaded yet
+
+        const rect = bar.getBoundingClientRect();
+        const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+
+        // Update fill immediately for snappy feel
+        const fill = document.getElementById('progressFill');
+        if (fill) fill.style.width = (percent * 100) + '%';
+
+        const positionMs = Math.floor(percent * _currentDurationMs);
+        const deviceId = getActiveDeviceId();
+
+        clearTimeout(seekTimer);
+        seekTimer = setTimeout(() => {
+          fetch('{% url "music:seek" %}', {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}',
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `position_ms=${positionMs}&device_id=${deviceId || ''}`
+          })
+          .then(r => r.json())
+          .then(() => {
+            _currentProgressMs = positionMs;
+            setTimeout(updatePlaybackState, 200);
+          })
+          .catch(err => console.error('Seek error:', err));
+        }, 150); // debounce rapid drags
+      }
+
+      // Mouse events
+      bar.addEventListener('click', (e) => { if (!isSeeking) seekAt(e.clientX); });
+
+      bar.addEventListener('mousedown', () => { isSeeking = false; });
+
+      // Touch events
+      bar.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        isSeeking = true;
+        seekAt(e.touches[0].clientX);
+      }, { passive: false });
+
+      bar.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        seekAt(e.touches[0].clientX);
+      }, { passive: false });
+
+      bar.addEventListener('touchend', () => { isSeeking = false; }, { passive: true });
     }
 
-    function seekAt(clientX) {
-      const rect = bar.getBoundingClientRect();
-      const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-      const durationMs = getDurationMs();
-      if (durationMs <= 0) return;
-
-      // Update the fill immediately for a snappy feel
-      document.getElementById('progressFill').style.width = (percent * 100) + '%';
-
-      const positionMs = Math.floor(percent * durationMs);
-      const deviceId = getActiveDeviceId();
-
-      clearTimeout(seekTimer);
-      seekTimer = setTimeout(() => {
-        fetch('{% url "music:seek" %}', {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: `position_ms=${positionMs}&device_id=${deviceId || ''}`
-        }).then(() => updatePlaybackState());
-      }, 150); // debounce rapid drags
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
     }
-
-    // Mouse click
-    bar.addEventListener('click', (e) => seekAt(e.clientX));
-
-    // Touch: scrub to exact position on tap and drag
-    bar.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      seekAt(e.touches[0].clientX);
-    }, { passive: false });
-
-    bar.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      seekAt(e.touches[0].clientX);
-    }, { passive: false });
   })();
 
   // ==================== Search Functionality ====================
@@ -2352,6 +2443,7 @@
 
     let searchTimeout;
     let abortController = null;
+    let _autoPlayAfterSearch = false; // set to true when Enter pressed without results
 
     function debounceSearch() {
       clearTimeout(searchTimeout);
@@ -2363,6 +2455,7 @@
 
       if (query.length === 0) {
         resultsDiv.innerHTML = '';
+        _autoPlayAfterSearch = false;
         if (abortController) {
           abortController.abort();
           abortController = null;
@@ -2377,11 +2470,13 @@
       if (e.key === 'Enter') {
         e.preventDefault();
         clearTimeout(searchTimeout);
-        // If results are already showing, play the first song result
+        // If results are already showing, play the first song result immediately
         const firstPlayBtn = resultsDiv.querySelector('button[title="Play"]');
         if (firstPlayBtn) {
           firstPlayBtn.click();
         } else {
+          // Trigger search and auto-play first result when it arrives
+          _autoPlayAfterSearch = true;
           performPlayerSearch();
         }
       }
@@ -2562,6 +2657,15 @@
 
       resultsDiv.innerHTML = html;
       console.log('Search results rendered successfully');
+
+      // Auto-play first song result if triggered by Enter key
+      if (_autoPlayAfterSearch) {
+        _autoPlayAfterSearch = false;
+        const firstPlayBtn = resultsDiv.querySelector('button[title="Play"]');
+        if (firstPlayBtn) {
+          setTimeout(() => firstPlayBtn.click(), 50);
+        }
+      }
     }
 
     function renderSongResult(song) {
@@ -2991,37 +3095,14 @@
     });
   }
 
-  // Search result playback functions
-  function playTrackFromSearch(trackUri) {
-    console.log('Playing track from search:', trackUri);
-    if (!trackUri) {
-      showNotification('Invalid track', 'error');
-      return;
-    }
-    
-    // Close search results
-    const resultsDiv = document.getElementById('playerSearchResults');
-    if (resultsDiv) {
-      resultsDiv.innerHTML = '';
-    }
-    const searchInput = document.getElementById('playerSearchInput');
-    if (searchInput) {
-      searchInput.value = '';
-    }
-    
-    // Play the track using existing playTrack function
-    playTrack(trackUri);
+  // playTrackFromSearch and addToQueueFromSearch are defined as window.* inside
+  // setupPlayerSearch() so they can access the closure's resultsDiv/searchInput.
+  // These stubs keep global calls safe if setupPlayerSearch hasn't run yet.
+  if (typeof window.playTrackFromSearch === 'undefined') {
+    window.playTrackFromSearch = function(trackUri) { playTrack(trackUri); };
   }
-
-  function addToQueueFromSearch(trackUri, trackInfo) {
-    console.log('Adding track to queue from search:', trackUri, trackInfo);
-    if (!trackUri) {
-      showNotification('Invalid track', 'error');
-      return;
-    }
-    
-    // Add to queue using existing addToQueue function
-    addToQueue(trackUri, trackInfo);
+  if (typeof window.addToQueueFromSearch === 'undefined') {
+    window.addToQueueFromSearch = function(trackUri, info) { addToQueue(trackUri, info || {}); };
   }
 
   // ==================== Device Selection ====================

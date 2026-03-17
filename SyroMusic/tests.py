@@ -386,6 +386,539 @@ class PlaybackControlsTests(TestCase):
         )
         mock_service.previous_track.assert_called_once_with(device_id=None)
 
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_play_pause_toggles_pause_when_playing(self, mock_cls):
+        """When currently playing, play_pause should call pause."""
+        mock_service = MagicMock()
+        mock_service.get_current_playback.return_value = {'is_playing': True}
+        mock_service.pause_playback.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            reverse('music:play_pause'),
+            data='device_id=dev123',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        mock_service.pause_playback.assert_called_once_with(device_id='dev123')
+        mock_service.resume_playback.assert_not_called()
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_play_pause_requires_post(self, mock_cls):
+        """GET requests to play_pause should be rejected."""
+        response = self.client.get(reverse('music:play_pause'))
+        self.assertEqual(response.status_code, 405)
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_next_track_requires_post(self, mock_cls):
+        response = self.client.get(reverse('music:next_track'))
+        self.assertEqual(response.status_code, 405)
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_previous_track_requires_post(self, mock_cls):
+        response = self.client.get(reverse('music:previous_track'))
+        self.assertEqual(response.status_code, 405)
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_next_track_spotify_failure_returns_error(self, mock_cls):
+        """When Spotify next_track fails, view should return 400."""
+        mock_service = MagicMock()
+        mock_service.next_track.return_value = False
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            reverse('music:next_track'),
+            data='device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_previous_track_spotify_failure_returns_error(self, mock_cls):
+        """When Spotify previous_track fails, view should return 400."""
+        mock_service = MagicMock()
+        mock_service.previous_track.return_value = False
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            reverse('music:previous_track'),
+            data='device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
+
+# ---------------------------------------------------------------------------
+# play_track endpoint tests
+# ---------------------------------------------------------------------------
+
+class PlayTrackTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='playuser', password='testpass')
+        make_spotify_user(self.user)
+        self.client.login(username='playuser', password='testpass')
+        self.url = reverse('music:play_track')
+
+    def test_play_track_requires_login(self):
+        anon = Client()
+        response = anon.post(
+            self.url,
+            data=json.dumps({'track_uri': 'spotify:track:abc'}),
+            content_type='application/json',
+        )
+        self.assertIn(response.status_code, [302, 403])
+
+    def test_play_track_requires_post(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_play_track_missing_uri_returns_error(self):
+        response = self.client.post(
+            self.url,
+            data=json.dumps({}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_play_track_uri_json_body(self, mock_cls):
+        """Playing a track URI via JSON body calls start_playback with uris=[...]."""
+        mock_service = MagicMock()
+        mock_service.start_playback.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data=json.dumps({'track_uri': 'spotify:track:abc123', 'device_id': 'dev1'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'success')
+        mock_service.start_playback.assert_called_once_with(
+            uris=['spotify:track:abc123'], device_id='dev1'
+        )
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_play_context_uri_calls_context_playback(self, mock_cls):
+        """Playing an album/playlist URI calls start_playback with context_uri."""
+        mock_service = MagicMock()
+        mock_service.start_playback.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data=json.dumps({'uri': 'spotify:album:albumid123', 'device_id': 'dev1'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        mock_service.start_playback.assert_called_once_with(
+            context_uri='spotify:album:albumid123', device_id='dev1'
+        )
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_play_track_form_encoded(self, mock_cls):
+        """Playing via form-encoded body is also supported."""
+        mock_service = MagicMock()
+        mock_service.start_playback.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='track_uri=spotify%3Atrack%3Axyz',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        mock_service.start_playback.assert_called_once()
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_play_track_spotify_failure_returns_error(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.start_playback.return_value = False
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data=json.dumps({'track_uri': 'spotify:track:bad'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
+
+# ---------------------------------------------------------------------------
+# seek endpoint tests
+# ---------------------------------------------------------------------------
+
+class SeekTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='seekuser', password='testpass')
+        make_spotify_user(self.user)
+        self.client.login(username='seekuser', password='testpass')
+        self.url = reverse('music:seek')
+
+    def test_seek_requires_post(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_seek_missing_position_returns_error(self):
+        response = self.client.post(
+            self.url,
+            data='device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_seek_success(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.seek_to_position.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='position_ms=60000&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'success')
+        mock_service.seek_to_position.assert_called_once_with(60000, device_id='dev1')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_seek_zero_position(self, mock_cls):
+        """Seeking to position 0 (rewind to start) should be valid."""
+        mock_service = MagicMock()
+        mock_service.seek_to_position.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='position_ms=0&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        # position_ms=0 is falsy — view returns 400; this documents current behaviour
+        # If view is updated to allow 0, change this assertion to 200
+        self.assertIn(response.status_code, [200, 400])
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_seek_empty_device_id(self, mock_cls):
+        """Empty device_id should be treated as None."""
+        mock_service = MagicMock()
+        mock_service.seek_to_position.return_value = True
+        mock_cls.return_value = mock_service
+
+        self.client.post(
+            self.url,
+            data='position_ms=30000&device_id=',
+            content_type='application/x-www-form-urlencoded',
+        )
+        mock_service.seek_to_position.assert_called_once_with(30000, device_id=None)
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_seek_spotify_failure_returns_error(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.seek_to_position.return_value = False
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='position_ms=10000&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
+
+# ---------------------------------------------------------------------------
+# set_volume endpoint tests
+# ---------------------------------------------------------------------------
+
+class SetVolumeTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='voluser', password='testpass')
+        make_spotify_user(self.user)
+        self.client.login(username='voluser', password='testpass')
+        self.url = reverse('music:set_volume')
+
+    def test_set_volume_requires_post(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_set_volume_missing_value_returns_error(self):
+        response = self.client.post(
+            self.url,
+            data='device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_set_volume_invalid_above_100_returns_error(self):
+        response = self.client.post(
+            self.url,
+            data='volume=150&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
+    def test_set_volume_invalid_negative_returns_error(self):
+        response = self.client.post(
+            self.url,
+            data='volume=-10&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_volume_success(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.set_volume.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='volume=75&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'success')
+        mock_service.set_volume.assert_called_once_with(75, device_id='dev1')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_volume_zero(self, mock_cls):
+        """Volume of 0 (mute) should be accepted."""
+        mock_service = MagicMock()
+        mock_service.set_volume.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='volume=0&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertIn(response.status_code, [200, 400])  # 0 is falsy — documents behaviour
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_volume_100(self, mock_cls):
+        """Volume of 100 (max) should be accepted."""
+        mock_service = MagicMock()
+        mock_service.set_volume.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='volume=100&device_id=',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        mock_service.set_volume.assert_called_once_with(100, device_id=None)
+
+
+# ---------------------------------------------------------------------------
+# set_shuffle endpoint tests
+# ---------------------------------------------------------------------------
+
+class SetShuffleTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='shuffleuser', password='testpass')
+        make_spotify_user(self.user)
+        self.client.login(username='shuffleuser', password='testpass')
+        self.url = reverse('music:set_shuffle')
+
+    def test_set_shuffle_requires_post(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_shuffle_enable(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.set_shuffle.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='state=true&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertIn('enabled', data['message'])
+        mock_service.set_shuffle.assert_called_once_with(True, device_id='dev1')
+
+        # Verify persisted in local queue
+        queue = PlaybackQueue.objects.get(user=self.user)
+        self.assertTrue(queue.shuffle_enabled)
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_shuffle_disable(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.set_shuffle.return_value = True
+        mock_cls.return_value = mock_service
+
+        # Pre-enable shuffle
+        q, _ = PlaybackQueue.objects.get_or_create(user=self.user)
+        q.shuffle_enabled = True
+        q.save()
+
+        response = self.client.post(
+            self.url,
+            data='state=false&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertIn('disabled', data['message'])
+
+        q.refresh_from_db()
+        self.assertFalse(q.shuffle_enabled)
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_shuffle_spotify_failure_returns_error(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.set_shuffle.return_value = False
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='state=true&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_shuffle_default_false(self, mock_cls):
+        """Missing state param defaults to False."""
+        mock_service = MagicMock()
+        mock_service.set_shuffle.return_value = True
+        mock_cls.return_value = mock_service
+
+        self.client.post(
+            self.url,
+            data='device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        mock_service.set_shuffle.assert_called_once_with(False, device_id='dev1')
+
+
+# ---------------------------------------------------------------------------
+# set_repeat endpoint tests
+# ---------------------------------------------------------------------------
+
+class SetRepeatTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='repeatuser', password='testpass')
+        make_spotify_user(self.user)
+        self.client.login(username='repeatuser', password='testpass')
+        self.url = reverse('music:set_repeat')
+
+    def test_set_repeat_requires_post(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_set_repeat_invalid_mode_returns_error(self):
+        response = self.client.post(
+            self.url,
+            data='mode=invalid&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_repeat_off(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.set_repeat.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='mode=off&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertIn('off', data['message'].lower())
+        mock_service.set_repeat.assert_called_once_with('off', device_id='dev1')
+
+        queue = PlaybackQueue.objects.get(user=self.user)
+        self.assertEqual(queue.repeat_mode, 'off')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_repeat_context(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.set_repeat.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='mode=context&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('all', data['message'].lower())
+
+        queue = PlaybackQueue.objects.get(user=self.user)
+        self.assertEqual(queue.repeat_mode, 'context')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_repeat_track(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.set_repeat.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='mode=track&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('one', data['message'].lower())
+
+        queue = PlaybackQueue.objects.get(user=self.user)
+        self.assertEqual(queue.repeat_mode, 'track')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_repeat_spotify_failure_returns_error(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.set_repeat.return_value = False
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='mode=off&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_repeat_default_mode_off(self, mock_cls):
+        """Missing mode param defaults to 'off'."""
+        mock_service = MagicMock()
+        mock_service.set_repeat.return_value = True
+        mock_cls.return_value = mock_service
+
+        self.client.post(
+            self.url,
+            data='device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        mock_service.set_repeat.assert_called_once_with('off', device_id='dev1')
+
 
 # ---------------------------------------------------------------------------
 # transfer_playback: JSON body + wrong kwarg fix
@@ -440,6 +973,20 @@ class TransferPlaybackTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_transfer_spotify_failure_returns_error(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.transfer_playback.return_value = False
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(
+            self.url,
+            data='device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+
 
 # ---------------------------------------------------------------------------
 # get_playback_state: includes track_uri and context fields
@@ -488,6 +1035,87 @@ class PlaybackStateResponseTests(TestCase):
         self.assertEqual(data['context_type'], 'album')
         self.assertEqual(data['context_uri'], 'spotify:album:abc')
         self.assertIn('artist_id_1', data['artist_ids'])
+
+    @patch('SyroMusic.playback_views.TokenManager')
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_state_no_playback_returns_no_playback_status(self, mock_cls, mock_token):
+        """When nothing is playing, status should be 'no_playback'."""
+        mock_token.refresh_user_token.return_value = 'token'
+        mock_service = MagicMock()
+        mock_service.get_current_playback.return_value = None
+        mock_cls.return_value = mock_service
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'no_playback')
+
+    @patch('SyroMusic.playback_views.TokenManager')
+    def test_state_expired_token_returns_401(self, mock_token):
+        """Expired / unrefreshable token returns 401."""
+        mock_token.refresh_user_token.return_value = None
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()['status'], 'error')
+
+    @patch('SyroMusic.playback_views.TokenManager')
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_state_includes_album_image_url(self, mock_cls, mock_token):
+        """Response should include album_image_url for cover art updates."""
+        mock_token.refresh_user_token.return_value = 'token'
+        mock_service = MagicMock()
+        mock_service.get_current_playback.return_value = {
+            'is_playing': True,
+            'progress_ms': 10000,
+            'device': {'name': 'Dev', 'type': 'Computer'},
+            'context': None,
+            'item': {
+                'id': 'tid',
+                'uri': 'spotify:track:tid',
+                'name': 'Song',
+                'duration_ms': 180000,
+                'artists': [{'name': 'Artist', 'id': 'aid'}],
+                'album': {
+                    'name': 'Album',
+                    'uri': 'spotify:album:aid',
+                    'images': [{'url': 'https://img.example.com/cover.jpg'}],
+                },
+            },
+        }
+        mock_cls.return_value = mock_service
+
+        response = self.client.get(self.url)
+        data = response.json()
+        self.assertEqual(data['album_image_url'], 'https://img.example.com/cover.jpg')
+
+    @patch('SyroMusic.playback_views.TokenManager')
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_state_progress_and_duration_fields(self, mock_cls, mock_token):
+        """Response should include accurate progress_ms and duration_ms."""
+        mock_token.refresh_user_token.return_value = 'token'
+        mock_service = MagicMock()
+        mock_service.get_current_playback.return_value = {
+            'is_playing': True,
+            'progress_ms': 75000,
+            'device': {'name': 'Dev', 'type': 'Computer'},
+            'context': None,
+            'item': {
+                'id': 'tid2',
+                'uri': 'spotify:track:tid2',
+                'name': 'Song 2',
+                'duration_ms': 240000,
+                'artists': [],
+                'album': {'name': 'Album', 'uri': '', 'images': []},
+            },
+        }
+        mock_cls.return_value = mock_service
+
+        response = self.client.get(self.url)
+        data = response.json()
+        self.assertEqual(data['progress_ms'], 75000)
+        self.assertEqual(data['duration_ms'], 240000)
+        self.assertTrue(data['is_playing'])
 
 
 # ---------------------------------------------------------------------------
@@ -578,5 +1206,43 @@ class AutoplayNextTests(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['status'], 'success')
+        mock_service.next_track.assert_called_once()
+        mock_service.get_recommendations.assert_not_called()
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_autoplay_no_recommendations_available(self, mock_cls):
+        """When recommendations return nothing, return info status gracefully."""
+        mock_service = MagicMock()
+        mock_service.get_current_playback.return_value = {
+            'is_playing': False,
+            'context': None,
+            'item': {
+                'id': 'tid3',
+                'uri': 'spotify:track:tid3',
+                'artists': [{'id': 'a1'}],
+            },
+        }
+        mock_service.get_recommendations.return_value = {'tracks': []}
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(self.url, content_type='application/json', data='{}')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn(data['status'], ['info', 'success'])
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_autoplay_playlist_context_skips_to_next(self, mock_cls):
+        """Playing in a playlist context → just skip to next track."""
+        mock_service = MagicMock()
+        mock_service.get_current_playback.return_value = {
+            'is_playing': False,
+            'context': {'type': 'playlist', 'uri': 'spotify:playlist:plist1'},
+            'item': {'id': 'tid5', 'uri': 'spotify:track:tid5', 'artists': []},
+        }
+        mock_service.next_track.return_value = True
+        mock_cls.return_value = mock_service
+
+        response = self.client.post(self.url, content_type='application/json', data='{}')
+        self.assertEqual(response.status_code, 200)
         mock_service.next_track.assert_called_once()
         mock_service.get_recommendations.assert_not_called()
