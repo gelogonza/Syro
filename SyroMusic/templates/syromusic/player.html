@@ -1000,7 +1000,7 @@
 
   function escapeSingleQuotes(text) {
     if (!text) return '';
-    return String(text).replace(/'/g, "&#39;");  // Use HTML entity instead of backslash escape
+    return String(text).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   }
 
   function formatDuration(ms) {
@@ -2263,11 +2263,17 @@
       debounceSearch();
     });
 
-    searchInput.addEventListener('keypress', (e) => {
+    searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        e.preventDefault(); // Prevent form submission
+        e.preventDefault();
         clearTimeout(searchTimeout);
-        performPlayerSearch();
+        // If results are already showing, play the first song result
+        const firstPlayBtn = resultsDiv.querySelector('button[title="Play"]');
+        if (firstPlayBtn) {
+          firstPlayBtn.click();
+        } else {
+          performPlayerSearch();
+        }
       }
     });
 
@@ -2508,7 +2514,7 @@
               </button>
               <button
                 class="control-btn !w-10 !h-10"
-                onclick="addToQueueFromSearch('${safeUri}', {title: '${escapeSingleQuotes(title)}', artist: '${escapeSingleQuotes(safeArtist)}', album: '${escapeSingleQuotes(safeAlbum)}'});"
+                onclick="addToQueueFromSearch('${safeUri}', {title: '${escapeSingleQuotes(title)}', artist: '${escapeSingleQuotes(artistName)}', album: '${escapeSingleQuotes(albumTitle)}'});"
                 title="Add to Queue"
                 type="button"
               >
