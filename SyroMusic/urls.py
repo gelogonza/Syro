@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/playback/queue/add/', playback_views.add_to_queue, name='add_to_queue'),
     path('api/playback/queue/get/', playback_views.get_queue, name='get_queue'),
     path('api/playback/queue/clear/', playback_views.clear_queue, name='clear_queue'),
+    path('api/playback/autoplay/', playback_views.autoplay_next, name='autoplay_next'),
 
     # Search & Discovery
     path('search/', search_views.search, name='search'),

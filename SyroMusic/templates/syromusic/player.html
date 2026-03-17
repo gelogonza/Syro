@@ -237,6 +237,22 @@
     touch-action: auto;
   }
 
+  /* Eliminate 300ms tap delay on control buttons */
+  .control-btn, .control-btn-lg {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+
+  /* Larger touch target for progress bar on mobile */
+  .progress-container {
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    touch-action: none;
+    cursor: pointer;
+  }
+
   /* Vinyl Record Styles */
   .vinyl-container {
     position: relative;
@@ -803,7 +819,7 @@
               min="0"
               max="100"
               value="100"
-              onchange="setVolume(this.value)"
+              oninput="setVolume(this.value)"
             />
             <span class="text-sm font-semibold text-white w-12 text-right" id="volumeValue">100%</span>
           </div>
@@ -1785,15 +1801,15 @@
 
     if (!albumArt || !dynamicBg) return;
 
-    const updateBackground = () => {
-      // Get the single dominant color (most prevalent in the image)
-      const dominantColor = extractDominantColor(albumArt);
+    const doUpdate = () => {
+      // Ensure crossOrigin is set — required for canvas colour extraction
+      if (!albumArt.crossOrigin) {
+        albumArt.crossOrigin = 'anonymous';
+      }
 
-      // Get accent colors for variation
+      const dominantColor = extractDominantColor(albumArt);
       const accentColors = extractDominantColors(albumArt, 3);
 
-      // Use dominant color as the primary background color
-      // This makes the background match the cover's primary hue almost perfectly
       const gradient = `
         radial-gradient(circle at 20% 80%, ${dominantColor} 0%, ${accentColors[1] || dominantColor} 40%, transparent 70%),
         radial-gradient(circle at 80% 20%, ${accentColors[1] || dominantColor} 0%, transparent 50%),
@@ -1801,29 +1817,64 @@
       `;
 
       dynamicBg.style.background = gradient;
-      dynamicBg.style.backgroundColor = dominantColor;  // Fallback solid color
+      dynamicBg.style.backgroundColor = dominantColor;
 
-      console.log('Dynamic background:', {
-        dominant: dominantColor,
-        accents: accentColors
-      });
+      console.log('Dynamic background updated:', { dominant: dominantColor, accents: accentColors });
     };
 
-    if (albumArt.complete) {
-      updateBackground();
+    if (albumArt.complete && albumArt.naturalWidth > 0) {
+      doUpdate();
     } else {
-      albumArt.onload = updateBackground;
+      // Wait for image to load; overwrite any prior handler to avoid stacking
+      albumArt.onload = doUpdate;
+      albumArt.onerror = () => {
+        // Image failed — keep the existing animated gradient
+        console.warn('Album art failed to load; keeping default background');
+      };
     }
   }
 
   // ==================== Playback State Management ====================
+
+  // ==================== Autoplay State ====================
+  const autoplayState = {
+    lastTrackUri: null,
+    wasNearEnd: false,
+    triggered: false,
+    inProgress: false,
+  };
+
+  async function triggerAutoplay() {
+    if (autoplayState.inProgress) return;
+    autoplayState.inProgress = true;
+    try {
+      const response = await fetch('{% url "music:autoplay_next" %}', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+      const data = await response.json();
+      if (data.status === 'success') {
+        showNotification('🎵 ' + (data.message || 'Autoplay started'), 'success');
+        setTimeout(() => updatePlaybackState(), 1500);
+      } else if (data.status === 'info') {
+        console.log('Autoplay info:', data.message);
+      }
+    } catch (err) {
+      console.error('Autoplay error:', err);
+    } finally {
+      autoplayState.inProgress = false;
+    }
+  }
 
   function updatePlaybackState() {
     fetch('{% url "music:playback_state" %}')
       .then(response => response.json())
       .then(data => {
         if (data.status === 'success') {
-          // Update progress
           const duration = data.duration_ms || 0;
           const progress = data.progress_ms || 0;
           const percentage = duration > 0 ? (progress / duration * 100) : 0;
@@ -1845,25 +1896,41 @@
           }
 
           // Update track info if changed
-          const trackName = document.getElementById('trackName');
-          const artistName = document.getElementById('artistName');
+          const trackNameEl = document.getElementById('trackName');
+          const artistNameEl = document.getElementById('artistName');
           const albumNameDisplay = document.getElementById('albumNameDisplay');
           const albumArt = document.getElementById('albumArt');
 
-          if (trackName && data.track_name) {
-            trackName.textContent = data.track_name;
-          }
-          if (artistName && data.artist_name) {
-            artistName.textContent = data.artist_name;
-          }
-          if (albumNameDisplay && data.album_name) {
-            albumNameDisplay.textContent = data.album_name;
+          if (trackNameEl && data.track_name) trackNameEl.textContent = data.track_name;
+          if (artistNameEl && data.artist_name) artistNameEl.textContent = data.artist_name;
+          if (albumNameDisplay && data.album_name) albumNameDisplay.textContent = data.album_name;
+
+          // Update album art + dynamic background when track changes
+          if (albumArt && data.album_image_url && albumArt.src !== data.album_image_url) {
+            albumArt.crossOrigin = 'anonymous';
+            albumArt.src = data.album_image_url;
+            albumArt.onload = () => applyDynamicBackground();
           }
 
-          // Update album art if URL changed
-          if (albumArt && data.album_image_url && albumArt.src !== data.album_image_url) {
-            albumArt.src = data.album_image_url;
-            setTimeout(() => applyDynamicBackground(), 100);
+          // ── Autoplay detection ──────────────────────────────────────
+          const trackUri = data.track_uri || '';
+
+          // Reset state when a new track starts
+          if (trackUri && trackUri !== autoplayState.lastTrackUri) {
+            autoplayState.lastTrackUri = trackUri;
+            autoplayState.wasNearEnd = false;
+            autoplayState.triggered = false;
+          }
+
+          // Mark when we're near the end (≥ 97 % complete and still playing)
+          if (duration > 0 && progress / duration >= 0.97 && data.is_playing) {
+            autoplayState.wasNearEnd = true;
+          }
+
+          // If the track ended naturally (was near end, now stopped) → autoplay
+          if (!data.is_playing && autoplayState.wasNearEnd && !autoplayState.triggered) {
+            autoplayState.triggered = true;
+            triggerAutoplay();
           }
         }
       })
@@ -1873,8 +1940,15 @@
   // ==================== Playback Controls ====================
 
   function getActiveDeviceId() {
-    const activeDevice = document.querySelector('.device-item.active');
-    return activeDevice ? activeDevice.getAttribute('data-device-id') : null;
+    // Prefer a device the user explicitly activated in the DOM
+    const activeDevice = document.querySelector('.device-item[data-device-id].active');
+    if (activeDevice) {
+      const id = activeDevice.getAttribute('data-device-id');
+      if (id) return id;
+    }
+    // Fall back to the Spotify Web Playback SDK's browser device
+    if (window.deviceId) return window.deviceId;
+    return null;
   }
 
   function showDeviceSelector(devices) {
@@ -2204,25 +2278,61 @@
     });
   }
 
-  // Progress bar seek
-  document.getElementById('progressBar')?.addEventListener('click', function(e) {
-    const rect = this.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    const durationText = document.getElementById('duration').textContent.split(':');
-    const duration = (parseInt(durationText[0]) * 60 + parseInt(durationText[1])) * 1000;
-    const positionMs = percent * duration;
-    const deviceId = getActiveDeviceId();
+  // Progress bar seek (mouse + touch)
+  (function setupProgressBar() {
+    const bar = document.getElementById('progressBar');
+    if (!bar) return;
 
-    fetch('{% url "music:seek" %}', {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `position_ms=${Math.floor(positionMs)}&device_id=${deviceId || ''}`
-    })
-    .then(() => updatePlaybackState());
-  });
+    let seekTimer = null;
+
+    function getDurationMs() {
+      const parts = document.getElementById('duration').textContent.split(':');
+      if (parts.length < 2) return 0;
+      const mins = parseInt(parts[0], 10);
+      const secs = parseInt(parts[1], 10);
+      if (isNaN(mins) || isNaN(secs)) return 0;
+      return (mins * 60 + secs) * 1000;
+    }
+
+    function seekAt(clientX) {
+      const rect = bar.getBoundingClientRect();
+      const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const durationMs = getDurationMs();
+      if (durationMs <= 0) return;
+
+      // Update the fill immediately for a snappy feel
+      document.getElementById('progressFill').style.width = (percent * 100) + '%';
+
+      const positionMs = Math.floor(percent * durationMs);
+      const deviceId = getActiveDeviceId();
+
+      clearTimeout(seekTimer);
+      seekTimer = setTimeout(() => {
+        fetch('{% url "music:seek" %}', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `position_ms=${positionMs}&device_id=${deviceId || ''}`
+        }).then(() => updatePlaybackState());
+      }, 150); // debounce rapid drags
+    }
+
+    // Mouse click
+    bar.addEventListener('click', (e) => seekAt(e.clientX));
+
+    // Touch: scrub to exact position on tap and drag
+    bar.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      seekAt(e.touches[0].clientX);
+    }, { passive: false });
+
+    bar.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      seekAt(e.touches[0].clientX);
+    }, { passive: false });
+  })();
 
   // ==================== Search Functionality ====================
 
@@ -2918,44 +3028,35 @@
 
   async function selectDevice(deviceId, deviceName) {
     console.log('Selecting device:', deviceId, deviceName);
-    
     try {
-        const response = await fetch('/music/api/playback/transfer/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ 
-                device_id: deviceId 
-            })
-        });
+      const response = await fetch('{% url "music:transfer_playback" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `device_id=${encodeURIComponent(deviceId)}`
+      });
 
-        const data = await response.json();
-        
-        if (response.ok) {
-            console.log('Successfully transferred to device:', deviceName);
-            showNotification(`Switched to ${deviceName}`, 'success');
-            
-            // Close the device modal
-            document.getElementById('deviceModal').classList.add('hidden');
-            
-            // Refresh devices to show active device
-            setTimeout(() => {
-                loadDevices();
-            }, 1000);
-            
-            // Refresh playback state
-            setTimeout(() => {
-                updatePlayer();
-            }, 1500);
-        } else {
-            console.error('Device transfer failed:', data.error);
-            showNotification(`Failed to switch device: ${data.error}`, 'error');
-        }
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        showNotification(`Switched to ${escapeHtml(deviceName)}`, 'success');
+        // Update active device badge in the DOM
+        document.querySelectorAll('.device-item').forEach(item => {
+          if (item.dataset.deviceId === deviceId) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+        setTimeout(() => updatePlaybackState(), 1000);
+      } else {
+        showNotification(`Failed to switch device: ${escapeHtml(data.message || 'Unknown error')}`, 'error');
+      }
     } catch (error) {
-        console.error('Error selecting device:', error);
-        showNotification('Error switching device', 'error');
+      console.error('Error selecting device:', error);
+      showNotification('Error switching device', 'error');
     }
   }
 
