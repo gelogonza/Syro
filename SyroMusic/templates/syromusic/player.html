@@ -2009,6 +2009,14 @@
             autoplayState.triggered = true;
             triggerAutoplay();
           }
+        } else if (data.status === 'no_playback') {
+          // Nothing playing — show idle state but don't wipe last known track
+          const vinylRecord = document.getElementById('vinylRecord');
+          const playPauseBtn = document.getElementById('playPauseBtn');
+          if (vinylRecord) vinylRecord.classList.remove('playing');
+          if (playPauseBtn) playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:play"></span>';
+        } else if (data.status === 'error') {
+          console.warn('Playback state error:', data.message);
         }
       })
       .catch(error => console.error('Playback state error:', error));
@@ -3550,7 +3558,4 @@
   setInterval(updateCurrentTrackInfo, 5000);
 </script>
 <script src="{% static 'js/features.js' %}"></script>
-
-<!-- Device Selection Modal -->
-{% include 'syromusic/player_modal.html' %}
 {% endblock content %}
