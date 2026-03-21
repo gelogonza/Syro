@@ -178,6 +178,7 @@
     pendingTrackInfo: null,
   };
 
+  if (typeof window._syroPlayerPageLoaded === 'undefined') {
   /**
    * Play a track - handles device selection if needed
    * @param {string} trackUri - Spotify track URI (e.g., 'spotify:track:123')
@@ -218,6 +219,7 @@
       console.error('Error:', error);
       showToast('Error fetching devices', 'error');
     }
+  }
   }
 
   /**

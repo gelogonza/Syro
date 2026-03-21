@@ -169,6 +169,7 @@
     height: 100%;
     z-index: 0;
     overflow: hidden;
+    pointer-events: none;
   }
 
   .dynamic-bg {
@@ -187,6 +188,7 @@
     opacity: 0.85;
     transform: scale(1.2);
     animation: breathing 8s ease-in-out infinite, gradient-shift 15s ease-in-out infinite, color-pulse 10s ease-in-out infinite;
+    pointer-events: none;
   }
   
   /* Additional animated gradient layers */
@@ -216,6 +218,7 @@
     height: 100%;
     background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.4) 100%);
     z-index: 1;
+    pointer-events: none;
   }
 
   /* Grain Overlay - Analog/Archival Feel */
@@ -986,7 +989,11 @@
   }
 </style>
 
+<input type="hidden" id="_spotifyToken" value="{{ spotify_user.access_token|escapejs }}">
+
 <script>
+  window._syroPlayerPageLoaded = true;
+
   // ==================== Utility Functions ====================
 
   function getCsrfToken() {
@@ -1902,6 +1909,21 @@
   let _currentDurationMs = 0;
   let _currentProgressMs = 0;
   let _currentTrackId = '';
+  let _isPlaying = false;
+  let _tickTimer = null;
+
+  function _startTick() {
+    if (_tickTimer) return;
+    _tickTimer = setInterval(() => {
+      if (!_isPlaying || _currentDurationMs <= 0) return;
+      _currentProgressMs = Math.min(_currentProgressMs + 1000, _currentDurationMs);
+      const pct = (_currentProgressMs / _currentDurationMs) * 100;
+      const fill = document.getElementById('progressFill');
+      const el   = document.getElementById('currentTime');
+      if (fill) fill.style.width = pct + '%';
+      if (el)   el.textContent   = formatTime(_currentProgressMs);
+    }, 1000);
+  }
 
   // ==================== Autoplay State ====================
   const autoplayState = {
@@ -1962,12 +1984,17 @@
           const playPauseBtn = document.getElementById('playPauseBtn');
           const vinylRecord = document.getElementById('vinylRecord');
 
+          _isPlaying         = data.is_playing;
+          _currentProgressMs = data.progress_ms || 0;
+          _currentDurationMs = data.duration_ms  || 0;
+
           if (data.is_playing) {
             if (playPauseBtn) playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:pause"></span>';
-            if (vinylRecord) vinylRecord.classList.add('playing');
+            if (vinylRecord)  vinylRecord.classList.add('playing');
+            _startTick();
           } else {
             if (playPauseBtn) playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:play"></span>';
-            if (vinylRecord) vinylRecord.classList.remove('playing');
+            if (vinylRecord)  vinylRecord.classList.remove('playing');
           }
 
           // Always update track info (elements always in DOM now)
@@ -3189,7 +3216,9 @@
   window.deviceId = null;
 
   // Store token at global scope so it's accessible to the SDK callback
-  const spotifyToken = '{{ spotify_user.access_token }}';
+  const spotifyToken = document.getElementById('_spotifyToken')
+      ? document.getElementById('_spotifyToken').value
+      : '';
 
   // Define the SDK ready callback at global scope BEFORE the SDK loads
   // This REPLACES the placeholder defined in base.html

@@ -198,14 +198,15 @@ def seek(request):
     """Seek to position in current track."""
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
-        position_ms = request.POST.get('position_ms')
+        raw = request.POST.get('position_ms')
         device_id = request.POST.get('device_id') or None
 
-        if position_ms is None:
+        if raw is None:
             return JsonResponse({'status': 'error', 'message': 'Position required'}, status=400)
 
+        position_ms = int(raw)
         sp = SpotifyService(spotify_user)
-        success = sp.seek_to_position(int(position_ms), device_id=device_id)
+        success = sp.seek_to_position(position_ms, device_id=device_id)
 
         if success:
             return JsonResponse({'status': 'success', 'message': 'Seeked to position'})
