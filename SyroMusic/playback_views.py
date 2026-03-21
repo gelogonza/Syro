@@ -201,7 +201,7 @@ def seek(request):
         position_ms = request.POST.get('position_ms')
         device_id = request.POST.get('device_id') or None
 
-        if not position_ms:
+        if position_ms is None:
             return JsonResponse({'status': 'error', 'message': 'Position required'}, status=400)
 
         sp = SpotifyService(spotify_user)
@@ -225,7 +225,7 @@ def set_volume(request):
         volume = request.POST.get('volume')
         device_id = request.POST.get('device_id') or None
 
-        if not volume:
+        if volume is None:
             return JsonResponse({'status': 'error', 'message': 'Volume required'}, status=400)
 
         volume = int(volume)
@@ -239,36 +239,6 @@ def set_volume(request):
             return JsonResponse({'status': 'success', 'message': 'Volume set'})
         else:
             return JsonResponse({'status': 'error', 'message': 'Failed to set volume'}, status=400)
-
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-
-@login_required(login_url='login')
-@require_http_methods(['POST'])
-def transfer_playback(request):
-    """Transfer playback to another device."""
-    import json as _json
-    try:
-        spotify_user = get_object_or_404(SpotifyUser, user=request.user)
-
-        # Accept both JSON and form-encoded bodies
-        if request.content_type and 'application/json' in request.content_type:
-            body = _json.loads(request.body)
-            device_id = body.get('device_id') or None
-        else:
-            device_id = request.POST.get('device_id') or None
-
-        if not device_id:
-            return JsonResponse({'status': 'error', 'message': 'Device ID required'}, status=400)
-
-        sp = SpotifyService(spotify_user)
-        success = sp.transfer_playback(device_id)  # force_play defaults to True
-
-        if success:
-            return JsonResponse({'status': 'success', 'message': 'Transferred playback'})
-        else:
-            return JsonResponse({'status': 'error', 'message': 'Failed to transfer playback'}, status=400)
 
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

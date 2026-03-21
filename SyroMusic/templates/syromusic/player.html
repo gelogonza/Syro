@@ -1848,9 +1848,20 @@
       return;
     }
 
+    // ── CORS reload guard ──────────────────────────────────────
+    // If the image loaded without crossOrigin (e.g. from browser cache),
+    // force a reload with CORS headers so getImageData() doesn't throw.
+    if (!albumArt.crossOrigin || albumArt.crossOrigin === '') {
+      albumArt.crossOrigin = 'anonymous';
+      const currentSrc = albumArt.src;
+      albumArt.src = '';
+      albumArt.onload = () => applyDynamicBackground();
+      albumArt.src = currentSrc;
+      return;
+    }
+    // ─────────────────────────────────────────────────────────────
+
     const doUpdate = () => {
-      // Ensure crossOrigin is set — required for canvas colour extraction
-      if (!albumArt.crossOrigin) albumArt.crossOrigin = 'anonymous';
 
       try {
         const dominantColor = extractDominantColor(albumArt);
@@ -2519,6 +2530,7 @@
         credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
           'X-CSRFToken': '{{ csrf_token }}'
         },

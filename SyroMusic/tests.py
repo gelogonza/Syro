@@ -1,11 +1,11 @@
 import json
 from unittest.mock import patch, MagicMock
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import SpotifyUser, PlaybackQueue
+from .models import SpotifyUser, PlaybackQueue, Playlist
 
 
 def make_spotify_user(user):
@@ -633,6 +633,31 @@ class SeekTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['status'], 'error')
 
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_seek_to_zero_is_valid(self, mock_cls):
+        """Seeking to position 0 (rewind to start) must succeed, not return 400."""
+        mock_service = MagicMock()
+        mock_service.seek_to_position.return_value = True
+        mock_cls.return_value = mock_service
+        response = self.client.post(
+            self.url,
+            data='position_ms=0&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'success')
+        mock_service.seek_to_position.assert_called_once_with(0, device_id='dev1')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_seek_absent_position_param_returns_400(self, mock_cls):
+        """A request with no position_ms param at all must return 400."""
+        response = self.client.post(
+            self.url,
+            data='device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+
 
 # ---------------------------------------------------------------------------
 # set_volume endpoint tests
@@ -711,6 +736,44 @@ class SetVolumeTests(TestCase):
         mock_service.set_volume.return_value = True
         mock_cls.return_value = mock_service
 
+        response = self.client.post(
+            self.url,
+            data='volume=100&device_id=',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        mock_service.set_volume.assert_called_once_with(100, device_id=None)
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_volume_zero_succeeds(self, mock_cls):
+        """Volume of 0 (mute) must be accepted and passed to Spotify."""
+        mock_service = MagicMock()
+        mock_service.set_volume.return_value = True
+        mock_cls.return_value = mock_service
+        response = self.client.post(
+            self.url,
+            data='volume=0&device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'success')
+        mock_service.set_volume.assert_called_once_with(0, device_id='dev1')
+
+    def test_set_volume_absent_param_returns_400(self):
+        """A request with no volume param at all must return 400."""
+        response = self.client.post(
+            self.url,
+            data='device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_set_volume_100_succeeds(self, mock_cls):
+        """Volume of 100 (maximum) must be accepted."""
+        mock_service = MagicMock()
+        mock_service.set_volume.return_value = True
+        mock_cls.return_value = mock_service
         response = self.client.post(
             self.url,
             data='volume=100&device_id=',
@@ -1246,3 +1309,298 @@ class AutoplayNextTests(TestCase):
         self.assertEqual(response.status_code, 200)
         mock_service.next_track.assert_called_once()
         mock_service.get_recommendations.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Bug 1 — TransferPlaybackDeduplicationTests
+# ---------------------------------------------------------------------------
+
+class TransferPlaybackDeduplicationTests(TestCase):
+    """Confirm only one transfer_playback exists and it handles both content types."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='xfer2user', password='testpass')
+        SpotifyUser.objects.create(
+            user=self.user,
+            spotify_id='xfer2_spotify_id',
+            access_token='test_access_token',
+            refresh_token='test_refresh_token',
+            token_expires_at=timezone.now() + timezone.timedelta(hours=1),
+            is_connected=True,
+        )
+        self.client.login(username='xfer2user', password='testpass')
+        self.url = reverse('music:transfer_playback')
+
+    def test_only_one_transfer_playback_function_exists(self):
+        """Verify there is no duplicate function definition at import time."""
+        import SyroMusic.playback_views as pv
+        import inspect
+        source = inspect.getsource(pv)
+        count = source.count('def transfer_playback(')
+        self.assertEqual(count, 1, "Found duplicate transfer_playback definitions — only one must exist")
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_transfer_accepts_form_encoded(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.transfer_playback.return_value = True
+        mock_cls.return_value = mock_service
+        response = self.client.post(
+            self.url,
+            data='device_id=dev_form_abc',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'success')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_transfer_accepts_json(self, mock_cls):
+        mock_service = MagicMock()
+        mock_service.transfer_playback.return_value = True
+        mock_cls.return_value = mock_service
+        response = self.client.post(
+            self.url,
+            data=json.dumps({'device_id': 'dev_json_xyz'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'success')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_transfer_returns_json_response_not_drf_response(self, mock_cls):
+        """Response must be deserializable as plain JSON (not a DRF renderer artifact)."""
+        mock_service = MagicMock()
+        mock_service.transfer_playback.return_value = True
+        mock_cls.return_value = mock_service
+        response = self.client.post(
+            self.url,
+            data='device_id=dev1',
+            content_type='application/x-www-form-urlencoded',
+        )
+        data = response.json()
+        self.assertIn('status', data)
+
+    def test_transfer_missing_device_id_returns_400(self):
+        response = self.client.post(
+            self.url,
+            data='device_id=',
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.assertEqual(response.status_code, 400)
+
+
+# ---------------------------------------------------------------------------
+# Bug 2 — PlayerSearchAPITests
+# ---------------------------------------------------------------------------
+
+class PlayerSearchAPITests(TestCase):
+    """Verify the search JSON API always returns application/json."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='searchplayer', password='testpass')
+        SpotifyUser.objects.create(
+            user=self.user,
+            spotify_id='search_spotify_id',
+            access_token='test_access_token',
+            refresh_token='test_refresh_token',
+            token_expires_at=timezone.now() + timezone.timedelta(hours=1),
+            is_connected=True,
+        )
+        self.client.login(username='searchplayer', password='testpass')
+        self.url = reverse('music:search_json')
+
+    @patch('SyroMusic.search_views.SpotifyService')
+    def test_response_content_type_is_json_when_accept_json(self, mock_cls):
+        """With Accept: application/json header, response must be JSON."""
+        mock_service = MagicMock()
+        mock_service.search.return_value = {'tracks': {'items': []}, 'artists': {'items': []}, 'albums': {'items': []}}
+        mock_cls.return_value = mock_service
+        response = self.client.get(
+            self.url,
+            {'q': 'test'},
+            HTTP_ACCEPT='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('application/json', response['Content-Type'])
+        data = response.json()
+        self.assertIn('songs', data)
+
+    @patch('SyroMusic.search_views.SpotifyService')
+    def test_response_is_not_redirect_when_authenticated(self, mock_cls):
+        """Authenticated request must not be redirected to login."""
+        mock_service = MagicMock()
+        mock_service.search.return_value = {'tracks': {'items': []}, 'artists': {'items': []}, 'albums': {'items': []}}
+        mock_cls.return_value = mock_service
+        response = self.client.get(
+            self.url,
+            {'q': 'hello'},
+            HTTP_ACCEPT='application/json',
+        )
+        self.assertFalse(response.has_header('Location'), "Response must not redirect authenticated users")
+        self.assertNotEqual(response.status_code, 302)
+
+    def test_unauthenticated_returns_403_not_html_redirect(self):
+        """Unauthenticated request with Accept: application/json must return 403, not HTML."""
+        anon = Client()
+        response = anon.get(
+            self.url,
+            {'q': 'test'},
+            HTTP_ACCEPT='application/json',
+        )
+        self.assertIn(response.status_code, [401, 403])
+        self.assertIn('application/json', response.get('Content-Type', ''))
+
+    @patch('SyroMusic.search_views.SpotifyService')
+    def test_short_query_returns_empty_not_error(self, mock_cls):
+        """Query under 2 characters must return empty lists, not an error."""
+        response = self.client.get(
+            self.url,
+            {'q': 'a'},
+            HTTP_ACCEPT='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['songs'], [])
+
+    @patch('SyroMusic.search_views.SpotifyService')
+    def test_spotify_results_include_required_fields(self, mock_cls):
+        """Each returned song must have title, artist, uri, and spotify_id."""
+        mock_service = MagicMock()
+        mock_service.search.return_value = {
+            'tracks': {'items': [{
+                'id': 'tid1', 'name': 'Test Song', 'uri': 'spotify:track:tid1',
+                'artists': [{'name': 'Test Artist'}],
+                'album': {'name': 'Test Album', 'images': [{'url': 'https://example.com/art.jpg'}]},
+                'duration_ms': 180000,
+            }]},
+            'artists': {'items': []},
+            'albums': {'items': []},
+        }
+        mock_cls.return_value = mock_service
+        response = self.client.get(self.url, {'q': 'test song'}, HTTP_ACCEPT='application/json')
+        data = response.json()
+        self.assertGreater(len(data['songs']), 0)
+        song = data['songs'][0]
+        for field in ['title', 'artist', 'uri', 'spotify_id']:
+            self.assertIn(field, song, f"Song result missing required field: {field}")
+
+
+# ---------------------------------------------------------------------------
+# Bug 3 — PlayerTemplateTests
+# ---------------------------------------------------------------------------
+
+@override_settings(STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage')
+class PlayerTemplateTests(TestCase):
+    """Verify the player template renders with correct CORS attributes for album art."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='templateuser', password='testpass')
+        SpotifyUser.objects.create(
+            user=self.user,
+            spotify_id='template_spotify_id',
+            access_token='test_access_token',
+            refresh_token='test_refresh_token',
+            token_expires_at=timezone.now() + timezone.timedelta(hours=1),
+            is_connected=True,
+        )
+        self.client.login(username='templateuser', password='testpass')
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_album_art_img_has_crossorigin_attribute(self, mock_cls):
+        """The album art img tag must include crossorigin='anonymous' for CORS canvas access."""
+        mock_service = MagicMock()
+        mock_service.get_current_playback.return_value = None
+        mock_service.get_available_devices.return_value = []
+        mock_cls.return_value = mock_service
+        response = self.client.get(reverse('music:player'))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn('crossorigin="anonymous"', content,
+            "Album art <img> must have crossorigin='anonymous' to prevent canvas tainting")
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_dynamic_bg_element_present_in_template(self, mock_cls):
+        """The dynamicBg element must be present for color extraction to target."""
+        mock_service = MagicMock()
+        mock_service.get_current_playback.return_value = None
+        mock_service.get_available_devices.return_value = []
+        mock_cls.return_value = mock_service
+        response = self.client.get(reverse('music:player'))
+        self.assertIn('id="dynamicBg"', response.content.decode())
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_apply_dynamic_background_function_present(self, mock_cls):
+        """The applyDynamicBackground JS function must be defined in the template."""
+        mock_service = MagicMock()
+        mock_service.get_current_playback.return_value = None
+        mock_service.get_available_devices.return_value = []
+        mock_cls.return_value = mock_service
+        response = self.client.get(reverse('music:player'))
+        self.assertIn('function applyDynamicBackground', response.content.decode())
+
+    @patch('SyroMusic.playback_views.SpotifyService')
+    def test_cors_reload_guard_present_in_template(self, mock_cls):
+        """The CORS reload guard block must be present in the applyDynamicBackground function."""
+        mock_service = MagicMock()
+        mock_service.get_current_playback.return_value = None
+        mock_service.get_available_devices.return_value = []
+        mock_cls.return_value = mock_service
+        response = self.client.get(reverse('music:player'))
+        content = response.content.decode()
+        self.assertIn('CORS reload guard', content,
+            "The CORS reload guard comment/block must be present in applyDynamicBackground")
+
+
+# ---------------------------------------------------------------------------
+# Bug 6 — PlaylistModelTests
+# ---------------------------------------------------------------------------
+
+class PlaylistModelTests(TestCase):
+    """Verify the Playlist model has the spotify_id field and it behaves correctly."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='plmodeluser', password='testpass')
+
+    def test_playlist_has_spotify_id_field(self):
+        """Playlist model must have a spotify_id field."""
+        field_names = [f.name for f in Playlist._meta.get_fields()]
+        self.assertIn('spotify_id', field_names,
+            "Playlist model is missing spotify_id field — run makemigrations and migrate")
+
+    def test_spotify_id_is_nullable(self):
+        """spotify_id must be nullable so playlists without Spotify links still work."""
+        playlist = Playlist.objects.create(
+            title='Local Only Playlist',
+            user=self.user,
+        )
+        self.assertIsNone(playlist.spotify_id)
+
+    def test_spotify_id_can_store_value(self):
+        """spotify_id must be able to store a Spotify playlist ID string."""
+        playlist = Playlist.objects.create(
+            title='Spotify Linked Playlist',
+            user=self.user,
+            spotify_id='37i9dQZF1DXcBWIGoYBM5M',
+        )
+        playlist.refresh_from_db()
+        self.assertEqual(playlist.spotify_id, '37i9dQZF1DXcBWIGoYBM5M')
+
+    def test_create_playlist_without_spotify_id(self):
+        """Creating a Playlist without spotify_id must not raise any error."""
+        try:
+            Playlist.objects.create(title='No Spotify', user=self.user)
+        except TypeError as e:
+            self.fail(f"Creating Playlist without spotify_id raised TypeError: {e}")
+
+    def test_create_playlist_with_spotify_id(self):
+        """Creating a Playlist with spotify_id must not raise any error."""
+        try:
+            Playlist.objects.create(
+                title='With Spotify',
+                user=self.user,
+                spotify_id='some_id_123',
+            )
+        except TypeError as e:
+            self.fail(f"Creating Playlist with spotify_id raised TypeError: {e}")
