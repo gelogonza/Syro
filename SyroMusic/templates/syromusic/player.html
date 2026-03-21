@@ -7,12 +7,12 @@
 <style>
   /* Hide Spotify Web Playback SDK "Now Playing" Modal Only */
   /* Be selective - we need the SDK to work, just hide the modal UI */
-  /* Only target Spotify SDK elements, nothing else */
   div[class*="now-playing"],
   div[id*="now-playing"],
   div[class*="now_playing"],
   div[id*="now_playing"],
-  div[data-testid*="now-playing"] {
+  div[data-testid*="now-playing"],
+  body > div[style*="position: fixed"][style*="z-index"] {
     display: none !important;
     visibility: hidden !important;
   }
@@ -30,17 +30,6 @@
 
   body::before {
     display: none;
-  }
-
-  /* ==================== Dynamic Theme CSS Variables ==================== */
-  :root {
-    --theme-primary: rgb(16, 185, 129);
-    --theme-accent: rgb(34, 197, 94);
-    --theme-glow: rgba(16, 185, 129, 0.4);
-    --theme-glow-soft: rgba(16, 185, 129, 0.15);
-    --theme-bg1: rgba(16, 185, 129, 0.15);
-    --theme-bg2: rgba(34, 197, 94, 0.1);
-    --theme-bg3: rgba(16, 185, 129, 0.08);
   }
 
   /* Breathing Gradient Mesh Animation */
@@ -169,7 +158,6 @@
     height: 100%;
     z-index: 0;
     overflow: hidden;
-    pointer-events: none;
   }
 
   .dynamic-bg {
@@ -177,9 +165,9 @@
     width: 100%;
     height: 100%;
     background:
-      radial-gradient(ellipse 1200px 800px at 20% 30%, var(--theme-bg1) 0%, transparent 40%),
-      radial-gradient(ellipse 1000px 900px at 80% 70%, var(--theme-bg2) 0%, transparent 40%),
-      radial-gradient(ellipse 800px 1000px at 50% 50%, var(--theme-bg3) 0%, transparent 50%),
+      radial-gradient(ellipse 1200px 800px at 20% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
+      radial-gradient(ellipse 1000px 900px at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
+      radial-gradient(ellipse 800px 1000px at 50% 50%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
       linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     background-size: 200% 200%, 200% 200%, 300% 300%, 100% 100%;
     background-position: 0% 50%, 100% 50%, 50% 50%, center;
@@ -188,7 +176,6 @@
     opacity: 0.85;
     transform: scale(1.2);
     animation: breathing 8s ease-in-out infinite, gradient-shift 15s ease-in-out infinite, color-pulse 10s ease-in-out infinite;
-    pointer-events: none;
   }
   
   /* Additional animated gradient layers */
@@ -218,7 +205,6 @@
     height: 100%;
     background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.4) 100%);
     z-index: 1;
-    pointer-events: none;
   }
 
   /* Grain Overlay - Analog/Archival Feel */
@@ -242,29 +228,6 @@
   .content-wrapper {
     position: relative;
     z-index: 10;
-    pointer-events: auto;
-  }
-
-  /* Ensure all buttons and interactive elements are clickable on mobile */
-  button, a, input, select, textarea {
-    pointer-events: auto;
-    touch-action: auto;
-  }
-
-  /* Eliminate 300ms tap delay on control buttons */
-  .control-btn, .control-btn-lg {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    cursor: pointer;
-  }
-
-  /* Touch target wrapper for progress bar */
-  .progress-wrapper {
-    min-height: 20px;
-    display: flex;
-    align-items: center;
-    touch-action: none;
-    cursor: pointer;
   }
 
   /* Vinyl Record Styles */
@@ -410,7 +373,7 @@
 
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--theme-primary) 0%, var(--theme-accent) 100%);
+    background: linear-gradient(90deg, #ffffff 0%, #f0f0f0 100%);
     border-radius: 4px;
     transition: width 0.1s linear;
     box-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 0 24px rgba(255, 255, 255, 0.3);
@@ -459,7 +422,7 @@
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 100%);
     border-color: rgba(255, 255, 255, 0.35);
     transform: scale(1.08) translateY(-2px);
-    box-shadow: 0 8px 24px var(--theme-glow);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
   }
 
   .control-btn:active {
@@ -467,9 +430,9 @@
   }
 
   .control-btn.active {
-    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-accent) 100%);
+    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
     border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 28px var(--theme-glow);
+    box-shadow: 0 8px 28px rgba(16, 185, 129, 0.6);
   }
 
   .control-btn-lg {
@@ -525,25 +488,25 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-accent) 100%);
+    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
     cursor: pointer;
-    box-shadow: 0 2px 8px var(--theme-glow);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
     transition: all 0.2s ease;
   }
 
   .volume-slider::-webkit-slider-thumb:hover {
     transform: scale(1.2);
-    box-shadow: 0 4px 12px var(--theme-glow);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.6);
   }
 
   .volume-slider::-moz-range-thumb {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-accent) 100%);
+    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
     cursor: pointer;
     border: none;
-    box-shadow: 0 2px 8px var(--theme-glow);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
   }
 
   /* Device Panel */
@@ -561,14 +524,14 @@
 
   .device-item:hover {
     background: rgba(255, 255, 255, 0.08);
-    border-color: var(--theme-glow);
+    border-color: rgba(16, 185, 129, 0.5);
     transform: translateX(4px);
   }
 
   .device-item.active {
-    background: linear-gradient(135deg, var(--theme-glow-soft) 0%, var(--theme-glow-soft) 100%);
-    border-color: var(--theme-primary);
-    color: var(--theme-primary);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(34, 197, 94, 0.15) 100%);
+    border-color: #10b981;
+    color: #10b981;
   }
 
   /* Search Section */
@@ -586,8 +549,8 @@
   .search-input:focus {
     outline: none;
     background: rgba(255, 255, 255, 0.08);
-    border-color: var(--theme-primary);
-    box-shadow: 0 0 0 3px var(--theme-glow-soft);
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
   }
 
   .search-input::placeholder {
@@ -707,13 +670,6 @@
       transform: translateY(20px);
     }
   }
-
-  /* Show action buttons on mobile devices */
-  @media (max-width: 768px) {
-    .opacity-0.group-hover\:opacity-100 {
-      opacity: 1 !important;
-    }
-  }
 </style>
 {% endblock extra_css %}
 
@@ -761,35 +717,38 @@
               <div class="vinyl-record {% if now_playing and now_playing.is_playing %}playing{% endif %}" id="vinylRecord">
                 <div class="vinyl-grooves"></div>
                 <div class="vinyl-label">
-                  <img
-                    src="{% if now_playing and now_playing.album_image_url %}{{ now_playing.album_image_url }}{% endif %}"
-                    alt="Album Art"
-                    id="albumArt"
-                    crossorigin="anonymous"
-                    class="w-full h-full object-cover"
-                    style="{% if not now_playing or not now_playing.album_image_url %}display:none{% endif %}"
-                  />
-                  <div id="albumArtFallback" class="w-full h-full bg-gray-800 flex items-center justify-center{% if now_playing and now_playing.album_image_url %} hidden{% endif %}">
-                    <span class="iconify text-6xl text-gray-600" data-icon="mdi:music"></span>
-                  </div>
+                  {% if now_playing and now_playing.album_image_url %}
+                    <img
+                      src="{{ now_playing.album_image_url }}"
+                      alt="Album Art"
+                      id="albumArt"
+                      crossorigin="anonymous"
+                    />
+                  {% else %}
+                    <div class="w-full h-full bg-gray-800 flex items-center justify-center">
+                      <span class="iconify text-6xl text-gray-600" data-icon="mdi:music"></span>
+                    </div>
+                  {% endif %}
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Track Info — always rendered so JS can update it -->
+          <!-- Track Info -->
+          {% if now_playing and now_playing.track_name %}
           <div class="text-center mb-8">
-            <h1 class="track-name" id="trackName">{% if now_playing and now_playing.track_name %}{{ now_playing.track_name }}{% endif %}</h1>
-            <p class="artist-name" id="artistName">{% if now_playing %}{{ now_playing.artist_name }}{% endif %}</p>
-            <p class="album-name" id="albumNameDisplay">{% if now_playing %}{{ now_playing.album_name }}{% endif %}</p>
+            <h1 class="track-name" id="trackName">{{ now_playing.track_name }}</h1>
+            <p class="artist-name" id="artistName">{{ now_playing.artist_name }}</p>
+            {% if now_playing.album_name %}
+              <p class="album-name" id="albumNameDisplay">{{ now_playing.album_name }}</p>
+            {% endif %}
           </div>
+          {% endif %}
 
           <!-- Progress Bar -->
           <div class="mb-6">
-            <div class="progress-wrapper mb-2">
-              <div class="progress-container w-full" id="progressBar">
-                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-              </div>
+            <div class="progress-container mb-2" id="progressBar">
+              <div class="progress-fill" id="progressFill" style="width: 0%"></div>
             </div>
             <div class="flex justify-between time-display">
               <span id="currentTime">0:00</span>
@@ -830,7 +789,7 @@
               min="0"
               max="100"
               value="100"
-              oninput="setVolume(this.value)"
+              onchange="setVolume(this.value)"
             />
             <span class="text-sm font-semibold text-white w-12 text-right" id="volumeValue">100%</span>
           </div>
@@ -864,11 +823,16 @@
                 <div
                   class="device-item {% if device.is_active %}active{% endif %}"
                   data-device-id="{{ device.id }}"
-                  onclick="transferPlayback('{{ device.id|escapejs }}')"
+                  onclick="transferPlayback('{{ device.id }}')"
                 >
                   <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                      <span class="iconify mr-2" data-icon="{% if device.type == 'Computer' %}mdi:laptop{% elif device.type == 'Smartphone' %}mdi:cellphone{% elif device.type == 'Speaker' %}mdi:speaker{% else %}mdi:devices{% endif %}"></span>
+                      <span class="iconify mr-2" data-icon="
+                        {% if device.type == 'Computer' %}mdi:laptop
+                        {% elif device.type == 'Smartphone' %}mdi:cellphone
+                        {% elif device.type == 'Speaker' %}mdi:speaker
+                        {% else %}mdi:devices{% endif %}
+                      "></span>
                       <span>{{ device.name }}</span>
                     </div>
                     {% if device.is_active %}
@@ -946,8 +910,10 @@
 <div id="lyricsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.92); z-index: 1000; align-items: center; justify-content: center; padding: 2rem; backdrop-filter: blur(4px);">
   <div style="background: linear-gradient(135deg, rgba(10, 10, 10, 0.98) 0%, rgba(26, 26, 26, 0.98) 50%, rgba(15, 52, 96, 0.3) 100%); border: 1px solid rgba(192, 192, 192, 0.4); border-radius: 20px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 2.5rem; position: relative; box-shadow: 0 0 60px rgba(16, 185, 129, 0.2), 0 0 30px rgba(192, 192, 192, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);">
     <!-- Close Button -->
-    <button onclick="closeLyricsModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: rgba(192, 192, 192, 0.8); font-size: 1.5rem; cursor: pointer; z-index: 1001; transition: all 0.3s ease; padding: 0.5rem;" onmouseover="this.style.color='rgba(16, 185, 129, 0.9)'; this.style.textShadow='0 0 10px rgba(16, 185, 129, 0.6)';" onmouseout="this.style.color='rgba(192, 192, 192, 0.8)'; this.style.textShadow='none';">
+    <button onclick="closeLyricsModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: rgba(192, 192, 192, 0.8); font-size: 1.5rem; cursor: pointer; z-index: 1001; transition: all 0.3s ease; padding: 0.5rem;">
       ✕
+    </button>
+    <button onclick="closeLyricsModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: rgba(192, 192, 192, 0.8); font-size: 1.5rem; cursor: pointer; z-index: 1001; transition: all 0.3s ease; padding: 0.5rem;" onmouseover="this.style.color='rgba(16, 185, 129, 0.9)'; this.style.textShadow='0 0 10px rgba(16, 185, 129, 0.6)';" onmouseout="this.style.color='rgba(192, 192, 192, 0.8)'; this.style.textShadow='none';">
     </button>
 
     <!-- Track Info with Glow -->
@@ -989,11 +955,7 @@
   }
 </style>
 
-<input type="hidden" id="_spotifyToken" value="{{ spotify_user.access_token|escapejs }}">
-
 <script>
-  window._syroPlayerPageLoaded = true;
-
   // ==================== Utility Functions ====================
 
   function getCsrfToken() {
@@ -1030,8 +992,7 @@
   }
 
   function escapeSingleQuotes(text) {
-    if (!text) return '';
-    return String(text).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return text.replace(/'/g, "\\'");
   }
 
   function formatDuration(ms) {
@@ -1182,7 +1143,7 @@
                 </div>
                 <div class="text-xs text-gray-500 flex-shrink-0">${duration}</div>
                 <button
-                  onclick="playTrackFromSearch('${escapeSingleQuotes(trackUri)}')"
+                  onclick="playTrackFromSearch('${escapeHtml(trackUri)}')"
                   class="hidden group-hover:flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-colors flex-shrink-0"
                   title="Play"
                 >
@@ -1288,7 +1249,7 @@
                 </div>
                 <div class="text-xs text-gray-500 flex-shrink-0">${duration}</div>
                 <button
-                  onclick="playTrackFromSearch('${escapeSingleQuotes(trackUri)}')"
+                  onclick="playTrackFromSearch('${escapeHtml(trackUri)}')"
                   class="hidden group-hover:flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-colors flex-shrink-0"
                   title="Play"
                 >
@@ -1304,7 +1265,7 @@
           if (tracks.length > 0 && tracks[0].uri) {
             playAllHtml = `
               <button
-                onclick="playTrackFromSearch('${escapeSingleQuotes(tracks[0].uri)}')"
+                onclick="playTrackFromSearch('${escapeHtml(tracks[0].uri)}')"
                 class="w-full mt-4 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-semibold transition-colors"
               >
                 Play Album
@@ -1354,27 +1315,17 @@
         'X-CSRFToken': '{{ csrf_token }}'
       }
     })
-    .then(response => {
-      console.log('Playlists API response status:', response.status);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-      console.log('Playlists data received:', data);
-      if (data.status === 'success' && data.data && data.data.playlists && data.data.playlists.length > 0) {
+      if (data.status === 'success' && data.data.playlists.length > 0) {
         displayUserPlaylists(data.data.playlists);
-      } else if (data.status === 'success' && (!data.data?.playlists || data.data.playlists.length === 0)) {
-        showNotification('No playlists found', 'info');
       } else {
-        console.error('Unexpected response format:', data);
         showNotification('No playlists found', 'info');
       }
     })
     .catch(error => {
       console.error('Error loading playlists:', error);
-      showNotification('Failed to load playlists: ' + error.message, 'error');
+      showNotification('Failed to load playlists', 'error');
     });
   }
 
@@ -1538,7 +1489,7 @@
                 <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
               </svg>
             </button>
-            <button onclick="addToQueue('${escapeSingleQuotes(track.uri)}', {title: '${escapeSingleQuotes(track.name)}', artist: '${escapeSingleQuotes(track.artist)}', album: '${escapeSingleQuotes(track.album)}'})" class="opacity-0 group-hover:opacity-100 transition p-2 hover:bg-cyan-500 rounded" title="Add to Queue">
+            <button onclick="addToQueue('${escapeSingleQuotes(track.uri)}', {title: '${escapeHtml(track.name)}', artist: '${escapeHtml(track.artist)}', album: '${escapeHtml(track.album)}'})" class="opacity-0 group-hover:opacity-100 transition p-2 hover:bg-cyan-500 rounded" title="Add to Queue">
               <svg class="w-5 h-5 text-cyan-400 hover:text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
@@ -1810,251 +1761,92 @@
     }
   }
 
-  function applyThemeColors(primary, accent1, accent2) {
-    /**
-     * Updates all CSS variables so the entire page reflects the album's palette.
-     */
-    const root = document.documentElement;
-    const p = primary || 'rgb(16, 185, 129)';
-    const a1 = accent1 || p;
-    const a2 = accent2 || p;
-
-    // Convert rgb(...) to rgba(..., opacity) helper
-    const rgba = (color, alpha) => color.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
-
-    root.style.setProperty('--theme-primary', p);
-    root.style.setProperty('--theme-accent', a1);
-    root.style.setProperty('--theme-glow', rgba(p, 0.5));
-    root.style.setProperty('--theme-glow-soft', rgba(p, 0.15));
-    root.style.setProperty('--theme-bg1', rgba(p, 0.20));
-    root.style.setProperty('--theme-bg2', rgba(a1, 0.12));
-    root.style.setProperty('--theme-bg3', rgba(a2, 0.08));
-
-    // Update progress bar fill directly (CSS gradient vars sometimes need a nudge)
-    const fill = document.getElementById('progressFill');
-    if (fill) fill.style.background = `linear-gradient(90deg, ${p} 0%, ${a1} 100%)`;
-
-    // Update control-btn-lg (play button) glow
-    const playBtn = document.getElementById('playPauseBtn');
-    if (playBtn) playBtn.style.boxShadow = `0 12px 40px ${rgba(p, 0.5)}, 0 0 60px ${rgba(p, 0.3)}`;
-  }
-
   function applyDynamicBackground() {
     const albumArt = document.getElementById('albumArt');
     const dynamicBg = document.getElementById('dynamicBg');
 
-    if (!dynamicBg) return;
+    if (!albumArt || !dynamicBg) return;
 
-    // If no albumArt image or it hasn't loaded, keep animated gradient
-    if (!albumArt || !albumArt.src || albumArt.style.display === 'none' || !albumArt.naturalWidth) {
-      if (albumArt && albumArt.src && albumArt.style.display !== 'none') {
-        // Image exists but not loaded yet — wait for it
-        albumArt.onload = () => applyDynamicBackground();
-        albumArt.onerror = () => console.warn('Album art failed; keeping default background');
-      }
-      return;
-    }
+    const updateBackground = () => {
+      // Get the single dominant color (most prevalent in the image)
+      const dominantColor = extractDominantColor(albumArt);
 
-    // ── CORS reload guard ──────────────────────────────────────
-    // If the image loaded without crossOrigin (e.g. from browser cache),
-    // force a reload with CORS headers so getImageData() doesn't throw.
-    if (!albumArt.crossOrigin || albumArt.crossOrigin === '') {
-      albumArt.crossOrigin = 'anonymous';
-      const currentSrc = albumArt.src;
-      albumArt.src = '';
-      albumArt.onload = () => applyDynamicBackground();
-      albumArt.src = currentSrc;
-      return;
-    }
-    // ─────────────────────────────────────────────────────────────
+      // Get accent colors for variation
+      const accentColors = extractDominantColors(albumArt, 3);
 
-    const doUpdate = () => {
+      // Use dominant color as the primary background color
+      // This makes the background match the cover's primary hue almost perfectly
+      const gradient = `
+        radial-gradient(circle at 20% 80%, ${dominantColor} 0%, ${accentColors[1] || dominantColor} 40%, transparent 70%),
+        radial-gradient(circle at 80% 20%, ${accentColors[1] || dominantColor} 0%, transparent 50%),
+        linear-gradient(135deg, ${dominantColor} 0%, ${accentColors[0] || dominantColor} 50%, ${accentColors[2] || dominantColor} 100%)
+      `;
 
-      try {
-        const dominantColor = extractDominantColor(albumArt);
-        const accentColors = extractDominantColors(albumArt, 3);
+      dynamicBg.style.background = gradient;
+      dynamicBg.style.backgroundColor = dominantColor;  // Fallback solid color
 
-        const c0 = accentColors[0] || dominantColor;
-        const c1 = accentColors[1] || dominantColor;
-        const c2 = accentColors[2] || dominantColor;
-
-        const gradient = `
-          radial-gradient(circle at 20% 80%, ${dominantColor} 0%, ${c1} 40%, transparent 70%),
-          radial-gradient(circle at 80% 20%, ${c1} 0%, transparent 50%),
-          linear-gradient(135deg, ${dominantColor} 0%, ${c0} 50%, ${c2} 100%)
-        `;
-
-        dynamicBg.style.background = gradient;
-
-        // Apply theme colors to entire page UI
-        applyThemeColors(dominantColor, c0, c2);
-
-        console.log('Dynamic theme applied:', { dominant: dominantColor, accents: accentColors });
-      } catch (err) {
-        console.warn('Color extraction failed (CORS?):', err.message);
-      }
+      console.log('Dynamic background:', {
+        dominant: dominantColor,
+        accents: accentColors
+      });
     };
 
-    if (albumArt.complete && albumArt.naturalWidth > 0) {
-      doUpdate();
+    if (albumArt.complete) {
+      updateBackground();
     } else {
-      albumArt.onload = doUpdate;
-      albumArt.onerror = () => console.warn('Album art failed to load; keeping default background');
+      albumArt.onload = updateBackground;
     }
   }
 
   // ==================== Playback State Management ====================
-
-  // Module-level playback state — used by progress bar, seek, and other controls
-  let _currentDurationMs = 0;
-  let _currentProgressMs = 0;
-  let _currentTrackId = '';
-  let _isPlaying = false;
-  let _tickTimer = null;
-
-  function _startTick() {
-    if (_tickTimer) return;
-    _tickTimer = setInterval(() => {
-      if (!_isPlaying || _currentDurationMs <= 0) return;
-      _currentProgressMs = Math.min(_currentProgressMs + 1000, _currentDurationMs);
-      const pct = (_currentProgressMs / _currentDurationMs) * 100;
-      const fill = document.getElementById('progressFill');
-      const el   = document.getElementById('currentTime');
-      if (fill) fill.style.width = pct + '%';
-      if (el)   el.textContent   = formatTime(_currentProgressMs);
-    }, 1000);
-  }
-
-  // ==================== Autoplay State ====================
-  const autoplayState = {
-    lastTrackUri: null,
-    wasNearEnd: false,
-    triggered: false,
-    inProgress: false,
-  };
-
-  async function triggerAutoplay() {
-    if (autoplayState.inProgress) return;
-    autoplayState.inProgress = true;
-    try {
-      const response = await fetch('{% url "music:autoplay_next" %}', {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': '{{ csrf_token }}',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      });
-      const data = await response.json();
-      if (data.status === 'success') {
-        showNotification('🎵 ' + (data.message || 'Autoplay started'), 'success');
-        setTimeout(() => updatePlaybackState(), 1500);
-      } else if (data.status === 'info') {
-        console.log('Autoplay info:', data.message);
-      }
-    } catch (err) {
-      console.error('Autoplay error:', err);
-    } finally {
-      autoplayState.inProgress = false;
-    }
-  }
 
   function updatePlaybackState() {
     fetch('{% url "music:playback_state" %}')
       .then(response => response.json())
       .then(data => {
         if (data.status === 'success') {
+          // Update progress
           const duration = data.duration_ms || 0;
           const progress = data.progress_ms || 0;
           const percentage = duration > 0 ? (progress / duration * 100) : 0;
 
-          // Store in module variables for seek and other controls
-          _currentDurationMs = duration;
-          _currentProgressMs = progress;
+          document.getElementById('progressFill').style.width = percentage + '%';
+          document.getElementById('currentTime').textContent = formatTime(progress);
+          document.getElementById('duration').textContent = formatTime(duration);
 
-          // Update progress bar
-          const progressFill = document.getElementById('progressFill');
-          const currentTimeEl = document.getElementById('currentTime');
-          const durationEl = document.getElementById('duration');
-          if (progressFill) progressFill.style.width = percentage + '%';
-          if (currentTimeEl) currentTimeEl.textContent = formatTime(progress);
-          if (durationEl) durationEl.textContent = formatTime(duration);
-
-          // Update play/pause button and vinyl animation
+          // Update play/pause button
           const playPauseBtn = document.getElementById('playPauseBtn');
           const vinylRecord = document.getElementById('vinylRecord');
-
-          _isPlaying         = data.is_playing;
-          _currentProgressMs = data.progress_ms || 0;
-          _currentDurationMs = data.duration_ms  || 0;
 
           if (data.is_playing) {
-            if (playPauseBtn) playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:pause"></span>';
-            if (vinylRecord)  vinylRecord.classList.add('playing');
-            _startTick();
+            playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:pause"></span>';
+            vinylRecord.classList.add('playing');
           } else {
-            if (playPauseBtn) playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:play"></span>';
-            if (vinylRecord)  vinylRecord.classList.remove('playing');
+            playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:play"></span>';
+            vinylRecord.classList.remove('playing');
           }
 
-          // Always update track info (elements always in DOM now)
-          const trackNameEl = document.getElementById('trackName');
-          const artistNameEl = document.getElementById('artistName');
+          // Update track info if changed
+          const trackName = document.getElementById('trackName');
+          const artistName = document.getElementById('artistName');
           const albumNameDisplay = document.getElementById('albumNameDisplay');
-
-          if (trackNameEl) trackNameEl.textContent = data.track_name || '';
-          if (artistNameEl) artistNameEl.textContent = data.artist_name || '';
-          if (albumNameDisplay) albumNameDisplay.textContent = data.album_name || '';
-
-          // Update album art + dynamic background when track changes
           const albumArt = document.getElementById('albumArt');
-          const albumArtFallback = document.getElementById('albumArtFallback');
-          const trackId = data.track_id || '';
 
-          if (albumArt && data.album_image_url && _currentTrackId !== trackId) {
-            _currentTrackId = trackId;
-            albumArt.crossOrigin = 'anonymous';
-            albumArt.style.display = '';
+          if (trackName && data.track_name) {
+            trackName.textContent = data.track_name;
+          }
+          if (artistName && data.artist_name) {
+            artistName.textContent = data.artist_name;
+          }
+          if (albumNameDisplay && data.album_name) {
+            albumNameDisplay.textContent = data.album_name;
+          }
+
+          // Update album art if URL changed
+          if (albumArt && data.album_image_url && albumArt.src !== data.album_image_url) {
             albumArt.src = data.album_image_url;
-            if (albumArtFallback) albumArtFallback.classList.add('hidden');
-            albumArt.onload = () => applyDynamicBackground();
-            albumArt.onerror = () => {
-              albumArt.style.display = 'none';
-              if (albumArtFallback) albumArtFallback.classList.remove('hidden');
-            };
-          } else if (albumArt && !data.album_image_url) {
-            albumArt.style.display = 'none';
-            if (albumArtFallback) albumArtFallback.classList.remove('hidden');
+            setTimeout(() => applyDynamicBackground(), 100);
           }
-
-          // ── Autoplay detection ──────────────────────────────────────
-          const trackUri = data.track_uri || '';
-
-          // Reset state when a new track starts
-          if (trackUri && trackUri !== autoplayState.lastTrackUri) {
-            autoplayState.lastTrackUri = trackUri;
-            autoplayState.wasNearEnd = false;
-            autoplayState.triggered = false;
-          }
-
-          // Mark when we're near the end (≥ 97% complete and still playing)
-          if (duration > 0 && progress / duration >= 0.97 && data.is_playing) {
-            autoplayState.wasNearEnd = true;
-          }
-
-          // If the track ended naturally (was near end, now stopped) → autoplay
-          if (!data.is_playing && autoplayState.wasNearEnd && !autoplayState.triggered) {
-            autoplayState.triggered = true;
-            triggerAutoplay();
-          }
-        } else if (data.status === 'no_playback') {
-          // Nothing playing — show idle state but don't wipe last known track
-          const vinylRecord = document.getElementById('vinylRecord');
-          const playPauseBtn = document.getElementById('playPauseBtn');
-          if (vinylRecord) vinylRecord.classList.remove('playing');
-          if (playPauseBtn) playPauseBtn.innerHTML = '<span class="iconify text-3xl" data-icon="mdi:play"></span>';
-        } else if (data.status === 'error') {
-          console.warn('Playback state error:', data.message);
         }
       })
       .catch(error => console.error('Playback state error:', error));
@@ -2063,15 +1855,8 @@
   // ==================== Playback Controls ====================
 
   function getActiveDeviceId() {
-    // Prefer a device the user explicitly activated in the DOM
-    const activeDevice = document.querySelector('.device-item[data-device-id].active');
-    if (activeDevice) {
-      const id = activeDevice.getAttribute('data-device-id');
-      if (id) return id;
-    }
-    // Fall back to the Spotify Web Playback SDK's browser device
-    if (window.deviceId) return window.deviceId;
-    return null;
+    const activeDevice = document.querySelector('.device-item.active');
+    return activeDevice ? activeDevice.getAttribute('data-device-id') : null;
   }
 
   function showDeviceSelector(devices) {
@@ -2177,21 +1962,11 @@
       },
       body: `device_id=${deviceId || ''}`
     })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
         updatePlaybackState();
-      } else {
-        console.error('Play/Pause failed:', data);
-        showNotification('Failed to toggle playback', 'error');
       }
-    })
-    .catch(error => {
-      console.error('Error toggling playback:', error);
-      showNotification('Error: Could not toggle playback', 'error');
     });
   }
 
@@ -2206,24 +1981,14 @@
       },
       body: `device_id=${deviceId || ''}`
     })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
         setTimeout(() => {
           updatePlaybackState();
           applyDynamicBackground();
         }, 500);
-      } else {
-        console.error('Next track failed:', data);
-        showNotification('Failed to skip to next track', 'error');
       }
-    })
-    .catch(error => {
-      console.error('Error skipping to next track:', error);
-      showNotification('Error: Could not skip to next track', 'error');
     });
   }
 
@@ -2238,32 +2003,19 @@
       },
       body: `device_id=${deviceId || ''}`
     })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
         setTimeout(() => {
           updatePlaybackState();
           applyDynamicBackground();
         }, 500);
-      } else {
-        console.error('Previous track failed:', data);
-        showNotification('Failed to skip to previous track', 'error');
       }
-    })
-    .catch(error => {
-      console.error('Error skipping to previous track:', error);
-      showNotification('Error: Could not skip to previous track', 'error');
     });
   }
 
   function setVolume(volume) {
-    const volumeEl = document.getElementById('volumeValue');
-    if (volumeEl) {
-      volumeEl.textContent = volume + '%';
-    }
+    document.getElementById('volumeValue').textContent = volume + '%';
     const deviceId = getActiveDeviceId();
 
     fetch('{% url "music:set_volume" %}', {
@@ -2273,13 +2025,6 @@
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: `volume=${volume}&device_id=${deviceId || ''}`
-    })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
-    .catch(error => {
-      console.error('Error setting volume:', error);
     });
   }
 
@@ -2292,39 +2037,19 @@
       },
       body: `device_id=${deviceId}`
     })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
-        // Update active device styling
         document.querySelectorAll('.device-item').forEach(item => {
-          if (item.dataset.deviceId === deviceId) {
-            item.classList.add('active');
-          } else {
-            item.classList.remove('active');
-          }
+          item.classList.remove('active');
         });
-        showNotification('Device switched successfully', 'success');
-        updatePlaybackState();
-      } else {
-        console.error('Transfer playback failed:', data);
-        showNotification('Failed to switch device', 'error');
+        event.target.closest('.device-item').classList.add('active');
       }
-    })
-    .catch(error => {
-      console.error('Error transferring playback:', error);
-      showNotification('Error: Could not switch device', 'error');
     });
   }
 
   function toggleShuffle() {
     const btn = document.getElementById('shuffleBtn');
-    if (!btn) {
-      console.error('Shuffle button not found');
-      return;
-    }
     const isActive = btn.classList.contains('active');
     const deviceId = getActiveDeviceId();
 
@@ -2336,31 +2061,16 @@
       },
       body: `state=${!isActive}&device_id=${deviceId || ''}`
     })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
         btn.classList.toggle('active');
-        showNotification('Shuffle ' + (btn.classList.contains('active') ? 'enabled' : 'disabled'), 'success');
-      } else {
-        console.error('Shuffle toggle failed:', data);
-        showNotification('Failed to toggle shuffle', 'error');
       }
-    })
-    .catch(error => {
-      console.error('Error toggling shuffle:', error);
-      showNotification('Error: Could not toggle shuffle', 'error');
     });
   }
 
   function toggleRepeat() {
     const btn = document.getElementById('repeatBtn');
-    if (!btn) {
-      console.error('Repeat button not found');
-      return;
-    }
     const currentMode = btn.getAttribute('data-repeat-mode') || 'off';
     const modes = ['off', 'context', 'track'];
     const nextMode = modes[(modes.indexOf(currentMode) + 1) % modes.length];
@@ -2374,10 +2084,7 @@
       },
       body: `mode=${nextMode}&device_id=${deviceId || ''}`
     })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
         btn.setAttribute('data-repeat-mode', nextMode);
@@ -2389,87 +2096,29 @@
         } else {
           btn.innerHTML = '<span class="iconify text-xl" data-icon="mdi:repeat"></span>';
         }
-        showNotification('Repeat: ' + (nextMode === 'off' ? 'Off' : nextMode === 'context' ? 'All' : 'One'), 'success');
-      } else {
-        console.error('Repeat toggle failed:', data);
-        showNotification('Failed to toggle repeat', 'error');
       }
-    })
-    .catch(error => {
-      console.error('Error toggling repeat:', error);
-      showNotification('Error: Could not toggle repeat', 'error');
     });
   }
 
-  // Progress bar seek (mouse + touch)
-  // Uses _currentDurationMs module variable set by updatePlaybackState
-  (function setupProgressBar() {
-    // Defer until DOM is ready — the bar element is after this script block
-    function init() {
-      const bar = document.getElementById('progressBar');
-      if (!bar) return;
+  // Progress bar seek
+  document.getElementById('progressBar')?.addEventListener('click', function(e) {
+    const rect = this.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    const durationText = document.getElementById('duration').textContent.split(':');
+    const duration = (parseInt(durationText[0]) * 60 + parseInt(durationText[1])) * 1000;
+    const positionMs = percent * duration;
+    const deviceId = getActiveDeviceId();
 
-      let seekTimer = null;
-      let isSeeking = false;
-
-      function seekAt(clientX) {
-        if (_currentDurationMs <= 0) return; // no track loaded yet
-
-        const rect = bar.getBoundingClientRect();
-        const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-
-        // Update fill immediately for snappy feel
-        const fill = document.getElementById('progressFill');
-        if (fill) fill.style.width = (percent * 100) + '%';
-
-        const positionMs = Math.floor(percent * _currentDurationMs);
-        const deviceId = getActiveDeviceId();
-
-        clearTimeout(seekTimer);
-        seekTimer = setTimeout(() => {
-          fetch('{% url "music:seek" %}', {
-            method: 'POST',
-            headers: {
-              'X-CSRFToken': '{{ csrf_token }}',
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `position_ms=${positionMs}&device_id=${deviceId || ''}`
-          })
-          .then(r => r.json())
-          .then(() => {
-            _currentProgressMs = positionMs;
-            setTimeout(updatePlaybackState, 200);
-          })
-          .catch(err => console.error('Seek error:', err));
-        }, 150); // debounce rapid drags
-      }
-
-      // Mouse events
-      bar.addEventListener('click', (e) => { if (!isSeeking) seekAt(e.clientX); });
-
-      bar.addEventListener('mousedown', () => { isSeeking = false; });
-
-      // Touch events
-      bar.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        isSeeking = true;
-        seekAt(e.touches[0].clientX);
-      }, { passive: false });
-
-      bar.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        seekAt(e.touches[0].clientX);
-      }, { passive: false });
-
-      bar.addEventListener('touchend', () => { isSeeking = false; }, { passive: true });
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
-  })();
+    fetch('{% url "music:seek" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `position_ms=${Math.floor(positionMs)}&device_id=${deviceId || ''}`
+    })
+    .then(() => updatePlaybackState());
+  });
 
   // ==================== Search Functionality ====================
 
@@ -2477,19 +2126,8 @@
     const searchInput = document.getElementById('playerSearchInput');
     const resultsDiv = document.getElementById('playerSearchResults');
 
-    // Add null checks - if elements don't exist, exit gracefully
-    if (!searchInput) {
-      console.warn('playerSearchInput element not found - search functionality disabled');
-      return;
-    }
-    if (!resultsDiv) {
-      console.warn('playerSearchResults element not found - search functionality disabled');
-      return;
-    }
-
     let searchTimeout;
     let abortController = null;
-    let _autoPlayAfterSearch = false; // set to true when Enter pressed without results
 
     function debounceSearch() {
       clearTimeout(searchTimeout);
@@ -2501,7 +2139,6 @@
 
       if (query.length === 0) {
         resultsDiv.innerHTML = '';
-        _autoPlayAfterSearch = false;
         if (abortController) {
           abortController.abort();
           abortController = null;
@@ -2512,19 +2149,10 @@
       debounceSearch();
     });
 
-    searchInput.addEventListener('keydown', (e) => {
+    searchInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        e.preventDefault();
         clearTimeout(searchTimeout);
-        // If results are already showing, play the first song result immediately
-        const firstPlayBtn = resultsDiv.querySelector('button[title="Play"]');
-        if (firstPlayBtn) {
-          firstPlayBtn.click();
-        } else {
-          // Trigger search and auto-play first result when it arrives
-          _autoPlayAfterSearch = true;
-          performPlayerSearch();
-        }
+        performPlayerSearch();
       }
     });
 
@@ -2557,7 +2185,6 @@
         credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
           'X-CSRFToken': '{{ csrf_token }}'
         },
@@ -2704,15 +2331,6 @@
 
       resultsDiv.innerHTML = html;
       console.log('Search results rendered successfully');
-
-      // Auto-play first song result if triggered by Enter key
-      if (_autoPlayAfterSearch) {
-        _autoPlayAfterSearch = false;
-        const firstPlayBtn = resultsDiv.querySelector('button[title="Play"]');
-        if (firstPlayBtn) {
-          setTimeout(() => firstPlayBtn.click(), 50);
-        }
-      }
     }
 
     function renderSongResult(song) {
@@ -2775,7 +2393,7 @@
               </button>
               <button
                 class="control-btn !w-10 !h-10"
-                onclick="addToQueueFromSearch('${safeUri}', {title: '${escapeSingleQuotes(title)}', artist: '${escapeSingleQuotes(artistName)}', album: '${escapeSingleQuotes(albumTitle)}'});"
+                onclick="addToQueueFromSearch('${safeUri}', {title: '${escapeHtml(title)}', artist: '${safeArtist}', album: '${safeAlbum}'});"
                 title="Add to Queue"
                 type="button"
               >
@@ -3142,49 +2760,81 @@
     });
   }
 
-  // playTrackFromSearch and addToQueueFromSearch are defined as window.* inside
-  // setupPlayerSearch() so they can access the closure's resultsDiv/searchInput.
-  // These stubs keep global calls safe if setupPlayerSearch hasn't run yet.
-  if (typeof window.playTrackFromSearch === 'undefined') {
-    window.playTrackFromSearch = function(trackUri) { playTrack(trackUri); };
+  // Search result playback functions
+  function playTrackFromSearch(trackUri) {
+    console.log('Playing track from search:', trackUri);
+    if (!trackUri) {
+      showNotification('Invalid track', 'error');
+      return;
+    }
+    
+    // Close search results
+    const resultsDiv = document.getElementById('playerSearchResults');
+    if (resultsDiv) {
+      resultsDiv.innerHTML = '';
+    }
+    const searchInput = document.getElementById('playerSearchInput');
+    if (searchInput) {
+      searchInput.value = '';
+    }
+    
+    // Play the track using existing playTrack function
+    playTrack(trackUri);
   }
-  if (typeof window.addToQueueFromSearch === 'undefined') {
-    window.addToQueueFromSearch = function(trackUri, info) { addToQueue(trackUri, info || {}); };
+
+  function addToQueueFromSearch(trackUri, trackInfo) {
+    console.log('Adding track to queue from search:', trackUri, trackInfo);
+    if (!trackUri) {
+      showNotification('Invalid track', 'error');
+      return;
+    }
+    
+    // Add to queue using existing addToQueue function
+    addToQueue(trackUri, trackInfo);
   }
 
   // ==================== Device Selection ====================
 
   async function selectDevice(deviceId, deviceName) {
     console.log('Selecting device:', deviceId, deviceName);
+    
     try {
-      const response = await fetch('{% url "music:transfer_playback" %}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: `device_id=${encodeURIComponent(deviceId)}`
-      });
-
-      const data = await response.json();
-
-      if (data.status === 'success') {
-        showNotification(`Switched to ${escapeHtml(deviceName)}`, 'success');
-        // Update active device badge in the DOM
-        document.querySelectorAll('.device-item').forEach(item => {
-          if (item.dataset.deviceId === deviceId) {
-            item.classList.add('active');
-          } else {
-            item.classList.remove('active');
-          }
+        const response = await fetch('/music/api/playback/transfer/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ 
+                device_id: deviceId 
+            })
         });
-        setTimeout(() => updatePlaybackState(), 1000);
-      } else {
-        showNotification(`Failed to switch device: ${escapeHtml(data.message || 'Unknown error')}`, 'error');
-      }
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log('Successfully transferred to device:', deviceName);
+            showNotification(`Switched to ${deviceName}`, 'success');
+            
+            // Close the device modal
+            document.getElementById('deviceModal').classList.add('hidden');
+            
+            // Refresh devices to show active device
+            setTimeout(() => {
+                loadDevices();
+            }, 1000);
+            
+            // Refresh playback state
+            setTimeout(() => {
+                updatePlayer();
+            }, 1500);
+        } else {
+            console.error('Device transfer failed:', data.error);
+            showNotification(`Failed to switch device: ${data.error}`, 'error');
+        }
     } catch (error) {
-      console.error('Error selecting device:', error);
-      showNotification('Error switching device', 'error');
+        console.error('Error selecting device:', error);
+        showNotification('Error switching device', 'error');
     }
   }
 
@@ -3216,9 +2866,7 @@
   window.deviceId = null;
 
   // Store token at global scope so it's accessible to the SDK callback
-  const spotifyToken = document.getElementById('_spotifyToken')
-      ? document.getElementById('_spotifyToken').value
-      : '';
+  const spotifyToken = '{{ spotify_user.access_token }}';
 
   // Define the SDK ready callback at global scope BEFORE the SDK loads
   // This REPLACES the placeholder defined in base.html
@@ -3410,18 +3058,13 @@
     // Hide Spotify modal UI after SDK is loaded (wait 1s for SDK to inject elements)
     setTimeout(() => {
       // Only remove the "Now Playing" modal, not the actual player
-      // Be very selective to avoid hiding our own UI
       document.querySelectorAll(
         'div[class*="now-playing"], div[id*="now-playing"], ' +
         'div[class*="now_playing"], div[id*="now_playing"]'
       ).forEach(el => {
-        // Only hide if this is NOT a child of our content wrapper or main player elements
-        if (!el.closest('.content-wrapper') && !el.closest('.player-card') && !el.closest('.vinyl-container')) {
-          console.log('Hiding Spotify Now Playing modal:', el);
-          el.style.display = 'none !important';
-          el.style.visibility = 'hidden !important';
-          el.style.pointerEvents = 'none';
-        }
+        console.log('Hiding Spotify Now Playing modal:', el);
+        el.style.display = 'none';
+        el.style.visibility = 'hidden';
       });
     }, 2000);
 
@@ -3512,7 +3155,7 @@
       return;
     }
     
-    await fetchAndShowLyrics(currentTrackName, currentArtistName);
+    await fetchAndShowLyrics(currentTrackName, currentArtistName, currentTrackId);
   }
 
   async function fetchAndShowLyrics(trackName, artistName, spotifyTrackId = null) {
@@ -3599,4 +3242,7 @@
   setInterval(updateCurrentTrackInfo, 5000);
 </script>
 <script src="{% static 'js/features.js' %}"></script>
+
+<!-- Device Selection Modal -->
+{% include 'syromusic/player_modal.html' %}
 {% endblock content %}

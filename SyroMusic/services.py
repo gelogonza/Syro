@@ -40,7 +40,7 @@ class SpotifyService:
             self.spotify_user.access_token = token_info['access_token']
             if 'refresh_token' in token_info:
                 self.spotify_user.refresh_token = token_info['refresh_token']
-            self.spotify_user.token_expires_at = timezone.now() + timedelta(seconds=token_info['expires_in'])
+            self.spotify_user.expires_at = timezone.now() + timezone.timedelta(seconds=token_info['expires_in'])
             self.spotify_user.save()
             logger.info(f"Refreshed token for user {self.spotify_user.user.username}")
         except Exception as e:

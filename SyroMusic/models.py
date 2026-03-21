@@ -110,7 +110,6 @@ class Playlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='playlists')
     songs = models.ManyToManyField(Song, blank=True, related_name='playlists')
     description = models.TextField(blank=True, null=True)
-    spotify_id = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 

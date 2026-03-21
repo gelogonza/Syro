@@ -161,13 +161,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Get Spotify API credentials from environment variables
 # To set up: export SPOTIPY_CLIENT_ID="your_client_id"
 #           export SPOTIPY_CLIENT_SECRET="your_client_secret"
-#           export SPOTIPY_REDIRECT_URI="http://127.0.0.1:8000/music/spotify/callback/"
-# Note: Spotify requires HTTPS or explicit loopback IP (127.0.0.1 or [::1])
-#       localhost is no longer allowed as per Spotify security requirements
+#           export SPOTIPY_REDIRECT_URI="http://localhost:8000/music/spotify/callback/"
 
 SPOTIPY_CLIENT_ID = config('SPOTIPY_CLIENT_ID', default=None)
 SPOTIPY_CLIENT_SECRET = config('SPOTIPY_CLIENT_SECRET', default=None)
-SPOTIPY_REDIRECT_URI = config('SPOTIPY_REDIRECT_URI', default='http://127.0.0.1:8000/music/spotify/callback/')
+SPOTIPY_REDIRECT_URI = config('SPOTIPY_REDIRECT_URI', default='http://localhost:8000/music/spotify/callback/')
 
 # ============================================================
 # Genius API Configuration for Lyrics
@@ -250,7 +248,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    'UNAUTHENTICATED_USER': None,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_FILTER_BACKENDS': [

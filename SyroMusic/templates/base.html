@@ -336,13 +336,11 @@
       visibility: hidden;
       transition: all 0.3s ease;
       z-index: 99;
-      pointer-events: none;
     }
 
     .mobile-menu-overlay.active {
       opacity: 1;
       visibility: visible;
-      pointer-events: auto;
     }
   </style>
   
@@ -608,12 +606,10 @@
     }
 
     // Close menu on link click
-    if (mobileMenu) {
-      const mobileMenuLinks = mobileMenu.querySelectorAll('a');
-      mobileMenuLinks.forEach(link => {
-        link.addEventListener('click', closeMobileMenu);
-      });
-    }
+    const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+    mobileMenuLinks.forEach(link => {
+      link.addEventListener('click', closeMobileMenu);
+    });
   </script>
 
   {% block extra_js %}{% endblock extra_js %}

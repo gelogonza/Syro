@@ -131,8 +131,8 @@ def play_pause(request):
     """Toggle play/pause."""
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
-        device_id = request.POST.get('device_id') or None
-
+        device_id = request.POST.get('device_id')
+        
         sp = SpotifyService(spotify_user)
         playback = sp.get_current_playback()
 
@@ -158,8 +158,8 @@ def next_track(request):
     """Skip to next track."""
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
-        device_id = request.POST.get('device_id') or None
-
+        device_id = request.POST.get('device_id')
+        
         sp = SpotifyService(spotify_user)
         success = sp.next_track(device_id=device_id)
 
@@ -178,8 +178,8 @@ def previous_track(request):
     """Go to previous track."""
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
-        device_id = request.POST.get('device_id') or None
-
+        device_id = request.POST.get('device_id')
+        
         sp = SpotifyService(spotify_user)
         success = sp.previous_track(device_id=device_id)
 
@@ -198,15 +198,14 @@ def seek(request):
     """Seek to position in current track."""
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
-        raw = request.POST.get('position_ms')
-        device_id = request.POST.get('device_id') or None
+        position_ms = request.POST.get('position_ms')
+        device_id = request.POST.get('device_id')
 
-        if raw is None:
+        if not position_ms:
             return JsonResponse({'status': 'error', 'message': 'Position required'}, status=400)
-
-        position_ms = int(raw)
+        
         sp = SpotifyService(spotify_user)
-        success = sp.seek_to_position(position_ms, device_id=device_id)
+        success = sp.seek_to_position(int(position_ms), device_id=device_id)
 
         if success:
             return JsonResponse({'status': 'success', 'message': 'Seeked to position'})
@@ -224,15 +223,15 @@ def set_volume(request):
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
         volume = request.POST.get('volume')
-        device_id = request.POST.get('device_id') or None
+        device_id = request.POST.get('device_id')
 
-        if volume is None:
+        if not volume:
             return JsonResponse({'status': 'error', 'message': 'Volume required'}, status=400)
 
         volume = int(volume)
         if not 0 <= volume <= 100:
             return JsonResponse({'status': 'error', 'message': 'Volume must be 0-100'}, status=400)
-
+        
         sp = SpotifyService(spotify_user)
         success = sp.set_volume(volume, device_id=device_id)
 
@@ -247,13 +246,36 @@ def set_volume(request):
 
 @login_required(login_url='login')
 @require_http_methods(['POST'])
+def transfer_playback(request):
+    """Transfer playback to another device."""
+    try:
+        spotify_user = get_object_or_404(SpotifyUser, user=request.user)
+        device_id = request.POST.get('device_id')
+
+        if not device_id:
+            return JsonResponse({'status': 'error', 'message': 'Device ID required'}, status=400)
+        
+        sp = SpotifyService(spotify_user)
+        success = sp.transfer_playback(device_id, play=True)
+
+        if success:
+            return JsonResponse({'status': 'success', 'message': 'Transferred playback'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Failed to transfer playback'}, status=400)
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required(login_url='login')
+@require_http_methods(['POST'])
 def set_shuffle(request):
     """Toggle shuffle mode."""
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
         state = request.POST.get('state', 'false').lower() == 'true'
-        device_id = request.POST.get('device_id') or None
-
+        device_id = request.POST.get('device_id')
+        
         sp = SpotifyService(spotify_user)
         success = sp.set_shuffle(state, device_id=device_id)
 
@@ -279,11 +301,11 @@ def set_repeat(request):
     try:
         spotify_user = get_object_or_404(SpotifyUser, user=request.user)
         mode = request.POST.get('mode', 'off')
-        device_id = request.POST.get('device_id') or None
+        device_id = request.POST.get('device_id')
 
         if mode not in ['off', 'context', 'track']:
             return JsonResponse({'status': 'error', 'message': 'Invalid repeat mode'}, status=400)
-
+        
         sp = SpotifyService(spotify_user)
         success = sp.set_repeat(mode, device_id=device_id)
 
@@ -293,12 +315,12 @@ def set_repeat(request):
         queue.save()
 
         if success:
-            repeat_messages = {
+            messages = {
                 'off': 'Repeat off',
                 'context': 'Repeat all enabled',
-                'track': 'Repeat one enabled',
+                'track': 'Repeat one enabled'
             }
-            return JsonResponse({'status': 'success', 'message': repeat_messages[mode]})
+            return JsonResponse({'status': 'success', 'message': messages[mode]})
         else:
             return JsonResponse({'status': 'error', 'message': 'Failed to set repeat'}, status=400)
 
@@ -324,7 +346,6 @@ def get_playback_state(request):
 
         device_info = playback.get('device', {})
         item = playback.get('item', {})
-        context = playback.get('context') or {}
 
         # Extract album image URL
         album_images = item.get('album', {}).get('images', []) if item else []
@@ -336,15 +357,9 @@ def get_playback_state(request):
             'progress_ms': playback.get('progress_ms', 0),
             'duration_ms': item.get('duration_ms', 0) if item else 0,
             'track_name': item.get('name', '') if item else '',
-            'track_uri': item.get('uri', '') if item else '',
-            'track_id': item.get('id', '') if item else '',
             'artist_name': ', '.join([a['name'] for a in item.get('artists', [])]) if item else '',
-            'artist_ids': [a.get('id', '') for a in item.get('artists', [])] if item else [],
             'album_name': item.get('album', {}).get('name', '') if item else '',
-            'album_uri': item.get('album', {}).get('uri', '') if item else '',
             'album_image_url': album_image_url,
-            'context_type': context.get('type', ''),
-            'context_uri': context.get('uri', ''),
             'device_name': device_info.get('name', ''),
             'device_type': device_info.get('type', ''),
         })
@@ -569,109 +584,45 @@ def get_devices(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def transfer_playback(request):
-    """Transfer playback to a specific device (accepts JSON or form data)."""
+    """Transfer playback to a specific device."""
     try:
-        # DRF request.data parses both JSON and form-encoded bodies
-        device_id = (request.data.get('device_id') or '').strip() or None
+        device_id = request.data.get('device_id')
         if not device_id:
-            return Response({'status': 'error', 'message': 'device_id is required'}, status=400)
-
+            return Response(
+                {'error': 'device_id is required'}, 
+                status=400
+            )
+        
         spotify_user = SpotifyUser.objects.get(user=request.user)
         service = SpotifyService(spotify_user)
-
+        
         logger.info(f"Attempting to transfer playback to device: {device_id}")
-        success = service.transfer_playback(device_id)  # force_play defaults to True
-
+        
+        # Transfer playback
+        success = service.transfer_playback(device_id, force_play=False)
+        
         if success:
             logger.info(f"Successfully transferred playback to device: {device_id}")
-            return Response({'status': 'success', 'message': 'Transferred playback'}, status=200)
+            return Response({
+                'message': 'Playback transferred successfully',
+                'device_id': device_id
+            }, status=200)
         else:
             logger.error(f"Failed to transfer playback to device: {device_id}")
-            return Response({'status': 'error', 'message': 'Failed to transfer playback'}, status=400)
-
+            return Response(
+                {'error': 'Failed to transfer playback'}, 
+                status=500
+            )
+        
     except SpotifyUser.DoesNotExist:
-        return Response({'status': 'error', 'message': 'Spotify account not connected'}, status=400)
+        logger.error(f"No SpotifyUser found for {request.user.username}")
+        return Response(
+            {'error': 'Spotify account not connected'}, 
+            status=400
+        )
     except Exception as e:
         logger.error(f"Error transferring playback: {str(e)}", exc_info=True)
-        return Response({'status': 'error', 'message': str(e)}, status=500)
-
-
-@login_required(login_url='login')
-@require_http_methods(['POST'])
-def autoplay_next(request):
-    """
-    Called when a track ends with no queued content.
-    Priority order:
-      1. Local queue has tracks → Spotify has already queued them; just skip to next.
-      2. Was playing in an album/playlist context → skip to next (Spotify handles it).
-      3. Single-track playback → queue 3 Spotify recommendations then skip.
-    """
-    import json as _json
-
-    try:
-        spotify_user = get_object_or_404(SpotifyUser, user=request.user)
-        sp = SpotifyService(spotify_user)
-
-        body = {}
-        if request.content_type and 'application/json' in request.content_type:
-            try:
-                body = _json.loads(request.body)
-            except Exception:
-                pass
-
-        # 1. Local queue has tracks → skip so Spotify plays the next queued track
-        queue, _ = PlaybackQueue.objects.get_or_create(user=request.user)
-        if queue.queue_tracks:
-            success = sp.next_track()
-            if success:
-                return JsonResponse({'status': 'success', 'message': 'Playing next queued track'})
-
-        # 2. Get current playback to decide strategy
-        playback = sp.get_current_playback()
-        context = (playback or {}).get('context') or {}
-        item = (playback or {}).get('item') or {}
-
-        # Playing in an album/playlist context → skip to next; Spotify auto-advances
-        if context.get('type') in ('album', 'playlist', 'artist'):
-            success = sp.next_track()
-            if success:
-                context_label = context.get('type', 'context').capitalize()
-                return JsonResponse({
-                    'status': 'success',
-                    'message': f'Continuing {context_label}',
-                })
-
-        # 3. Single track → fetch recommendations and queue them
-        seed_tracks = [item['id']] if item.get('id') else []
-        seed_artists = [item['artists'][0]['id']] if item.get('artists') else []
-
-        if not seed_tracks and not seed_artists:
-            return JsonResponse({'status': 'no_playback', 'message': 'Nothing playing'})
-
-        recs = sp.get_recommendations(
-            seed_tracks=seed_tracks[:1] or None,
-            seed_artists=seed_artists[:1] if not seed_tracks else None,
-            limit=3,
+        return Response(
+            {'error': f'Failed to transfer playback: {str(e)}'}, 
+            status=500
         )
-
-        tracks = (recs or {}).get('tracks', [])
-        if not tracks:
-            return JsonResponse({'status': 'info', 'message': 'No recommendations available'})
-
-        queued = 0
-        for track in tracks:
-            track_uri = track.get('uri', '')
-            if track_uri and sp.add_to_queue(track_uri):
-                queued += 1
-
-        if queued:
-            sp.next_track()
-            return JsonResponse({
-                'status': 'success',
-                'message': f'Autoplaying {queued} recommended track{"s" if queued != 1 else ""}',
-            })
-
-        return JsonResponse({'status': 'info', 'message': 'Autoplay not available'})
-
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
