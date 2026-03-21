@@ -1,27 +1,9 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block title %}Music Player - Syro{% endblock title %}
 
 {% block extra_css %}
 <style>
-  /* Hide Spotify Web Playback SDK "Now Playing" Modal Only */
-  /* Be selective - we need the SDK to work, just hide the modal UI */
-  div[class*="now-playing"],
-  div[id*="now-playing"],
-  div[class*="now_playing"],
-  div[id*="now_playing"],
-  div[data-testid*="now-playing"],
-  body > div[style*="position: fixed"][style*="z-index"] {
-    display: none !important;
-    visibility: hidden !important;
-  }
-
-  /* Hide iframes that might be Spotify widgets */
-  iframe[src*="spotify"] {
-    display: none !important;
-  }
-
   /* Dark Theme Override for Player Page */
   body {
     background: #0a0a0a !important;
@@ -30,123 +12,6 @@
 
   body::before {
     display: none;
-  }
-
-  /* Breathing Gradient Mesh Animation */
-  @keyframes breathing {
-    0%, 100% {
-      opacity: 0.85;
-      transform: scale(1.2) rotate(0deg);
-    }
-    25% {
-      opacity: 0.9;
-      transform: scale(1.22) rotate(0.5deg);
-    }
-    50% {
-      opacity: 0.95;
-      transform: scale(1.25) rotate(1deg);
-    }
-    75% {
-      opacity: 0.9;
-      transform: scale(1.22) rotate(0.5deg);
-    }
-  }
-
-  @keyframes gradient-shift {
-    0% {
-      background-position: 0% 50%;
-    }
-    25% {
-      background-position: 50% 25%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    75% {
-      background-position: 50% 75%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
-  
-  @keyframes color-pulse {
-    0%, 100% {
-      filter: blur(120px) brightness(1) saturate(1.2);
-    }
-    50% {
-      filter: blur(140px) brightness(1.2) saturate(1.5);
-    }
-  }
-  
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px) translateX(0px);
-    }
-    33% {
-      transform: translateY(-20px) translateX(10px);
-    }
-    66% {
-      transform: translateY(10px) translateX(-10px);
-    }
-  }
-
-  @keyframes prismatic-shift {
-    0%, 100% {
-      background-position: 0% 50%;
-    }
-    25% {
-      background-position: 50% 0%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    75% {
-      background-position: 50% 100%;
-    }
-  }
-
-  /* Silver Prismatic Button */
-  .btn-prismatic {
-    position: relative;
-    background: linear-gradient(
-      135deg,
-      #c0c0c0 0%,
-      #e8e8e8 15%,
-      #ffffff 30%,
-      #d4d4ff 45%,
-      #ffd4ff 60%,
-      #ffffff 75%,
-      #e8e8e8 85%,
-      #c0c0c0 100%
-    );
-    background-size: 300% 300%;
-    color: #1a1a1a;
-    font-weight: 700;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    box-shadow: 
-      0 4px 12px rgba(255, 255, 255, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.5),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-    animation: prismatic-shift 6s ease-in-out infinite;
-    transition: all 0.3s ease;
-  }
-
-  .btn-prismatic:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 8px 20px rgba(255, 255, 255, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-    filter: brightness(1.1);
-  }
-
-  .btn-prismatic:active {
-    transform: translateY(0px);
-    box-shadow: 
-      0 2px 8px rgba(255, 255, 255, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.3);
   }
 
   /* Dynamic Background Container */
@@ -164,39 +29,11 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    background:
-      radial-gradient(ellipse 1200px 800px at 20% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
-      radial-gradient(ellipse 1000px 900px at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
-      radial-gradient(ellipse 800px 1000px at 50% 50%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
-      linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    background-size: 200% 200%, 200% 200%, 300% 300%, 100% 100%;
-    background-position: 0% 50%, 100% 50%, 50% 50%, center;
-    transition: background 4s cubic-bezier(0.4, 0.0, 0.2, 1);
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    transition: background 3s cubic-bezier(0.4, 0.0, 0.2, 1);
     filter: blur(120px);
-    opacity: 0.85;
+    opacity: 0.9;
     transform: scale(1.2);
-    animation: breathing 8s ease-in-out infinite, gradient-shift 15s ease-in-out infinite, color-pulse 10s ease-in-out infinite;
-  }
-  
-  /* Additional animated gradient layers */
-  .dynamic-bg::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle 800px at 30% 60%, rgba(139, 92, 246, 0.12) 0%, transparent 60%);
-    animation: float 20s ease-in-out infinite;
-    opacity: 0.6;
-  }
-  
-  .dynamic-bg::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle 600px at 70% 40%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
-    animation: float 18s ease-in-out infinite reverse;
-    opacity: 0.5;
   }
 
   .dynamic-bg-overlay {
@@ -205,23 +42,6 @@
     height: 100%;
     background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.4) 100%);
     z-index: 1;
-  }
-
-  /* Grain Overlay - Analog/Archival Feel */
-  .dynamic-bg-overlay::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image:
-      url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' result='noise'/%3E%3C/filter%3E%3Crect width='400' height='400' fill='rgba(0,0,0,0.03)' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    background-size: 200px 200px;
-    opacity: 0.5;
-    pointer-events: none;
-    mix-blend-mode: overlay;
-    z-index: 2;
   }
 
   /* Content wrapper to sit above dynamic background */
@@ -295,6 +115,22 @@
     object-fit: cover;
   }
 
+  /* Center hole */
+  .vinyl-hole {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+    box-shadow:
+      inset 0 2px 8px rgba(0,0,0,0.8),
+      0 0 0 2px #2a2a2a;
+    z-index: 10;
+  }
+
   @keyframes spin {
     from {
       transform: rotate(0deg);
@@ -323,43 +159,36 @@
   }
 
   /* Track Info */
-  /* Premium Typography */
   .track-name {
-    font-size: 2.8rem;
-    font-weight: 900;
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-    margin-bottom: 0.75rem;
-    background: linear-gradient(135deg, #ffffff 0%, #d4d4d8 50%, #a0a0a0 100%);
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: 0 0 40px rgba(16, 185, 129, 0.1);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
   }
 
   .artist-name {
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.75);
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.01em;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.25rem;
   }
 
   .album-name {
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.55);
-    letter-spacing: 0.01em;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    color: rgba(255, 255, 255, 0.5);
   }
 
-  /* Premium Progress Bar */
+  /* Progress Bar */
   .progress-container {
     position: relative;
     width: 100%;
-    height: 6px;
+    height: 8px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     cursor: pointer;
@@ -373,10 +202,10 @@
 
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ffffff 0%, #f0f0f0 100%);
+    background: linear-gradient(90deg, #10b981 0%, #22c55e 100%);
     border-radius: 4px;
     transition: width 0.1s linear;
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 0 24px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
   }
 
   .time-display {
@@ -387,88 +216,45 @@
   }
 
   /* Control Buttons */
-  /* Premium Stereo Button Styling */
   .control-btn {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(10px) saturate(120%);
-    position: relative;
-    overflow: hidden;
-    font-weight: 500;
-  }
-
-  .control-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
-    transition: left 0.3s ease;
-    z-index: -1;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
   }
 
   .control-btn:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 100%);
-    border-color: rgba(255, 255, 255, 0.35);
-    transform: scale(1.08) translateY(-2px);
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
-  }
-
-  .control-btn:active {
-    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
   }
 
   .control-btn.active {
     background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 28px rgba(16, 185, 129, 0.6);
+    border-color: #10b981;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
   }
 
   .control-btn-lg {
     width: 72px;
     height: 72px;
-    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-    border: none;
-    box-shadow: 0 12px 40px rgba(255, 255, 255, 0.5), 0 0 60px rgba(255, 255, 255, 0.3);
-    position: relative;
-    z-index: 1;
-  }
-  
-  .control-btn-lg .iconify {
-    color: #1a1a1a !important;
-  }
-
-  .control-btn-lg::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
-    pointer-events: none;
+    background: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+    border-color: transparent;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
   }
 
   .control-btn-lg:hover {
-    background: linear-gradient(135deg, #f0f0f0 0%, #ffffff 100%);
-    transform: scale(1.12) translateY(-4px);
-    box-shadow: 0 16px 48px rgba(255, 255, 255, 0.7), 0 0 80px rgba(255, 255, 255, 0.4);
-  }
-
-  .control-btn-lg:active {
-    transform: scale(0.96);
+    background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+    transform: scale(1.1);
+    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.6);
   }
 
   /* Volume Slider */
@@ -648,28 +434,6 @@
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
   }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fadeOut {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-  }
 </style>
 {% endblock extra_css %}
 
@@ -685,15 +449,7 @@
   <!-- Search Section -->
   <div class="max-w-7xl mx-auto mb-8">
     <div class="player-card p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-white">Search & Play</h2>
-        <button onclick="loadUserPlaylists()" class="btn-prismatic px-4 py-2 rounded font-semibold transition flex items-center gap-2">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M2 3a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V3zM2 9a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V9zm0 6a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2zM11 3a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zM11 9a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zm0 6a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6z" />
-          </svg>
-          My Playlists
-        </button>
-      </div>
+      <h2 class="text-xl font-bold mb-4 text-white">Search & Play</h2>
       <input
         type="text"
         id="playerSearchInput"
@@ -730,20 +486,24 @@
                     </div>
                   {% endif %}
                 </div>
+                <div class="vinyl-hole"></div>
               </div>
             </div>
           </div>
 
           <!-- Track Info -->
-          {% if now_playing and now_playing.track_name %}
           <div class="text-center mb-8">
-            <h1 class="track-name" id="trackName">{{ now_playing.track_name }}</h1>
-            <p class="artist-name" id="artistName">{{ now_playing.artist_name }}</p>
-            {% if now_playing.album_name %}
-              <p class="album-name" id="albumNameDisplay">{{ now_playing.album_name }}</p>
+            {% if now_playing and now_playing.track_name %}
+              <h1 class="track-name" id="trackName">{{ now_playing.track_name }}</h1>
+              <p class="artist-name" id="artistName">{{ now_playing.artist_name }}</p>
+              {% if now_playing.album_name %}
+                <p class="album-name" id="albumNameDisplay">{{ now_playing.album_name }}</p>
+              {% endif %}
+            {% else %}
+              <h1 class="track-name">No Track Playing</h1>
+              <p class="artist-name">Start playing music from Spotify</p>
             {% endif %}
           </div>
-          {% endif %}
 
           <!-- Progress Bar -->
           <div class="mb-6">
@@ -780,7 +540,7 @@
           </div>
 
           <!-- Volume Control -->
-          <div class="flex items-center gap-4 mb-6">
+          <div class="flex items-center gap-4">
             <span class="iconify text-xl text-white" data-icon="mdi:volume-high"></span>
             <input
               type="range"
@@ -792,19 +552,6 @@
               onchange="setVolume(this.value)"
             />
             <span class="text-sm font-semibold text-white w-12 text-right" id="volumeValue">100%</span>
-          </div>
-
-          <!-- Lyrics Toggle Button -->
-          <div class="flex justify-center">
-            <button 
-              id="lyricsToggleBtn"
-              onclick="toggleLyrics()" 
-              class="btn-prismatic px-6 py-3 rounded-xl font-bold flex items-center gap-2"
-              title="Show Lyrics"
-            >
-              <span class="iconify" data-icon="mdi:music-note-outline"></span>
-              <span>View Lyrics</span>
-            </button>
           </div>
         </div>
       </div>
@@ -874,6 +621,13 @@
               Dashboard
             </a>
             <a
+              href="{% url 'music:stats_dashboard' %}"
+              class="device-item block text-center"
+            >
+              <span class="iconify mr-2" data-icon="mdi:chart-bar"></span>
+              Stats
+            </a>
+            <a
               href="{% url 'music:search' %}"
               class="device-item block text-center"
             >
@@ -887,92 +641,8 @@
   </div>
 </div>
 
-<!-- Artist Detail Modal -->
-<div id="artistModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 1000; align-items: center; justify-content: center; padding: 2rem;">
-  <div style="background: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(26, 26, 26, 0.95) 100%); border: 1px solid rgba(255, 107, 157, 0.3); border-radius: 16px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 2rem; position: relative;">
-    <!-- Close Button -->
-    <button onclick="closeArtistModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: #ff6b9d; font-size: 1.5rem; cursor: pointer; z-index: 1001;">
-      ✕
-    </button>
-
-    <!-- Artist Image -->
-    <img id="artistModalImage" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin: 0 auto 1.5rem; display: block; border: 2px solid rgba(255, 107, 157, 0.5);" alt="Artist">
-
-    <!-- Artist Name -->
-    <h2 id="artistModalTitle" style="font-size: 1.75rem; font-weight: 900; color: white; margin-bottom: 2rem; text-align: center; background: linear-gradient(135deg, #ff6b9d, #45b7d1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></h2>
-
-    <!-- Modal Content -->
-    <div id="artistModalContent" style="color: white; line-height: 1.6;"></div>
-  </div>
-</div>
-
-<!-- Lyrics Modal -->
-<div id="lyricsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.92); z-index: 1000; align-items: center; justify-content: center; padding: 2rem; backdrop-filter: blur(4px);">
-  <div style="background: linear-gradient(135deg, rgba(10, 10, 10, 0.98) 0%, rgba(26, 26, 26, 0.98) 50%, rgba(15, 52, 96, 0.3) 100%); border: 1px solid rgba(192, 192, 192, 0.4); border-radius: 20px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 2.5rem; position: relative; box-shadow: 0 0 60px rgba(16, 185, 129, 0.2), 0 0 30px rgba(192, 192, 192, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);">
-    <!-- Close Button -->
-    <button onclick="closeLyricsModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: rgba(192, 192, 192, 0.8); font-size: 1.5rem; cursor: pointer; z-index: 1001; transition: all 0.3s ease; padding: 0.5rem;">
-      ✕
-    </button>
-    <button onclick="closeLyricsModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: rgba(192, 192, 192, 0.8); font-size: 1.5rem; cursor: pointer; z-index: 1001; transition: all 0.3s ease; padding: 0.5rem;" onmouseover="this.style.color='rgba(16, 185, 129, 0.9)'; this.style.textShadow='0 0 10px rgba(16, 185, 129, 0.6)';" onmouseout="this.style.color='rgba(192, 192, 192, 0.8)'; this.style.textShadow='none';">
-    </button>
-
-    <!-- Track Info with Glow -->
-    <div style="text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(16, 185, 129, 0.3);">
-      <h2 id="lyricsTrackName" style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 0%, #e8e8e8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; text-shadow: 0 0 20px rgba(16, 185, 129, 0.3); letter-spacing: -0.5px;"></h2>
-      <p id="lyricsArtistName" style="font-size: 1.1rem; color: rgba(16, 185, 129, 0.9); font-weight: 500; text-transform: uppercase; letter-spacing: 1px;"></p>
-    </div>
-
-    <!-- Lyrics Content with Glow Effects -->
-    <div id="lyricsContent" style="color: rgba(255, 255, 255, 0.95); line-height: 2.2; font-size: 1.15rem; white-space: pre-wrap; text-align: center; font-family: 'Inter', sans-serif; text-shadow: 0 0 20px rgba(16, 185, 129, 0.15); margin: 1rem 0;">
-      <div style="text-align: center; padding: 3rem 1rem;">
-        <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid rgba(16, 185, 129, 0.4); border-top-color: rgba(16, 185, 129, 1); border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);"></div>
-        <p style="margin-top: 1rem; color: rgba(16, 185, 129, 0.8);">Loading lyrics...</p>
-      </div>
-    </div>
-
-    <!-- Source Attribution -->
-    <div id="lyricsSource" style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(16, 185, 129, 0.2); text-align: center; color: rgba(16, 185, 129, 0.7); font-size: 0.9rem; font-weight: 500;">
-    </div>
-  </div>
-</div>
-
-<style>
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  @keyframes glowPulse {
-    0%, 100% {
-      text-shadow: 0 0 10px rgba(16, 185, 129, 0.3), 0 0 20px rgba(16, 185, 129, 0.1);
-    }
-    50% {
-      text-shadow: 0 0 20px rgba(16, 185, 129, 0.6), 0 0 40px rgba(16, 185, 129, 0.3);
-    }
-  }
-
-  #lyricsContent {
-    animation: glowPulse 4s ease-in-out infinite;
-  }
-</style>
-
 <script>
   // ==================== Utility Functions ====================
-
-  function getCsrfToken() {
-    const name = 'csrftoken';
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
 
   function formatTime(ms) {
     const seconds = Math.floor((ms / 1000) % 60);
@@ -989,680 +659,6 @@
       "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, m => map[m]);
-  }
-
-  function escapeSingleQuotes(text) {
-    return text.replace(/'/g, "\\'");
-  }
-
-  function formatDuration(ms) {
-    if (!ms) return '0:00';
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }
-
-  function playPlaylist(playlistUri, playlistName) {
-    /**
-     * Play a Spotify playlist
-     */
-    if (!playlistUri) {
-      showNotification('Invalid playlist URI', 'error');
-      return;
-    }
-
-    const deviceId = getActiveDeviceId();
-
-    // If no active device, fetch devices and show selector
-    if (!deviceId) {
-      console.log('No active device, fetching devices...');
-      fetch('{% url "music:get_devices" %}')
-        .then(response => response.json())
-        .then(data => {
-          if (!data.devices || data.devices.length === 0) {
-            showNotification('No Spotify devices available. Open Spotify on a device.', 'error');
-            return;
-          }
-
-          // Find active device
-          const activeDevice = data.devices.find(d => d.is_active);
-          if (activeDevice) {
-            // Play directly on active device
-            playPlaylistOnDevice(playlistUri, playlistName, activeDevice.id);
-          } else {
-            // Show device selector
-            window.syroPlayer = window.syroPlayer || {};
-            window.syroPlayer.pendingPlaylistUri = playlistUri;
-            window.syroPlayer.pendingPlaylistName = playlistName;
-            showDeviceSelector(data.devices);
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching devices:', error);
-          showNotification('Failed to fetch devices', 'error');
-        });
-      return;
-    }
-
-    playPlaylistOnDevice(playlistUri, playlistName, deviceId);
-  }
-
-  function playPlaylistOnDevice(playlistUri, playlistName, deviceId) {
-    fetch('{% url "music:play_track" %}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}'
-      },
-      body: JSON.stringify({
-        uri: playlistUri,
-        device_id: deviceId
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success') {
-        showNotification(`Now playing: ${escapeHtml(playlistName)}`, 'success');
-        setTimeout(() => {
-          updatePlaybackState();
-          applyDynamicBackground();
-        }, 500);
-      } else {
-        showNotification(data.message || 'Failed to play playlist', 'error');
-      }
-    })
-    .catch(error => {
-      console.error('Error playing playlist:', error);
-      showNotification('Failed to play playlist', 'error');
-    });
-  }
-
-  // Artist Modal Functions
-  function openArtistModal(artistName, artistImage, artistId) {
-    const modal = document.getElementById('artistModal');
-    if (!modal) return;
-
-    const modalTitle = document.getElementById('artistModalTitle');
-    const modalImage = document.getElementById('artistModalImage');
-    const modalContent = document.getElementById('artistModalContent');
-
-    modalTitle.textContent = artistName;
-    if (artistImage && artistImage.trim()) {
-      modalImage.src = artistImage;
-      modalImage.style.display = 'block';
-    } else {
-      modalImage.style.display = 'none';
-    }
-
-    // Show loading state
-    modalContent.innerHTML = `
-      <div class="flex items-center justify-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
-      </div>
-    `;
-
-    modal.style.display = 'flex';
-
-    // Fetch artist tracks from the API
-    if (artistId) {
-      fetch(`/music/api/artists/${encodeURIComponent(artistId)}/tracks/?limit=100`)
-        .then(response => {
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          return response.json();
-        })
-        .then(data => {
-          if (!data || !data.data || !data.data.tracks) {
-            throw new Error('No tracks data in response');
-          }
-
-          const tracks = data.data.tracks;
-
-          if (!tracks || tracks.length === 0) {
-            modalContent.innerHTML = `
-              <div class="text-center py-8">
-                <p class="text-gray-400">No tracks found for this artist.</p>
-              </div>
-            `;
-            return;
-          }
-
-          // Build track list HTML
-          let tracksHtml = '<div class="space-y-2 max-h-96 overflow-y-auto">';
-          tracks.forEach(track => {
-            const trackName = escapeHtml(track.name || 'Unknown Track');
-            const albumName = escapeHtml(track.album || 'Unknown Album');
-            const duration = track.duration_ms ? formatDuration(track.duration_ms) : '0:00';
-            const trackUri = track.uri || '';
-
-            tracksHtml += `
-              <div class="flex items-center gap-3 p-2 rounded hover:bg-white/10 transition-colors group">
-                <div class="flex-1 min-w-0">
-                  <div class="font-semibold text-white truncate text-sm">${trackName}</div>
-                  <div class="text-xs text-gray-400 truncate">${albumName}</div>
-                </div>
-                <div class="text-xs text-gray-500 flex-shrink-0">${duration}</div>
-                <button
-                  onclick="playTrackFromSearch('${escapeHtml(trackUri)}')"
-                  class="hidden group-hover:flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-colors flex-shrink-0"
-                  title="Play"
-                >
-                  <span class="iconify text-white" data-icon="mdi:play"></span>
-                </button>
-              </div>
-            `;
-          });
-          tracksHtml += '</div>';
-
-          modalContent.innerHTML = `
-            <div class="space-y-4">
-              <div>
-                <h3 class="text-lg font-semibold text-white mb-3">Top Songs</h3>
-                <p class="text-gray-400 text-sm mb-4">${tracks.length} tracks available</p>
-                ${tracksHtml}
-              </div>
-            </div>
-          `;
-        })
-        .catch(error => {
-          console.error('Error loading artist tracks:', error);
-          modalContent.innerHTML = `
-            <div class="text-center py-8">
-              <p class="text-red-400">Failed to load tracks for this artist.</p>
-              <p class="text-gray-400 text-sm mt-2">${escapeHtml(error.message)}</p>
-            </div>
-          `;
-        });
-    }
-  }
-
-  function closeArtistModal() {
-    const modal = document.getElementById('artistModal');
-    if (modal) {
-      modal.style.display = 'none';
-    }
-  }
-
-  // Album Modal Functions
-  function openAlbumModal(albumTitle, albumCover, albumId) {
-    const modal = document.getElementById('artistModal');
-    if (!modal) return;
-
-    const modalTitle = document.getElementById('artistModalTitle');
-    const modalImage = document.getElementById('artistModalImage');
-    const modalContent = document.getElementById('artistModalContent');
-
-    modalTitle.textContent = albumTitle;
-    if (albumCover && albumCover.trim()) {
-      modalImage.src = albumCover;
-      modalImage.style.display = 'block';
-    } else {
-      modalImage.style.display = 'none';
-    }
-
-    // Show loading state
-    modalContent.innerHTML = `
-      <div class="flex items-center justify-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
-      </div>
-    `;
-
-    modal.style.display = 'flex';
-
-    // Fetch album tracks from the API
-    if (albumId) {
-      fetch(`/music/api/spotify/album/${encodeURIComponent(albumId)}/tracks/`)
-        .then(response => {
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          return response.json();
-        })
-        .then(data => {
-          if (!data || !data.data || !data.data.tracks) {
-            throw new Error('No tracks data in response');
-          }
-
-          const tracks = data.data.tracks;
-
-          if (!tracks || tracks.length === 0) {
-            modalContent.innerHTML = `
-              <div class="text-center py-8">
-                <p class="text-gray-400">No tracks found for this album.</p>
-              </div>
-            `;
-            return;
-          }
-
-          // Build track list HTML
-          let tracksHtml = '<div class="space-y-2 max-h-96 overflow-y-auto">';
-          tracks.forEach((track, index) => {
-            const trackName = escapeHtml(track.name || 'Unknown Track');
-            const artistName = escapeHtml(track.artist || 'Unknown Artist');
-            const duration = track.duration_ms ? formatDuration(track.duration_ms) : '0:00';
-            const trackUri = track.uri || '';
-
-            tracksHtml += `
-              <div class="flex items-center gap-3 p-2 rounded hover:bg-white/10 transition-colors group">
-                <div class="text-xs text-gray-500 flex-shrink-0 w-6 text-right">${index + 1}</div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-semibold text-white truncate text-sm">${trackName}</div>
-                  <div class="text-xs text-gray-400 truncate">${artistName}</div>
-                </div>
-                <div class="text-xs text-gray-500 flex-shrink-0">${duration}</div>
-                <button
-                  onclick="playTrackFromSearch('${escapeHtml(trackUri)}')"
-                  class="hidden group-hover:flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-colors flex-shrink-0"
-                  title="Play"
-                >
-                  <span class="iconify text-white" data-icon="mdi:play"></span>
-                </button>
-              </div>
-            `;
-          });
-          tracksHtml += '</div>';
-
-          // Add button to play entire album
-          let playAllHtml = '';
-          if (tracks.length > 0 && tracks[0].uri) {
-            playAllHtml = `
-              <button
-                onclick="playTrackFromSearch('${escapeHtml(tracks[0].uri)}')"
-                class="w-full mt-4 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-semibold transition-colors"
-              >
-                Play Album
-              </button>
-            `;
-          }
-
-          modalContent.innerHTML = `
-            <div class="space-y-4">
-              <div>
-                <h3 class="text-lg font-semibold text-white mb-3">Tracks</h3>
-                <p class="text-gray-400 text-sm mb-4">${tracks.length} tracks</p>
-                ${tracksHtml}
-              </div>
-              ${playAllHtml}
-            </div>
-          `;
-        })
-        .catch(error => {
-          console.error('Error loading album tracks:', error);
-          modalContent.innerHTML = `
-            <div class="text-center py-8">
-              <p class="text-red-400">Failed to load tracks for this album.</p>
-              <p class="text-gray-400 text-sm mt-2">${escapeHtml(error.message)}</p>
-            </div>
-          `;
-        });
-    }
-  }
-
-  // Close modal when clicking outside of it
-  window.addEventListener('click', function(event) {
-    const modal = document.getElementById('artistModal');
-    if (event.target === modal) {
-      modal.style.display = 'none';
-    }
-  });
-
-  // ==================== Playlist Functions ====================
-
-  function loadUserPlaylists() {
-    /**
-     * Fetch and display user's playlists from Spotify
-     */
-    fetch('/music/api/playlists/user/', {
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success' && data.data.playlists.length > 0) {
-        displayUserPlaylists(data.data.playlists);
-      } else {
-        showNotification('No playlists found', 'info');
-      }
-    })
-    .catch(error => {
-      console.error('Error loading playlists:', error);
-      showNotification('Failed to load playlists', 'error');
-    });
-  }
-
-  function displayUserPlaylists(playlists) {
-    /**
-     * Display list of user playlists in a modal
-     */
-    const modal = document.getElementById('artistModal');
-    const modalContent = document.getElementById('artistModalContent');
-    const modalImage = document.getElementById('artistModalImage');
-    const modalTitle = document.getElementById('artistModalTitle');
-
-    if (!modal || !modalContent) {
-      console.error('Modal elements not found');
-      return;
-    }
-
-    // Hide the image and title elements for playlists view
-    if (modalImage) modalImage.style.display = 'none';
-    if (modalTitle) modalTitle.style.display = 'none';
-
-    const playlistsHtml = playlists.map((playlist, index) => `
-      <div class="flex items-center justify-between p-4 bg-black/40 backdrop-blur-md rounded-lg hover:bg-black/50 transition cursor-pointer group border border-white/10" onclick="openPlaylistModal('${escapeSingleQuotes(playlist.name)}', '${escapeSingleQuotes(playlist.image)}', '${escapeSingleQuotes(playlist.id)}')">
-        <div class="flex items-center gap-4 flex-1 min-w-0">
-          ${playlist.image ? `
-            <img src="${escapeHtml(playlist.image)}" alt="${escapeHtml(playlist.name)}" class="w-12 h-12 rounded object-cover flex-shrink-0">
-          ` : `
-            <div class="w-12 h-12 bg-white/10 rounded flex items-center justify-center flex-shrink-0">
-              <svg class="w-6 h-6 text-white/40" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 3a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V3zM2 9a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V9zm0 6a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2zM11 3a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zM11 9a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zm0 6a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6z" />
-              </svg>
-            </div>
-          `}
-          <div class="min-w-0 flex-1">
-            <p class="font-semibold text-white truncate">${escapeHtml(playlist.name)}</p>
-            <p class="text-sm text-white/60 truncate">${playlist.track_count} tracks • ${escapeHtml(playlist.owner)}</p>
-          </div>
-        </div>
-      </div>
-    `).join('');
-
-    modalContent.innerHTML = `
-      <div class="space-y-4 max-h-96 overflow-y-auto">
-        <div class="text-center pb-2">
-          <h3 class="text-3xl font-bold bg-gradient-to-r from-gray-300 via-white to-gray-300 bg-clip-text text-transparent">My Playlists</h3>
-        </div>
-        ${playlistsHtml}
-      </div>
-    `;
-
-    modal.style.display = 'flex';
-    modalContent.scrollTop = 0;
-  }
-
-  function openPlaylistModal(playlistName, playlistCover, playlistId) {
-    /**
-     * Open playlist and display its tracks
-     */
-    const modal = document.getElementById('artistModal');
-    const modalContent = document.getElementById('artistModalContent');
-    const modalImage = document.getElementById('artistModalImage');
-    const modalTitle = document.getElementById('artistModalTitle');
-
-    if (!modal || !modalContent) {
-      console.error('Modal elements not found');
-      return;
-    }
-
-    // Show image and title for playlist detail view
-    if (modalImage) {
-      modalImage.style.display = 'block';
-      if (playlistCover && playlistCover.trim()) {
-        modalImage.src = playlistCover;
-      }
-    }
-    if (modalTitle) {
-      modalTitle.style.display = 'block';
-      modalTitle.textContent = playlistName;
-    }
-
-    // Show loading state
-    modalContent.innerHTML = `
-      <div class="flex items-center justify-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
-      </div>
-    `;
-    modal.style.display = 'flex';
-
-    // Fetch playlist tracks
-    fetch(`/music/api/playlists/${playlistId}/tracks/`, {
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success') {
-        displayPlaylistTracks(data.data);
-      } else {
-        throw new Error(data.message || 'Failed to load playlist');
-      }
-    })
-    .catch(error => {
-      console.error('Error loading playlist tracks:', error);
-      modalContent.innerHTML = `
-        <div class="text-center py-8">
-          <p class="text-red-400">Failed to load playlist tracks.</p>
-          <p class="text-gray-400 text-sm mt-2">${escapeHtml(error.message)}</p>
-          <button onclick="loadUserPlaylists()" class="mt-4 px-4 py-2 bg-cyan-500 text-gray-900 rounded font-semibold hover:bg-cyan-400 transition">
-            Back to Playlists
-          </button>
-        </div>
-      `;
-    });
-  }
-
-  function displayPlaylistTracks(data) {
-    /**
-     * Display tracks from a playlist
-     */
-    const modal = document.getElementById('artistModal');
-    const modalContent = document.getElementById('artistModalContent');
-    const playlist = data.playlist;
-    const tracks = data.tracks;
-
-    if (!tracks || tracks.length === 0) {
-      modalContent.innerHTML = `
-        <div class="text-center py-8">
-          <p class="text-gray-400">This playlist has no tracks.</p>
-          <button onclick="loadUserPlaylists()" class="mt-4 px-4 py-2 bg-cyan-500 text-gray-900 rounded font-semibold hover:bg-cyan-400 transition">
-            Back to Playlists
-          </button>
-        </div>
-      `;
-      return;
-    }
-
-    const tracksHtml = tracks.map((track, index) => {
-      const duration = formatDuration(track.duration_ms);
-      return `
-        <div class="flex items-center justify-between p-3 bg-gray-800 rounded hover:bg-gray-700 transition group">
-          <div class="flex items-center gap-3 flex-1 min-w-0">
-            ${track.cover_url ? `
-              <img src="${escapeHtml(track.cover_url)}" alt="${escapeHtml(track.name)}" class="w-10 h-10 rounded object-cover flex-shrink-0">
-            ` : `
-              <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" />
-                </svg>
-              </div>
-            `}
-            <div class="min-w-0 flex-1">
-              <p class="font-semibold text-white truncate">${escapeHtml(track.name)}</p>
-              <p class="text-sm text-gray-400 truncate">${escapeHtml(track.artist)} • ${escapeHtml(track.album)}</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 ml-2">
-            <span class="text-gray-400 text-sm whitespace-nowrap">${duration}</span>
-            <button onclick="playTrack('${escapeSingleQuotes(track.uri)}')" class="opacity-0 group-hover:opacity-100 transition p-2 hover:bg-cyan-500 rounded" title="Play">
-              <svg class="w-5 h-5 text-cyan-400 hover:text-gray-900" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-              </svg>
-            </button>
-            <button onclick="addToQueue('${escapeSingleQuotes(track.uri)}', {title: '${escapeHtml(track.name)}', artist: '${escapeHtml(track.artist)}', album: '${escapeHtml(track.album)}'})" class="opacity-0 group-hover:opacity-100 transition p-2 hover:bg-cyan-500 rounded" title="Add to Queue">
-              <svg class="w-5 h-5 text-cyan-400 hover:text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    const backButton = `
-      <button onclick="loadUserPlaylists()" class="mb-4 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        Back
-      </button>
-    `;
-
-    const playAllButton = tracks && tracks.length > 0 ? `
-      <button onclick="playPlaylist('${escapeSingleQuotes(playlist.uri)}', '${escapeSingleQuotes(playlist.name)}')" class="mb-4 w-full px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-gray-900 rounded font-semibold transition">
-        Play Playlist
-      </button>
-    ` : '';
-
-    modalContent.innerHTML = `
-      <div>
-        ${backButton}
-        <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg p-4 mb-4 flex gap-4">
-          ${playlist.image ? `
-            <img src="${escapeHtml(playlist.image)}" alt="${escapeHtml(playlist.name)}" class="w-24 h-24 rounded object-cover">
-          ` : `
-            <div class="w-24 h-24 bg-cyan-700 rounded flex items-center justify-center">
-              <svg class="w-12 h-12 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 3a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V3zM2 9a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V9zm0 6a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2zM11 3a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zM11 9a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zm0 6a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6z" />
-              </svg>
-            </div>
-          `}
-          <div class="flex flex-col justify-between">
-            <div>
-              <p class="text-gray-900 text-xs opacity-80">PLAYLIST</p>
-              <p class="text-gray-900 font-bold text-lg line-clamp-2">${escapeHtml(playlist.name)}</p>
-            </div>
-            <p class="text-gray-900 text-sm">${playlist.track_count} songs • ${escapeHtml(playlist.owner)}</p>
-          </div>
-        </div>
-        ${playAllButton}
-        <div class="space-y-3 max-h-80 overflow-y-auto">
-          ${tracksHtml}
-        </div>
-      </div>
-    `;
-  }
-
-  function showAddToPlaylistModal(trackUri, trackName) {
-    /**
-     * Show a modal to select which playlist to add a track to
-     */
-    const modal = document.getElementById('artistModal');
-    const modalContent = document.getElementById('artistModalContent');
-
-    if (!modal || !modalContent) {
-      console.error('Modal elements not found');
-      return;
-    }
-
-    // Show loading state
-    modalContent.innerHTML = `
-      <div class="flex items-center justify-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
-      </div>
-    `;
-    modal.style.display = 'flex';
-
-    // Fetch user's playlists
-    fetch('/music/api/playlists/user/?limit=50', {
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success' && data.data.playlists.length > 0) {
-        displayPlaylistSelectModal(data.data.playlists, trackUri, trackName);
-      } else {
-        throw new Error('No playlists found');
-      }
-    })
-    .catch(error => {
-      console.error('Error loading playlists:', error);
-      modalContent.innerHTML = `
-        <div class="text-center py-8">
-          <p class="text-red-400">Failed to load playlists.</p>
-          <p class="text-gray-400 text-sm mt-2">${escapeHtml(error.message)}</p>
-          <button onclick="document.getElementById('artistModal').style.display='none'" class="mt-4 px-4 py-2 bg-cyan-500 text-gray-900 rounded font-semibold hover:bg-cyan-400 transition">
-            Close
-          </button>
-        </div>
-      `;
-    });
-  }
-
-  function displayPlaylistSelectModal(playlists, trackUri, trackName) {
-    /**
-     * Display playlists for user to select
-     */
-    const modal = document.getElementById('artistModal');
-    const modalContent = document.getElementById('artistModalContent');
-
-    const playlistsHtml = playlists.map((playlist) => `
-      <button onclick="addTrackToPlaylist('${escapeSingleQuotes(playlist.id)}', '${escapeSingleQuotes(trackUri)}', '${escapeSingleQuotes(playlist.name)}', '${escapeSingleQuotes(trackName)}')" class="w-full flex items-center justify-between p-3 bg-gray-800 rounded hover:bg-cyan-600 transition group">
-        <div class="flex items-center gap-3 flex-1 min-w-0">
-          ${playlist.image ? `
-            <img src="${escapeHtml(playlist.image)}" alt="${escapeHtml(playlist.name)}" class="w-10 h-10 rounded object-cover flex-shrink-0">
-          ` : `
-            <div class="w-10 h-10 bg-cyan-500 rounded flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 3a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V3zM2 9a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V9zm0 6a1 1 0 011-1h6a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2zM11 3a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zM11 9a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6zm0 6a1 1 0 110 2h6a1 1 0 110 2h-6a1 1 0 110-2h6z" />
-              </svg>
-            </div>
-          `}
-          <div class="min-w-0 flex-1">
-            <p class="font-semibold text-white truncate text-left">${escapeHtml(playlist.name)}</p>
-            <p class="text-sm text-gray-400 truncate">${playlist.track_count} tracks</p>
-          </div>
-        </div>
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-cyan-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-    `).join('');
-
-    modalContent.innerHTML = `
-      <div>
-        <h3 class="text-lg font-bold text-cyan-400 mb-4">Add to Playlist</h3>
-        <p class="text-gray-400 text-sm mb-4">Track: <span class="text-white font-semibold">${escapeHtml(trackName)}</span></p>
-        <div class="space-y-2 max-h-96 overflow-y-auto">
-          ${playlistsHtml}
-        </div>
-        <button onclick="document.getElementById('artistModal').style.display='none'" class="mt-4 w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-semibold transition">
-          Cancel
-        </button>
-      </div>
-    `;
-  }
-
-  function addTrackToPlaylist(playlistId, trackUri, playlistName, trackName) {
-    /**
-     * Add a track to a playlist
-     */
-    fetch('/music/api/playlists/add-track/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}'
-      },
-      body: JSON.stringify({
-        playlist_id: playlistId,
-        track_uris: [trackUri]
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success') {
-        showNotification(`Added to ${escapeHtml(playlistName)}`, 'success');
-        document.getElementById('artistModal').style.display = 'none';
-      } else {
-        showNotification(data.message || 'Failed to add track', 'error');
-      }
-    })
-    .catch(error => {
-      console.error('Error adding track to playlist:', error);
-      showNotification('Failed to add track to playlist', 'error');
-    });
   }
 
   // ==================== Color Extraction ====================
@@ -1857,98 +853,6 @@
   function getActiveDeviceId() {
     const activeDevice = document.querySelector('.device-item.active');
     return activeDevice ? activeDevice.getAttribute('data-device-id') : null;
-  }
-
-  function showDeviceSelector(devices) {
-    /**
-     * Show a modal to select a device for playback
-     */
-    const modal = document.getElementById('artistModal');
-    const modalContent = document.getElementById('artistModalContent');
-
-    if (!modal || !modalContent) {
-      console.error('Modal elements not found');
-      return;
-    }
-
-    const devicesHtml = devices.map((device) => `
-      <div class="flex items-center gap-3 p-4 bg-gray-800 rounded hover:bg-gray-700 transition cursor-pointer" onclick="selectDeviceAndPlay('${escapeSingleQuotes(device.id)}')">
-        <div class="w-10 h-10 rounded flex items-center justify-center flex-shrink-0 ${device.is_active ? 'bg-cyan-500' : 'bg-gray-700'}">
-          ${device.type === 'Smartphone' ? `
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4z" />
-            </svg>
-          ` : `
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm14 0H4v8h12V5z" />
-            </svg>
-          `}
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="font-semibold text-white">${escapeHtml(device.name)}</p>
-          <p class="text-sm text-gray-400">${escapeHtml(device.type)}${device.is_active ? ' • Active' : ''}</p>
-        </div>
-      </div>
-    `).join('');
-
-    modalContent.innerHTML = `
-      <div class="space-y-3">
-        <h3 class="text-lg font-bold text-cyan-400 mb-4">Select a Device</h3>
-        ${devicesHtml}
-      </div>
-    `;
-
-    modal.style.display = 'flex';
-    modalContent.scrollTop = 0;
-  }
-
-  function selectDeviceAndPlay(deviceId) {
-    /**
-     * Select a device and play the pending track or playlist
-     */
-    const modal = document.getElementById('artistModal');
-    if (modal) {
-      modal.style.display = 'none';
-    }
-
-    // Transfer playback to device
-    fetch('{% url "music:transfer_playback" %}', {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `device_id=${deviceId}`
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success') {
-        // Update active device indicator
-        document.querySelectorAll('.device-item').forEach(item => {
-          item.classList.remove('active');
-          if (item.getAttribute('data-device-id') === deviceId) {
-            item.classList.add('active');
-          }
-        });
-
-        // Play pending track or playlist
-        const syroPlayer = window.syroPlayer || {};
-        if (syroPlayer.pendingTrackUri) {
-          playTrackOnDevice(syroPlayer.pendingTrackUri, deviceId);
-          delete syroPlayer.pendingTrackUri;
-        } else if (syroPlayer.pendingPlaylistUri) {
-          playPlaylistOnDevice(syroPlayer.pendingPlaylistUri, syroPlayer.pendingPlaylistName, deviceId);
-          delete syroPlayer.pendingPlaylistUri;
-          delete syroPlayer.pendingPlaylistName;
-        }
-      } else {
-        showNotification('Failed to switch device', 'error');
-      }
-    })
-    .catch(error => {
-      console.error('Error selecting device:', error);
-      showNotification('Failed to switch device', 'error');
-    });
   }
 
   function togglePlayPause() {
@@ -2176,43 +1080,16 @@
         </div>
       `;
 
-      console.log('Searching for:', query);
-      console.log('CSRF Token:', getCsrfToken());
-      console.log('Fetch URL:', `/music/api/search/?q=${encodeURIComponent(query)}`);
-
       fetch(`/music/api/search/?q=${encodeURIComponent(query)}`, {
-        method: 'GET',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
         signal: abortController.signal
       })
         .then(response => {
-          console.log('Search response status:', response.status);
-          console.log('Search response headers:', [...response.headers.entries()]);
-          console.log('Search response OK:', response.ok);
-          console.log('Search response redirected:', response.redirected);
-          
-          if (response.redirected) {
-            throw new Error('Request was redirected - you may not be logged in');
-          }
-          
           if (!response.ok) {
-            return response.text().then(text => {
-              console.error('Error response body:', text);
-              throw new Error(`HTTP ${response.status}: ${text || 'Search failed'}`);
-            });
+            throw new Error(`HTTP ${response.status}: Search failed`);
           }
           return response.json();
         })
         .then(data => {
-          console.log('Search results data:', data);
-          console.log('Songs count:', data?.songs?.length);
-          console.log('Artists count:', data?.artists?.length);
-          console.log('Albums count:', data?.albums?.length);
           abortController = null;
 
           if (!data || typeof data !== 'object') {
@@ -2238,24 +1115,13 @@
     }
 
     function renderSearchResults(data) {
-      console.log('Rendering search results:', data);
-      console.log('Data type:', typeof data);
-      console.log('Data keys:', Object.keys(data));
-      
       const songs = Array.isArray(data?.songs) ? data.songs.filter(Boolean) : [];
       const artists = Array.isArray(data?.artists) ? data.artists.filter(Boolean) : [];
       const albums = Array.isArray(data?.albums) ? data.albums.filter(Boolean) : [];
 
-      console.log('Songs array:', songs);
-      console.log('Songs length:', songs.length);
-      console.log('Artists length:', artists.length);
-      console.log('Albums length:', albums.length);
-
       const totalResults = songs.length + artists.length + albums.length;
-      console.log('Total results:', totalResults);
 
       if (totalResults === 0) {
-        console.log('No results - showing empty state');
         resultsDiv.innerHTML = `
           <div class="text-center py-8">
             <span class="iconify text-4xl text-gray-500 mb-2" data-icon="mdi:music-note-off"></span>
@@ -2275,9 +1141,8 @@
               Songs (${songs.length})
             </h3>
             <div class="search-section-items">
-              ${songs.map((song, idx) => {
+              ${songs.map(song => {
                 try {
-                  console.log(`Rendering song ${idx}:`, song);
                   return renderSongResult(song);
                 } catch (e) {
                   console.error('Error rendering song:', song, e);
@@ -2330,7 +1195,6 @@
       }
 
       resultsDiv.innerHTML = html;
-      console.log('Search results rendered successfully');
     }
 
     function renderSongResult(song) {
@@ -2351,10 +1215,19 @@
         return '';
       }
 
-      // Handle artist and album from search API (flat structure)
-      const artistName = String(song.artist || 'Unknown Artist').trim();
-      const albumTitle = String(song.album || 'Unknown Album').trim();
-      const albumCover = String(song.cover_url || '').trim();
+      const artistName = String(
+        (song.artist && song.artist.name) ||
+        (song.album && song.album.artist && song.album.artist.name) ||
+        'Unknown Artist'
+      ).trim();
+
+      const albumTitle = String(
+        (song.album && song.album.title) || 'Unknown Album'
+      ).trim();
+
+      const albumCover = String(
+        (song.album && song.album.cover_url) || ''
+      ).trim();
 
       const safeUri = escapeHtml(trackUri);
       const safeTitle = escapeHtml(title);
@@ -2364,7 +1237,7 @@
 
       return `
         <div class="search-result-item song-result">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors" onclick="playTrackFromSearch('${safeUri}')">
             ${albumCover ? `
               <img
                 src="${safeCover}"
@@ -2384,20 +1257,20 @@
             </div>
             <div class="flex gap-2 flex-shrink-0">
               <button
-                class="control-btn !w-10 !h-10"
-                onclick="playTrackFromSearch('${safeUri}');"
+                class="control-btn"
+                onclick="event.stopPropagation(); playTrackFromSearch('${safeUri}');"
                 title="Play"
                 type="button"
               >
-                <span class="iconify text-lg" data-icon="mdi:play"></span>
+                <span class="iconify text-xl" data-icon="mdi:play"></span>
               </button>
               <button
-                class="control-btn !w-10 !h-10"
-                onclick="addToQueueFromSearch('${safeUri}', {title: '${escapeHtml(title)}', artist: '${safeArtist}', album: '${safeAlbum}'});"
+                class="control-btn"
+                onclick="event.stopPropagation(); addToQueueFromSearch('${safeUri}', {title: '${escapeHtml(title)}', artist: '${safeArtist}', album: '${safeAlbum}'});"
                 title="Add to Queue"
                 type="button"
               >
-                <span class="iconify text-lg" data-icon="mdi:playlist-plus"></span>
+                <span class="iconify text-xl" data-icon="mdi:playlist-plus"></span>
               </button>
             </div>
           </div>
@@ -2412,7 +1285,6 @@
 
       const name = String(artist.name || 'Unknown Artist').trim();
       const imageUrl = String(artist.image_url || '').trim();
-      const artistId = String(artist.id || '').trim();
 
       if (!name) {
         return '';
@@ -2422,7 +1294,7 @@
       const safeImage = escapeHtml(imageUrl);
 
       return `
-        <div class="search-result-item artist-result" onclick="openArtistModal('${escapeSingleQuotes(safeName)}', '${escapeSingleQuotes(safeImage)}', '${escapeSingleQuotes(artistId)}')">
+        <div class="search-result-item artist-result">
           <div class="flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors">
             ${imageUrl ? `
               <img
@@ -2459,7 +1331,6 @@
         'Unknown Artist'
       ).trim();
       const coverUrl = String(album.cover_url || album.image_url || '').trim();
-      const albumId = String(album.id || '').trim();
 
       let releaseYear = '';
       if (album.release_date) {
@@ -2479,7 +1350,7 @@
       const safeCover = escapeHtml(coverUrl);
 
       return `
-        <div class="search-result-item album-result" onclick="openAlbumModal('${escapeSingleQuotes(safeTitle)}', '${escapeSingleQuotes(safeCover)}', '${escapeSingleQuotes(albumId)}')">
+        <div class="search-result-item album-result">
           <div class="flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors">
             ${coverUrl ? `
               <img
@@ -2526,101 +1397,8 @@
   }
 
   function playTrack(trackUri) {
-    console.log('Playing track:', trackUri);
     const deviceId = getActiveDeviceId();
 
-    // If no active device, try web player or fetch devices
-    if (!deviceId) {
-      console.log('No active device, checking for web player...');
-
-      // Try to use the web playback SDK if available (global deviceId variable)
-      if (typeof player !== 'undefined' && player && typeof window.deviceId !== 'undefined' && window.deviceId) {
-        console.log('Using web player');
-        playTrackOnWebPlayer(trackUri);
-        return;
-      }
-
-      // Fallback: fetch available devices
-      fetch('{% url "music:get_devices" %}')
-        .then(response => response.json())
-        .then(data => {
-          if (!data.devices || data.devices.length === 0) {
-            // No devices available
-            console.error('No Spotify devices found');
-            showNotification('❌ No Spotify devices available. Please:\n1. Open Spotify on your phone, computer, or tablet\n2. Make sure you\'re logged in with the same account\n3. Try playing again', 'error');
-            return;
-          }
-
-          // Find active device
-          const activeDevice = data.devices.find(d => d.is_active);
-          if (activeDevice) {
-            // Play directly on active device
-            playTrackOnDevice(trackUri, activeDevice.id);
-          } else {
-            // Show device selector
-            window.syroPlayer = window.syroPlayer || {};
-            window.syroPlayer.pendingTrackUri = trackUri;
-            showDeviceSelector(data.devices);
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching devices:', error);
-          // Fallback to web player
-          if (typeof player !== 'undefined' && player) {
-            console.log('Device fetch failed, using web player');
-            playTrackOnWebPlayer(trackUri);
-          } else {
-            showNotification('Failed to fetch devices and no web player available', 'error');
-          }
-        });
-      return;
-    }
-
-    playTrackOnDevice(trackUri, deviceId);
-  }
-
-  // Play track using Spotify Web Playback SDK
-  function playTrackOnWebPlayer(trackUri) {
-    if (typeof player === 'undefined' || !player) {
-      console.error('Spotify Web Player not initialized');
-      showNotification('⚠️ Browser playback not available. Please use a Spotify device (phone, computer, etc) to play music.', 'error');
-      return;
-    }
-
-    if (typeof window.deviceId === 'undefined' || !window.deviceId) {
-      console.error('Web player device ID not set');
-      showNotification('⚠️ Web player device not ready. This feature requires Spotify Premium.', 'error');
-      return;
-    }
-
-    // Use Spotify API to play on the web player device
-    fetch('{% url "music:play_track" %}', {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        track_uri: trackUri,
-        device_id: window.deviceId  // Use the web player device ID
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success') {
-        showNotification('Now playing on browser', 'success');
-        updatePlaybackState();
-      } else {
-        showNotification(data.message || 'Failed to play track', 'error');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      showNotification('Error playing track on web player', 'error');
-    });
-  }
-
-  function playTrackOnDevice(trackUri, deviceId) {
     fetch('{% url "music:play_track" %}', {
       method: 'POST',
       headers: {
@@ -2634,20 +1412,12 @@
     })
     .then(response => response.json())
     .then(data => {
-      console.log('Play track response:', data);
       if (data.status === 'success') {
-        showNotification('Now playing', 'success');
         setTimeout(() => {
           updatePlaybackState();
           applyDynamicBackground();
         }, 500);
-      } else {
-        showNotification(data.message || 'Failed to play track', 'error');
       }
-    })
-    .catch(error => {
-      console.error('Play track error:', error);
-      showNotification('Failed to play track', 'error');
     });
   }
 
@@ -2760,219 +1530,90 @@
     });
   }
 
-  // Search result playback functions
-  function playTrackFromSearch(trackUri) {
-    console.log('Playing track from search:', trackUri);
-    if (!trackUri) {
-      showNotification('Invalid track', 'error');
-      return;
-    }
-    
-    // Close search results
-    const resultsDiv = document.getElementById('playerSearchResults');
-    if (resultsDiv) {
-      resultsDiv.innerHTML = '';
-    }
-    const searchInput = document.getElementById('playerSearchInput');
-    if (searchInput) {
-      searchInput.value = '';
-    }
-    
-    // Play the track using existing playTrack function
-    playTrack(trackUri);
-  }
-
-  function addToQueueFromSearch(trackUri, trackInfo) {
-    console.log('Adding track to queue from search:', trackUri, trackInfo);
-    if (!trackUri) {
-      showNotification('Invalid track', 'error');
-      return;
-    }
-    
-    // Add to queue using existing addToQueue function
-    addToQueue(trackUri, trackInfo);
-  }
-
-  // ==================== Device Selection ====================
-
-  async function selectDevice(deviceId, deviceName) {
-    console.log('Selecting device:', deviceId, deviceName);
-    
-    try {
-        const response = await fetch('/music/api/playback/transfer/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ 
-                device_id: deviceId 
-            })
-        });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-            console.log('Successfully transferred to device:', deviceName);
-            showNotification(`Switched to ${deviceName}`, 'success');
-            
-            // Close the device modal
-            document.getElementById('deviceModal').classList.add('hidden');
-            
-            // Refresh devices to show active device
-            setTimeout(() => {
-                loadDevices();
-            }, 1000);
-            
-            // Refresh playback state
-            setTimeout(() => {
-                updatePlayer();
-            }, 1500);
-        } else {
-            console.error('Device transfer failed:', data.error);
-            showNotification(`Failed to switch device: ${data.error}`, 'error');
-        }
-    } catch (error) {
-        console.error('Error selecting device:', error);
-        showNotification('Error switching device', 'error');
-    }
-  }
-
-  // Add function to show notifications
   function showNotification(message, type = 'info') {
+    // Create notification element
     const notification = document.createElement('div');
-    const bgClass = type === 'success' ? 'border-green-500/30 text-green-200' :
-                    type === 'error' ? 'border-red-500/30 text-red-200' :
-                    'border-blue-500/30 text-blue-200';
-
-    notification.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg z-50 font-satoshi border backdrop-blur-md bg-black/40 shadow-lg ${bgClass}`;
+    notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 ${
+      type === 'success' ? 'bg-green-500' :
+      type === 'error' ? 'bg-red-500' :
+      'bg-blue-500'
+    } text-white font-medium`;
     notification.textContent = message;
-
-    // Add fade-in animation
-    notification.style.animation = 'fadeIn 0.3s ease-in';
-
+    notification.style.transform = 'translateX(400px)';
+    
     document.body.appendChild(notification);
-
+    
+    // Animate in
     setTimeout(() => {
-        notification.style.animation = 'fadeOut 0.3s ease-out forwards';
-        setTimeout(() => notification.remove(), 300);
+      notification.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Animate out and remove
+    setTimeout(() => {
+      notification.style.transform = 'translateX(400px)';
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
     }, 3000);
   }
 
   // ==================== Spotify Web Playback SDK ====================
 
-  // Initialize player and deviceId as window properties for global access
-  window.player = null;
-  window.deviceId = null;
+  let player;
+  let deviceId;
 
-  // Store token at global scope so it's accessible to the SDK callback
-  const spotifyToken = '{{ spotify_user.access_token }}';
+  function initializeSpotifyPlayer() {
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const token = '{{ spotify_user.access_token }}';
 
-  // Define the SDK ready callback at global scope BEFORE the SDK loads
-  // This REPLACES the placeholder defined in base.html
-  // This must be called when the SDK script finishes loading
-  window.onSpotifyWebPlaybackSDKReady = () => {
-    console.log('✓✓✓ Spotify SDK Ready callback TRIGGERED ✓✓✓');
-    console.log('Spotify SDK Ready - Token present:', !!spotifyToken);
-    console.log('Spotify SDK Ready - Token length:', spotifyToken ? spotifyToken.length : 0);
-    console.log('Spotify SDK Ready - Token value:', spotifyToken ? spotifyToken.substring(0, 20) + '...' : 'EMPTY');
+      if (!token) {
+        console.log('No access token available');
+        return;
+      }
 
-    // Check if Spotify object is available
-    if (typeof Spotify === 'undefined') {
-      console.error('❌ Spotify object not found - SDK failed to load properly');
-      alert('❌ Spotify SDK failed to initialize - Spotify object not available');
-      showNotification('Spotify SDK initialization failed', 'error');
-      return;
-    }
-
-    if (!spotifyToken || spotifyToken.trim() === '') {
-      console.error('❌ No valid access token available for Spotify Player');
-      console.error('Token is empty or null:', spotifyToken);
-      alert('❌ Spotify player unavailable - no authentication token');
-      showNotification('Spotify player unavailable - authentication issue', 'error');
-      return;
-    }
-
-    try {
-      console.log('Initializing Spotify Web Playback SDK...');
-
-      window.player = new Spotify.Player({
+      player = new Spotify.Player({
         name: 'Syro Web Player',
-        getOAuthToken: cb => {
-          console.log('🎵 Token requested by SDK');
-          if (spotifyToken && spotifyToken.length > 0) {
-            console.log('🎵 Providing token to SDK (length: ' + spotifyToken.length + ')');
-            cb(spotifyToken);
-          } else {
-            console.error('❌ Token missing when SDK requested it');
-            cb('');
-          }
-        },
+        getOAuthToken: cb => { cb(token); },
         volume: 0.5
       });
 
-      console.log('✓ Spotify Player created successfully');
-
-      // Initialize player setup
-      setupSpotifyPlayerListeners();
-    } catch (error) {
-      console.error('❌ Error creating Spotify Player:', error);
-      alert('Error creating Spotify Player: ' + error.message);
-    }
-  };
-
-  function setupSpotifyPlayerListeners() {
-    if (!window.player) return;
-
-      // Error handling - show notifications for debugging
-      window.player.addListener('initialization_error', ({ message }) => {
-        console.error('❌ Initialization Error:', message);
-        showNotification('Spotify Init Error: ' + message, 'error');
+      // Error handling
+      player.addListener('initialization_error', ({ message }) => {
+        console.error('Initialization Error:', message);
       });
 
-      window.player.addListener('authentication_error', ({ message }) => {
-        console.error('❌ Authentication Error:', message);
-        showNotification('Spotify Auth Error: ' + message, 'error');
+      player.addListener('authentication_error', ({ message }) => {
+        console.error('Authentication Error:', message);
       });
 
-      window.player.addListener('account_error', ({ message }) => {
-        console.error('❌ Account Error (likely no Premium):', message);
-        showNotification('Spotify Account Error: ' + message + ' (Premium required)', 'error');
+      player.addListener('account_error', ({ message }) => {
+        console.error('Account Error:', message);
       });
 
-      window.player.addListener('playback_error', ({ message }) => {
-        console.error('❌ Playback Error:', message);
-        showNotification('Spotify Playback Error: ' + message, 'error');
+      player.addListener('playback_error', ({ message }) => {
+        console.error('Playback Error:', message);
       });
 
       // Playback status updates
-      window.player.addListener('player_state_changed', state => {
+      player.addListener('player_state_changed', state => {
         if (!state) return;
         console.log('Player state changed:', state);
         updatePlaybackState();
       });
 
-      // Ready - capture device ID for browser playback
-      window.player.addListener('ready', ({ device_id }) => {
+      // Ready
+      player.addListener('ready', ({ device_id }) => {
         console.log('Ready with Device ID', device_id);
-        window.deviceId = device_id;
-        console.log('Web player device ready for playback:', device_id);
+        deviceId = device_id;
       });
 
-    // Connect to the player
-    console.log('Attempting to connect Spotify Player...');
-    window.player.connect().then(success => {
-      if (success) {
-        console.log('✓ The Web Playback SDK successfully connected to Spotify!');
-        showNotification('Spotify web player connected', 'success');
-      } else {
-        console.error('✗ Failed to connect Spotify Web Playback SDK');
-        showNotification('Failed to connect Spotify player', 'error');
-      }
-    }).catch(error => {
-      console.error('Error connecting to Spotify:', error);
-      showNotification('Spotify connection error: ' + error.message, 'error');
-    });
+      // Connect to the player
+      player.connect().then(success => {
+        if (success) {
+          console.log('The Web Playback SDK successfully connected to Spotify!');
+        }
+      });
+    };
   }
 
   // ==================== Initialization ====================
@@ -2996,253 +1637,8 @@
     // Setup search functionality
     setupPlayerSearch();
 
-    // Monitor for Spotify SDK availability
-    console.log('🎵 Player page loaded - checking Spotify SDK status...');
-    console.log('SDK Loaded flag:', window.spotifySDKLoaded);
-    console.log('SDK Ready flag:', window.spotifySDKReady);
-
-    if (typeof Spotify === 'undefined') {
-      console.warn('⏳ Spotify SDK not loaded yet - it may load shortly from CDN');
-      console.warn('Will keep monitoring...');
-
-      // Keep checking for SDK to load
-      let sdkCheckAttempts = 0;
-      const sdkCheckInterval = setInterval(() => {
-        sdkCheckAttempts++;
-        if (typeof Spotify !== 'undefined') {
-          console.log('✓ Spotify SDK loaded after ' + sdkCheckAttempts + ' checks');
-          clearInterval(sdkCheckInterval);
-          window.spotifySDKLoaded = true;
-        } else if (sdkCheckAttempts > 20) {  // Stop checking after 10 seconds (20 x 500ms)
-          console.error('❌ Spotify SDK failed to load from CDN after 10 seconds');
-          console.error('Check:');
-          console.error('  1. Open DevTools → Network tab');
-          console.error('  2. Look for https://sdk.scdn.co/spotify-player.js');
-          console.error('  3. If it shows "blocked", a browser extension may be blocking it');
-          console.error('  4. Check if you have internet access to Spotify CDN');
-          showNotification('Spotify SDK failed to load - check console for details', 'error');
-          clearInterval(sdkCheckInterval);
-        }
-      }, 500);
-    } else {
-      console.log('✓ Spotify Web Playback SDK is available');
-      console.log('✓ onSpotifyWebPlaybackSDKReady callback is ready');
-      console.log('✓ Waiting for SDK to trigger the ready callback...');
-      window.spotifySDKLoaded = true;
-    }
-
-    // Show helpful message if SDK still hasn't loaded after initial setup
-    setTimeout(() => {
-      if (typeof Spotify === 'undefined' && window.spotifySDKLoaded === false) {
-        console.log('');
-        console.log('⚠️  SPOTIFY SDK BLOCKED BY BROWSER EXTENSION');
-        console.log('=============================================');
-        console.log('The Spotify Web Playback SDK is blocked.');
-        console.log('');
-        console.log('💡 SOLUTION: Use your Spotify app to control playback');
-        console.log('   - You can still search and browse music in this web app');
-        console.log('   - When you click "Play", it will play on your Spotify app');
-        console.log('   - Make sure Spotify app is open on any device');
-        console.log('');
-        console.log('❌ NOT WORKING?');
-        console.log('   - Check that you have a Spotify app open');
-        console.log('   - Make sure you\\'re logged into the same Spotify account');
-        console.log('   - Try disabling browser extensions (Settings → Extensions)');
-        console.log('');
-
-        // Disable web player UI and show fallback message
-        showNotification('Using Spotify app for playback - keep your Spotify app open', 'info');
-      }
-    }, 5000);
-
-    // Hide Spotify modal UI after SDK is loaded (wait 1s for SDK to inject elements)
-    setTimeout(() => {
-      // Only remove the "Now Playing" modal, not the actual player
-      document.querySelectorAll(
-        'div[class*="now-playing"], div[id*="now-playing"], ' +
-        'div[class*="now_playing"], div[id*="now_playing"]'
-      ).forEach(el => {
-        console.log('Hiding Spotify Now Playing modal:', el);
-        el.style.display = 'none';
-        el.style.visibility = 'hidden';
-      });
-    }, 2000);
-
-    // Initialize new features
-    initializeAdvancedFeatures();
+    // Initialize Spotify Web Playback SDK
+    initializeSpotifyPlayer();
   });
-
-  // ==================== Remove Spotify SDK Elements ====================
-  // DISABLED: This was too aggressive and broke the player
-  // Using CSS-based hiding instead (see player.html styles)
-  function removeSpotifySDKElements() {
-    // Function kept for backwards compatibility but disabled
-    console.log('removeSpotifySDKElements: Using CSS hiding instead');
-  }
-
-  /* ==================== Advanced Features Initialization ==================== */
-  function initializeAdvancedFeatures() {
-    // Search history on search
-    const searchForm = document.querySelector('form[action*="search"]');
-    if (searchForm) {
-      searchForm.addEventListener('submit', function() {
-        const query = this.querySelector('input[name="q"]').value;
-        SearchHistory.save(query);
-      });
-    }
-
-    // Track lyrics button
-    const lyricsButton = document.querySelector('#lyrics-button');
-    if (lyricsButton) {
-      lyricsButton.addEventListener('click', async function() {
-        const trackId = document.querySelector('[data-spotify-track-id]')?.dataset.spotifyTrackId;
-        const trackName = document.querySelector('#current-track-name')?.textContent;
-        if (trackId && trackName) {
-          await TrackLyrics.showModal(trackName, trackId);
-        }
-      });
-    }
-
-    // Visualizer style selector
-    const visualizerSelect = document.querySelector('#visualizer-style');
-    if (visualizerSelect) {
-      visualizerSelect.addEventListener('change', function() {
-        AudioVisualizer.setStyle(this.value);
-      });
-    }
-
-    // Analytics dashboard
-    const analyticsContainer = document.querySelector('#analytics-dashboard');
-    if (analyticsContainer) {
-      PlaybackAnalytics.displayDashboard('analytics-dashboard');
-    }
-
-    // Queue reordering
-    const queueContainer = document.querySelector('#queue-container');
-    if (queueContainer) {
-      SmartQueue.renderQueue('queue-container');
-    }
-
-    console.log('Advanced features initialized');
-  }
-
-  /* ==================== Lyrics Functions ==================== */
-  let currentTrackId = null;
-  let currentTrackName = null;
-  let currentArtistName = null;
-
-  // Update track info when playback state changes
-  function updateCurrentTrackInfo() {
-    const trackNameEl = document.getElementById('trackName');
-    const artistNameEl = document.getElementById('artistName');
-    
-    if (trackNameEl) {
-      currentTrackName = trackNameEl.textContent;
-    }
-    if (artistNameEl) {
-      currentArtistName = artistNameEl.textContent;
-    }
-    
-    // Try to extract track ID from Spotify data if available
-    // This will be set when we fetch current playback state
-  }
-
-  async function toggleLyrics() {
-    updateCurrentTrackInfo();
-    
-    if (!currentTrackName || !currentArtistName) {
-      alert('No track is currently playing');
-      return;
-    }
-    
-    await fetchAndShowLyrics(currentTrackName, currentArtistName, currentTrackId);
-  }
-
-  async function fetchAndShowLyrics(trackName, artistName, spotifyTrackId = null) {
-    const modal = document.getElementById('lyricsModal');
-    const content = document.getElementById('lyricsContent');
-    const trackNameEl = document.getElementById('lyricsTrackName');
-    const artistNameEl = document.getElementById('lyricsArtistName');
-    const sourceEl = document.getElementById('lyricsSource');
-    
-    // Show modal with loading state
-    modal.style.display = 'flex';
-    trackNameEl.textContent = trackName;
-    artistNameEl.textContent = artistName;
-    content.innerHTML = `
-      <div style="text-align: center; padding: 3rem 1rem;">
-        <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid rgba(16, 185, 129, 0.4); border-top-color: rgba(16, 185, 129, 1); border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);"></div>
-        <p style="margin-top: 1rem; color: rgba(16, 185, 129, 0.8);">Loading lyrics...</p>
-      </div>
-    `;
-    sourceEl.innerHTML = '';
-    
-    try {
-      // Build query parameters
-      let url = `/api/v1/lyrics/?track_name=${encodeURIComponent(trackName)}&artist_name=${encodeURIComponent(artistName)}`;
-      if (spotifyTrackId) {
-        url += `&spotify_track_id=${encodeURIComponent(spotifyTrackId)}`;
-      }
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
-        credentials: 'same-origin'
-      });
-      
-      const data = await response.json();
-      
-      if (data.status === 'success' && data.data && data.data.lyrics) {
-        // Format lyrics with better styling
-        const formattedLyrics = data.data.lyrics
-          .replace(/\n\n/g, '</p><p style="margin: 1.5rem 0;"></p>')
-          .replace(/\n/g, '<br>');
-        content.innerHTML = `<p style="margin: 0;">${formattedLyrics}</p>`;
-        sourceEl.innerHTML = `<span style="color: rgba(16, 185, 129, 0.8);">✦ Lyrics provided by <strong>${data.data.source || 'Genius'}</strong> ✦</span>`;
-      } else {
-        content.innerHTML = `
-          <div style="text-align: center; padding: 3rem 1rem;">
-            <p style="color: rgba(16, 185, 129, 0.6); font-size: 1.2rem; margin-bottom: 1rem;">✗</p>
-            <p style="color: rgba(255, 255, 255, 0.8);">Lyrics not available for this track</p>
-            <p style="color: rgba(16, 185, 129, 0.6); font-size: 0.9rem; margin-top: 1rem;">Try searching on <a href="https://genius.com" target="_blank" style="color: rgba(16, 185, 129, 0.9); text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(16, 185, 129, 0.5);">Genius.com</a></p>
-          </div>
-        `;
-        sourceEl.innerHTML = '';
-      }
-    } catch (error) {
-      console.error('Error fetching lyrics:', error);
-      content.innerHTML = `
-        <div style="text-align: center; padding: 3rem 1rem;">
-          <p style="color: rgba(255, 107, 157, 0.8); font-size: 1.2rem; margin-bottom: 1rem;">⚠️</p>
-          <p style="color: rgba(255, 255, 255, 0.7);">Error loading lyrics</p>
-          <p style="color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; margin-top: 0.5rem;">${error.message}</p>
-        </div>
-      `;
-      sourceEl.innerHTML = '';
-    }
-  }
-
-  function closeLyricsModal() {
-    const modal = document.getElementById('lyricsModal');
-    modal.style.display = 'none';
-  }
-
-  // Close modal when clicking outside
-  document.addEventListener('click', function(event) {
-    const lyricsModal = document.getElementById('lyricsModal');
-    if (event.target === lyricsModal) {
-      closeLyricsModal();
-    }
-  });
-
-  // Update track info periodically
-  setInterval(updateCurrentTrackInfo, 5000);
 </script>
-<script src="{% static 'js/features.js' %}"></script>
-
-<!-- Device Selection Modal -->
-{% include 'syromusic/player_modal.html' %}
 {% endblock content %}

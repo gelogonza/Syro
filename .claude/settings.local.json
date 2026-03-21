@@ -18,14 +18,7 @@
       "Bash(redis-cli ping:*)",
       "Bash(redis-server:*)",
       "Bash(git check-ignore:*)",
-      "Bash(find:*)",
-      "Bash(git merge:*)",
-      "Bash(source:*)",
-      "Bash(git push:*)",
-      "Bash(python manage.py migrate:*)",
-      "Bash(python manage.py makemigrations:*)",
-      "Bash(xargs ls:*)",
-      "Bash(python -m py_compile:*)"
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

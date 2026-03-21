@@ -6,17 +6,90 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from datetime import timedelta
-from spotipy.oauth2 import SpotifyOAuth
-import logging
 
 from .models import (
+    Artist, Album, Song, Playlist,
     SpotifyUser, UserListeningStats, UserListeningActivity
 )
 from .services import SpotifyService, TokenManager
 
-logger = logging.getLogger(__name__)
+
+def artist_list(request):
+    """Display list of all artists."""
+    artists = Artist.objects.all()
+    return render(request, 'SyroMusic/artist_list.html', {'artists': artists})
+
+
+def artist_detail(request, artist_id):
+    """Display detailed view of a specific artist."""
+    try:
+        artist = Artist.objects.get(id=artist_id)
+        albums = artist.albums.select_related('artist').all()
+
+        context = {
+            'artist': artist,
+            'albums': albums,
+        }
+        return render(request, 'SyroMusic/artist_detail.html', context)
+    except Artist.DoesNotExist:
+        messages.error(request, 'Artist not found.')
+        return redirect('music:artist_list')
+
+
+def album_list(request):
+    """Display list of all albums."""
+    albums = Album.objects.select_related('artist').all()
+    return render(request, 'SyroMusic/album_list.html', {'albums': albums})
+
+
+def album_detail(request, album_id):
+    """Display detailed view of a specific album."""
+    try:
+        album = Album.objects.select_related('artist').get(id=album_id)
+        songs = album.songs.select_related('album', 'album__artist').order_by('track_number')
+
+        context = {
+            'album': album,
+            'songs': songs,
+        }
+        return render(request, 'SyroMusic/album_detail.html', context)
+    except Album.DoesNotExist:
+        messages.error(request, 'Album not found.')
+        return redirect('music:album_list')
+
+
+def song_list(request):
+    """Display list of all songs."""
+    songs = Song.objects.select_related('album', 'album__artist').all()
+    return render(request, 'SyroMusic/song_list.html', {'songs': songs})
+
+
+def song_detail(request, song_id):
+    """Display detailed view of a specific song."""
+    try:
+        song = Song.objects.get(id=song_id)
+
+        context = {
+            'song': song,
+        }
+        return render(request, 'SyroMusic/song_detail.html', context)
+    except Song.DoesNotExist:
+        messages.error(request, 'Song not found.')
+        return redirect('music:song_list')
+
+
+def playlist_list(request):
+    """Display list of all playlists or user's playlists if authenticated."""
+    if request.user.is_authenticated:
+        playlists = Playlist.objects.filter(user=request.user).prefetch_related(
+            'songs', 'songs__album', 'songs__album__artist'
+        )
+    else:
+        playlists = Playlist.objects.none()
+    return render(request, 'SyroMusic/playlist_list.html', {'playlists': playlists})
 
 
 def signup(request):
@@ -36,36 +109,31 @@ def signup(request):
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
 
+<<<<<<< HEAD
+=======
+def spotify_login(request):
+    # Initialize SpotifyOAuth with your Spotify API credentials
+    sp_oauth = SpotifyOAuth(client_id=settings.SPOTIPY_CLIENT_ID,
+                           client_secret=settings.SPOTIPY_CLIENT_SECRET,
+                           redirect_uri=settings.SPOTIPY_REDIRECT_URI,
+                           scope='user-library-read') 
+>>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006
 
 def spotify_login(request):
-    """Redirect user to Spotify authorization page."""
-    # Updated scope to include all necessary permissions for device control
-    scope = (
-        'user-read-private '
-        'user-read-email '
-        'user-library-read '
-        'user-top-read '
-        'user-read-recently-played '
-        'playlist-modify-public '
-        'playlist-modify-private '
-        'user-read-playback-state '
-        'user-modify-playback-state '
-        'user-read-currently-playing '
-        'streaming '
-        'app-remote-control'  # Added for device control
-    )
-    
-    sp_oauth = SpotifyOAuth(
-        client_id=settings.SPOTIPY_CLIENT_ID,
-        client_secret=settings.SPOTIPY_CLIENT_SECRET,
-        redirect_uri=settings.SPOTIPY_REDIRECT_URI,
-        scope=scope,
-        show_dialog=True
-    )
-    
-    auth_url = sp_oauth.get_authorize_url()
-    logger.info(f"Redirecting user {request.user.username} to Spotify auth URL")
-    return redirect(auth_url)
+    """Initiate Spotify OAuth login flow."""
+    try:
+        if not all([
+            hasattr(__import__('django.conf', fromlist=['settings']).settings, 'SPOTIPY_CLIENT_ID'),
+            hasattr(__import__('django.conf', fromlist=['settings']).settings, 'SPOTIPY_CLIENT_SECRET'),
+        ]):
+            messages.error(request, 'Spotify is not configured. Please contact the administrator.')
+            return redirect('login')
+
+        auth_url = SpotifyService.get_authorization_url()
+        return redirect(auth_url)
+    except Exception as e:
+        messages.error(request, f'Error initiating Spotify login: {str(e)}')
+        return redirect('login')
 
 
 def spotify_callback(request):
@@ -82,6 +150,7 @@ def spotify_callback(request):
             messages.error(request, 'No authorization code received from Spotify.')
             return redirect('login')
 
+<<<<<<< HEAD
         # Exchange code for tokens
         token_info = SpotifyService.get_access_token(code)
 
@@ -90,7 +159,8 @@ def spotify_callback(request):
             return redirect('login')
 
         # Get Spotify user info
-        spotify_user_info = SpotifyService.get_user_profile_from_token(token_info['access_token'])
+        sp = SpotifyService(access_token=token_info['access_token'])
+        spotify_user_info = sp.get_current_user()
 
         if not spotify_user_info:
             messages.error(request, 'Failed to fetch user information from Spotify.')
@@ -148,32 +218,10 @@ def spotify_callback(request):
         # Log the user in
         auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-        # Trigger automatic sync of Spotify data synchronously
-        try:
-            from .tasks import (
-                sync_user_profile_data,
-                sync_user_spotify_stats,
-                sync_user_recently_played,
-                sync_user_saved_tracks_count,
-                calculate_listening_analytics
-            )
-            
-            logger.info(f"Starting automatic sync for user {user.username}")
-            sync_user_profile_data(user.id)
-            sync_user_spotify_stats(user.id, 'short_term')
-            sync_user_spotify_stats(user.id, 'medium_term')
-            sync_user_spotify_stats(user.id, 'long_term')
-            sync_user_recently_played(user.id)
-            sync_user_saved_tracks_count(user.id)
-            calculate_listening_analytics(user.id)
-            logger.info(f"Completed automatic sync for user {user.username}")
-        except Exception as sync_error:
-            logger.warning(f"Could not complete automatic sync: {sync_error}")
-
         if is_new:
-            messages.success(request, f'Welcome to Syro! Your Spotify account has been connected and your music data has been synced.')
+            messages.success(request, f'Welcome to Syro! Your Spotify account has been connected.')
         else:
-            messages.success(request, 'Successfully signed in with Spotify! Your latest data has been synced.')
+            messages.success(request, 'Successfully signed in with Spotify!')
 
         return redirect('music:dashboard')
 
@@ -202,56 +250,14 @@ def spotify_disconnect(request):
 def dashboard(request):
     """User dashboard with Spotify profile and stats."""
     try:
-        from .models import PlaybackHistoryAnalytics
-        
         spotify_user = SpotifyUser.objects.filter(user=request.user).first()
         listening_stats = UserListeningStats.objects.filter(user=request.user).first()
-        analytics = PlaybackHistoryAnalytics.objects.filter(user=request.user).first()
-        
-        # Get top artist from listening stats
-        top_artist = None
-        if listening_stats:
-            # Try medium term first, then short term, then long term
-            for term in ['medium_term', 'short_term', 'long_term']:
-                artists = getattr(listening_stats, f'top_artists_{term}', [])
-                if artists and len(artists) > 0:
-                    top_artist = artists[0].get('name', 'N/A') if isinstance(artists[0], dict) else 'N/A'
-                    break
-        
-        # Get top genre from favorite genres
-        top_genre = None
-        if listening_stats and listening_stats.favorite_genres:
-            top_genre = listening_stats.favorite_genres[0] if isinstance(listening_stats.favorite_genres, list) and len(listening_stats.favorite_genres) > 0 else None
-
-        # Calculate listening minutes with accuracy tracking
-        from datetime import datetime
-        year_minutes = 0
-        alltime_minutes = 0
-        is_estimated = True
-        tracking_since = None
-        
-        if analytics:
-            year_minutes = analytics.total_listening_minutes_this_year
-            alltime_minutes = analytics.estimated_alltime_minutes
-            tracking_since = analytics.created_at
-            
-            # If we've been tracking for a while, use accurate data
-            tracked_activities = UserListeningActivity.objects.filter(user=request.user).count()
-            if tracked_activities > 100:  # More than 100 plays tracked
-                is_estimated = False
 
         context = {
             'spotify_user': spotify_user,
             'listening_stats': listening_stats,
-            'analytics': analytics,
-            'top_artist': top_artist,
-            'top_genre': top_genre,
-            'year_minutes': year_minutes,
-            'alltime_minutes': alltime_minutes,
-            'is_estimated': is_estimated,
-            'tracking_since': tracking_since,
         }
-        return render(request, 'syromusic/dashboard.html', context)
+        return render(request, 'SyroMusic/dashboard.html', context)
     except Exception as e:
         messages.error(request, f'Error loading dashboard: {str(e)}')
         return redirect('home')
@@ -259,32 +265,129 @@ def dashboard(request):
 
 @login_required(login_url='login')
 def sync_spotify_stats(request):
-    """Trigger a manual sync of Spotify statistics. Falls back to synchronous execution if Celery unavailable."""
+    """Trigger a manual sync of Spotify statistics."""
     try:
-        from .tasks import (
-            sync_user_profile_data,
-            sync_user_spotify_stats as sync_stats,
-            sync_user_recently_played,
-            sync_user_saved_tracks_count,
-            calculate_listening_analytics
-        )
+        from .tasks import sync_all_user_data
 
-        # Always run synchronously to avoid Redis/Celery connection issues
-        logger.info(f"Starting synchronous sync for user {request.user.id}")
-        
-        # Execute sync tasks synchronously
-        sync_user_profile_data(request.user.id)
-        sync_stats(request.user.id, 'short_term')
-        sync_stats(request.user.id, 'medium_term')
-        sync_stats(request.user.id, 'long_term')
-        sync_user_recently_played(request.user.id)
-        sync_user_saved_tracks_count(request.user.id)
-        calculate_listening_analytics(request.user.id)
+        # Trigger the background sync task
+        sync_all_user_data.delay(request.user.id)
 
-        messages.success(request, 'Your Spotify stats have been synced successfully!')
+        messages.success(request, 'Syncing your Spotify stats... This may take a minute.')
         return redirect('music:dashboard')
-
     except Exception as e:
-        logger.error(f"Error syncing stats for user {request.user.id}: {str(e)}")
         messages.error(request, f'Error syncing stats: {str(e)}')
         return redirect('music:dashboard')
+
+
+@login_required(login_url='login')
+def stats_dashboard(request):
+    """Enhanced stats dashboard with top artists, tracks, and listening history."""
+    try:
+        spotify_user = SpotifyUser.objects.filter(user=request.user).first()
+        listening_stats = UserListeningStats.objects.filter(user=request.user).first()
+
+        if not spotify_user or not listening_stats:
+            messages.warning(request, 'Please sync your Spotify data first.')
+            return redirect('music:dashboard')
+
+        # Determine time range from query param
+        time_range = request.GET.get('range', 'medium_term')
+
+        if time_range == 'short_term':
+            top_artists = listening_stats.top_artists_short_term
+            top_tracks = listening_stats.top_tracks_short_term
+            period_label = 'Last 4 Weeks'
+        elif time_range == 'long_term':
+            top_artists = listening_stats.top_artists_long_term
+            top_tracks = listening_stats.top_tracks_long_term
+            period_label = 'All Time'
+        else:  # medium_term
+            top_artists = listening_stats.top_artists_medium_term
+            top_tracks = listening_stats.top_tracks_medium_term
+            period_label = 'Last 6 Months'
+
+        # Get recent listening activity (optimized with .only())
+        recent_activity = UserListeningActivity.objects.filter(
+            user=request.user
+        ).only(
+            'track_name', 'artist_name', 'album_name', 'played_at', 'duration_ms'
+        ).order_by('-played_at')[:50]
+
+        # Calculate some metrics
+        total_plays = UserListeningActivity.objects.filter(user=request.user).count()
+
+        context = {
+            'spotify_user': spotify_user,
+            'listening_stats': listening_stats,
+            'top_artists': top_artists,
+            'top_tracks': top_tracks,
+            'recent_activity': recent_activity,
+            'time_range': time_range,
+            'period_label': period_label,
+            'total_plays': total_plays,
+        }
+
+        return render(request, 'SyroMusic/stats_dashboard.html', context)
+    except Exception as e:
+        messages.error(request, f'Error loading stats: {str(e)}')
+        return redirect('music:dashboard')
+
+
+@login_required(login_url='login')
+def wrapped_view(request):
+    """Spotify Wrapped-style summary of user's listening habits."""
+    try:
+        from collections import Counter
+        from datetime import datetime
+        
+        spotify_user = SpotifyUser.objects.filter(user=request.user).first()
+        listening_stats = UserListeningStats.objects.filter(user=request.user).first()
+
+        if not spotify_user or not listening_stats:
+            messages.warning(request, 'Please sync your Spotify data first.')
+            return redirect('music:dashboard')
+
+        # Get all-time top artists and tracks
+        top_artists = listening_stats.top_artists_long_term or []
+        top_tracks = listening_stats.top_tracks_long_term or []
+        
+        # Extract genres from top artists
+        all_genres = []
+        for artist in top_artists:
+            if isinstance(artist.get('genres'), list):
+                all_genres.extend(artist.get('genres', []))
+        
+        # Count genre occurrences
+        genre_counts = Counter(all_genres)
+        top_genres = [
+            {'name': genre.title(), 'count': count} 
+            for genre, count in genre_counts.most_common(10)
+        ]
+        
+        # Get top genre and artist
+        top_genre = top_genres[0] if top_genres else None
+        top_artist = top_artists[0] if top_artists else None
+        
+        # Calculate totals
+        total_artists = len(top_artists)
+        total_tracks = len(top_tracks)
+        
+        context = {
+            'year': datetime.now().year,
+            'next_year': datetime.now().year + 1,
+            'total_artists': total_artists,
+            'total_tracks': total_tracks,
+            'top_genre': top_genre,
+            'top_genres': top_genres,
+            'top_artist': top_artist,
+            'top_artists': top_artists[:10],
+        }
+
+        return render(request, 'SyroMusic/wrapped.html', context)
+    except Exception as e:
+        messages.error(request, f'Error loading wrapped: {str(e)}')
+        return redirect('music:dashboard')
+=======
+    # Redirect the user to the desired page after successful authentication
+    return redirect('home') 
+>>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006

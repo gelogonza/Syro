@@ -1,13 +1,24 @@
 """URL configuration for Syro app."""
 from django.urls import path
-from . import views, playback_views, search_views, api_views
+from . import views, playback_views, search_views
 
 app_name = 'music'
 
 urlpatterns = [
     # Dashboard & Profile
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('stats/', views.stats_dashboard, name='stats_dashboard'),
+    path('wrapped/', views.wrapped_view, name='wrapped'),
     path('sync/', views.sync_spotify_stats, name='sync_spotify_stats'),
+
+    # List views
+    path('artists/', views.artist_list, name='artist_list'),
+    path('artists/<int:artist_id>/', views.artist_detail, name='artist_detail'),
+    path('albums/', views.album_list, name='album_list'),
+    path('albums/<int:album_id>/', views.album_detail, name='album_detail'),
+    path('songs/', views.song_list, name='song_list'),
+    path('songs/<int:song_id>/', views.song_detail, name='song_detail'),
+    path('playlists/', views.playlist_list, name='playlist_list'),
 
     # Spotify OAuth
     path('spotify/login/', views.spotify_login, name='spotify_login'),
@@ -34,14 +45,18 @@ urlpatterns = [
     # Search & Discovery
     path('search/', search_views.search, name='search'),
     path('api/search/', search_views.search_json_api, name='search_json'),
+    path('recommendations/', search_views.recommendations, name='recommendations'),
+    path('browse/genres/', search_views.browse_by_genre, name='browse_genres'),
 
-    # Spotify Playlist Management
-    path('api/playlists/user/', api_views.user_playlists_api, name='user_playlists'),
-    path('api/playlists/<str:playlist_id>/tracks/', api_views.playlist_tracks_api, name='playlist_tracks'),
-    path('api/playlists/add-track/', api_views.add_track_to_playlist_api, name='add_track_to_playlist'),
+    # Playlist Management
+    path('playlists/create/', search_views.create_playlist, name='create_playlist'),
+    path('playlists/<int:playlist_id>/', search_views.playlist_detail, name='playlist_detail'),
+    path('playlists/<int:playlist_id>/edit/', search_views.update_playlist, name='update_playlist'),
+    path('playlists/<int:playlist_id>/delete/', search_views.delete_playlist, name='delete_playlist'),
+    path('api/playlists/add-song/', search_views.add_song_to_playlist, name='add_song_to_playlist'),
+    path('api/playlists/remove-song/', search_views.remove_song_from_playlist, name='remove_song_from_playlist'),
 
-    # Artist & Album Discovery (Spotify)
-    path('api/artists/<str:artist_id>/tracks/', api_views.artist_tracks_api, name='artist_tracks'),
-    path('api/albums/tracks/', api_views.album_tracks_api, name='album_tracks'),
-    path('api/spotify/album/<str:album_id>/tracks/', api_views.spotify_album_tracks_api, name='spotify_album_tracks'),
+    # Track Management
+    path('tracks/<int:song_id>/save/', search_views.save_track, name='save_track'),
+    path('tracks/<int:song_id>/unsave/', search_views.unsave_track, name='unsave_track'),
 ]

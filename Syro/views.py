@@ -3,5 +3,5 @@ from django.shortcuts import render
 
 
 def home(request):
-    """Render landing page."""
-    return render(request, 'syromusic/home.html')
+    """Render the home page."""
+    return render(request, 'SyroMusic/home.html')

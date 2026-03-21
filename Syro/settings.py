@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 from decouple import config
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,8 +32,6 @@ if SECRET_KEY == 'django-insecure-dev-key-only-for-development' and config('DJAN
 DEBUG = config('DJANGO_DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
-# Always add Render domains for production
-ALLOWED_HOSTS.extend(['*.onrender.com', 'syroapp-api.onrender.com'])
 
 
 # Application definition
@@ -55,8 +52,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files
-    'django.middleware.gzip.GZipMiddleware',  # Compress responses
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -71,7 +66,7 @@ ROOT_URLCONF = 'Syro.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [str(BASE_DIR / 'SyroMusic' / 'templates')],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -90,22 +85,12 @@ WSGI_APPLICATION = 'Syro.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# Handle DATABASE_URL from Render (PostgreSQL in production, SQLite in development)
-if 'DATABASE_URL' in os.environ:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 
 # Password validation
@@ -142,9 +127,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = 'media/'
@@ -166,13 +150,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SPOTIPY_CLIENT_ID = config('SPOTIPY_CLIENT_ID', default=None)
 SPOTIPY_CLIENT_SECRET = config('SPOTIPY_CLIENT_SECRET', default=None)
 SPOTIPY_REDIRECT_URI = config('SPOTIPY_REDIRECT_URI', default='http://localhost:8000/music/spotify/callback/')
-
-# ============================================================
-# Genius API Configuration for Lyrics
-# To set up: export GENIUS_API_TOKEN="your_genius_api_token"
-# Get your token from: https://genius.com/api-clients
-# ============================================================
-GENIUS_API_TOKEN = config('GENIUS_API_TOKEN', default=None)
 
 # ============================================================
 # Logging Configuration
@@ -232,10 +209,6 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'SyroMusic.tasks.sync_all_user_data',
         'schedule': 6 * 60 * 60,  # Run every 6 hours
     },
-    'extract-album-colors-daily': {
-        'task': 'SyroMusic.tasks.extract_album_colors',
-        'schedule': 24 * 60 * 60,  # Run every 24 hours
-    },
 }
 
 # ============================================================
@@ -255,15 +228,6 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
-    # API Rate Limiting
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',
-        'user': '1000/hour'
-    }
 }
 
 # ============================================================
@@ -274,34 +238,6 @@ CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:
 CORS_ALLOW_CREDENTIALS = True
 
 # ============================================================
-# Caching Configuration
-# ============================================================
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'syromusic-cache',
-        'OPTIONS': {
-            'MAX_ENTRIES': 10000
-        }
-    }
-}
-
-# Configure Redis caching if available (production recommended)
-# To use Redis: pip install redis django-redis
-# Then set: CACHES = {
-#     'default': {
-#         'BACKEND': 'django_redis.cache.RedisCache',
-#         'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
-#         'OPTIONS': {
-#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-#             'CONNECTION_POOL_KWARGS': {'max_connections': 50}
-#         }
-#     }
-# }
-
-CACHE_TIMEOUT = 300  # 5 minutes default cache timeout
-
-# ============================================================
 # Security Headers (for production)
 # ============================================================
 if not DEBUG:
@@ -309,81 +245,3 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-
-# ============================================================
-# Email Configuration
-# ============================================================
-# Email backend - use console in development, SMTP in production
-if DEBUG:
-    # In development, print emails to console
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-else:
-    # In production, use SMTP
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-# SMTP Configuration (for production)
-# Supports Gmail, SendGrid, Mailgun, AWS SES, and other SMTP providers
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-
-# Default "from" email address
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@syroapp.com')
-SERVER_EMAIL = config('SERVER_EMAIL', default='noreply@syroapp.com')
-
-# Email settings for authentication emails
-EMAIL_SUBJECT_PREFIX = '[Syro] '
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'optional'  # 'none', 'optional', or 'mandatory'
-
-# Password reset timeout (in seconds) - default 3 days
-PASSWORD_RESET_TIMEOUT = 259200
-
-"""
-EMAIL SETUP INSTRUCTIONS:
-========================
-
-For Development:
-- Emails will print to console (no setup needed)
-
-For Production (Gmail example):
-1. Create a .env file with:
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_PORT=587
-   EMAIL_USE_TLS=True
-   EMAIL_HOST_USER=your-email@gmail.com
-   EMAIL_HOST_PASSWORD=your-app-specific-password
-   DEFAULT_FROM_EMAIL=your-email@gmail.com
-
-2. For Gmail, you need an App Password:
-   - Go to Google Account settings
-   - Security → 2-Step Verification → App passwords
-   - Generate a new app password
-   - Use that password (not your regular Gmail password)
-
-For Production (SendGrid example):
-   EMAIL_HOST=smtp.sendgrid.net
-   EMAIL_PORT=587
-   EMAIL_USE_TLS=True
-   EMAIL_HOST_USER=apikey
-   EMAIL_HOST_PASSWORD=your-sendgrid-api-key
-   DEFAULT_FROM_EMAIL=your-verified-sender@domain.com
-
-For Production (Mailgun example):
-   EMAIL_HOST=smtp.mailgun.org
-   EMAIL_PORT=587
-   EMAIL_USE_TLS=True
-   EMAIL_HOST_USER=postmaster@your-domain.mailgun.org
-   EMAIL_HOST_PASSWORD=your-mailgun-password
-   DEFAULT_FROM_EMAIL=noreply@your-domain.com
-
-For Production (AWS SES example):
-   EMAIL_HOST=email-smtp.us-east-1.amazonaws.com
-   EMAIL_PORT=587
-   EMAIL_USE_TLS=True
-   EMAIL_HOST_USER=your-aws-ses-smtp-username
-   EMAIL_HOST_PASSWORD=your-aws-ses-smtp-password
-   DEFAULT_FROM_EMAIL=verified-email@your-domain.com
-"""

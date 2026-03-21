@@ -194,17 +194,14 @@
       const response = await fetch('{% url "music:get_devices" %}');
       const data = await response.json();
 
-      if (!response.ok || !data.devices) {
+      if (data.status !== 'success') {
         showToast('Failed to fetch devices', 'error');
         return;
       }
 
-      // Find active device
-      const activeDevice = data.devices.find(d => d.is_active);
-
       // If there's an active device, play directly
-      if (activeDevice) {
-        playTrackOnDevice(trackUri, activeDevice.id, trackInfo);
+      if (data.has_active_device) {
+        playTrackOnDevice(trackUri, data.active_device.id, trackInfo);
       } else if (data.devices.length > 0) {
         // Show device selector modal
         window.syroPlayer.pendingTrackUri = trackUri;
@@ -281,9 +278,8 @@
     .then(data => {
       if (data.status === 'success') {
         const trackName = trackInfo.name || 'Track';
-        const artist = trackInfo.artist || 'Unknown Artist';
-        const album = trackInfo.album ? ` • ${trackInfo.album}` : '';
-        showToast(`Now playing: ${trackName} by ${artist}${album}`, 'success');
+        const artist = trackInfo.artist ? ` by ${trackInfo.artist}` : '';
+        showToast(`Now playing: ${trackName}${artist}`, 'success');
       } else {
         showToast(data.message || 'Failed to play track', 'error');
       }

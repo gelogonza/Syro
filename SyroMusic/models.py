@@ -10,6 +10,7 @@ from base64 import b64encode, b64decode
 from cryptography.fernet import Fernet
 
 class Artist(models.Model):
+<<<<<<< HEAD
     """Model representing a music artist."""
     name = models.CharField(max_length=255, unique=True, db_index=True)
     biography = models.TextField(blank=True, null=True)
@@ -28,9 +29,6 @@ class Album(models.Model):
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
     release_date = models.DateField(db_index=True)
     cover_url = models.URLField(blank=True, null=True)
-    spotify_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
-    dominant_color = models.CharField(max_length=7, default='#1a1a2e', blank=True, db_index=True)
-    color_extracted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
@@ -39,17 +37,26 @@ class Album(models.Model):
 
     class Meta:
         ordering = ['-release_date']
+=======
+    name = models.CharField(max_length=255)
+    biography = models.TextField()
+    # artist-related fields (e.g., image, genre)
+
+class Album(models.Model):
+    title = models.CharField(max_length=255)
+    artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
+    release_date = models.DateField()
+    # album-related fields (e.g., cover image)
+>>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006
 
 class Song(models.Model):
     """Model representing a song."""
     title = models.CharField(max_length=255, db_index=True)
     album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='songs')
-    artist = models.ForeignKey('Artist', on_delete=models.SET_NULL, null=True, blank=True, related_name='songs')
     duration = models.DurationField()
-    duration_ms = models.IntegerField(default=0, null=True, blank=True)
+<<<<<<< HEAD
     track_number = models.IntegerField(null=True, blank=True)
     spotify_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
-    uri = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
@@ -104,9 +111,14 @@ class EncryptedField(models.TextField):
         """Convert database value to Python value."""
         return self.from_db_value(value, None, None)
 
+=======
+    # song-related fields (e.g., track number, genre)
+>>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006
+
 class Playlist(models.Model):
     """Model representing a user's playlist."""
     title = models.CharField(max_length=255)
+<<<<<<< HEAD
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='playlists')
     songs = models.ManyToManyField(Song, blank=True, related_name='playlists')
     description = models.TextField(blank=True, null=True)
@@ -122,10 +134,8 @@ class Playlist(models.Model):
 class UserProfile(models.Model):
     """Extended user profile model for additional user information."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    bio = models.TextField(blank=True, null=True, max_length=500)
-    profile_image = models.URLField(blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
     favorite_genre = models.CharField(max_length=100, blank=True, null=True)
-    is_public = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
@@ -165,11 +175,8 @@ class SpotifyUser(models.Model):
         return f"Spotify: {self.spotify_username or self.spotify_id}"
 
     def is_token_expired(self):
-        """Check if the Spotify access token has expired."""
-        if not self.token_expires_at:
-            return True
-        # Add 5 minute buffer to refresh before actual expiry
-        return timezone.now() >= (self.token_expires_at - timezone.timedelta(minutes=5))
+        """Check if the access token has expired."""
+        return timezone.now() >= self.token_expires_at
 
     class Meta:
         ordering = ['-updated_at']
@@ -360,155 +367,12 @@ class PlaybackQueue(models.Model):
 
     class Meta:
         ordering = ['-last_updated']
+=======
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    songs = models.ManyToManyField(Song)
+    # playlist-related fields (e.g., description)
 
-
-class SearchHistory(models.Model):
-    """Model to track user search history."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='search_history')
-    query = models.CharField(max_length=255, db_index=True)
-    search_type = models.CharField(
-        max_length=20,
-        choices=[
-            ('all', 'All'),
-            ('artist', 'Artist'),
-            ('album', 'Album'),
-            ('track', 'Track'),
-            ('playlist', 'Playlist'),
-        ],
-        default='all'
-    )
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-
-    def __str__(self):
-        return f"{self.user.username} searched for {self.query}"
-
-    class Meta:
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['user', '-created_at']),
-        ]
-
-
-class UserFollowing(models.Model):
-    """Model for user following relationships."""
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
-    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.follower.username} follows {self.following.username}"
-
-    class Meta:
-        unique_together = ['follower', 'following']
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['follower', '-created_at']),
-            models.Index(fields=['following', '-created_at']),
-        ]
-
-
-class PlaylistCollaborator(models.Model):
-    """Model for playlist collaboration."""
-    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name='collaborators')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='collaborated_playlists')
-    permission_level = models.CharField(
-        max_length=20,
-        choices=[
-            ('view', 'View Only'),
-            ('edit', 'Can Edit'),
-            ('admin', 'Admin'),
-        ],
-        default='view'
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.playlist.title} ({self.permission_level})"
-
-    class Meta:
-        unique_together = ['playlist', 'user']
-        ordering = ['-created_at']
-
-
-class PlaylistShare(models.Model):
-    """Model for sharing playlists with users."""
-    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name='shares')
-    shared_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='playlist_shares')
-    shared_with = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shared_playlists')
-    message = models.TextField(blank=True, null=True, max_length=500)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.shared_by.username} shared {self.playlist.title} with {self.shared_with.username}"
-
-    class Meta:
-        unique_together = ['playlist', 'shared_by', 'shared_with']
-        ordering = ['-created_at']
-
-
-class PlaybackHistoryAnalytics(models.Model):
-    """Model to store aggregated playback analytics."""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='playback_analytics')
-
-    listening_streak = models.IntegerField(default=0)
-    last_listened_date = models.DateField(auto_now=True)
-
-    most_active_hour = models.IntegerField(default=0)
-    most_active_day_of_week = models.IntegerField(default=0)
-
-    total_listening_minutes = models.IntegerField(default=0)
-    total_listening_minutes_this_year = models.IntegerField(default=0)
-    estimated_alltime_minutes = models.IntegerField(default=0)
-    unique_artists_heard = models.IntegerField(default=0)
-    unique_tracks_heard = models.IntegerField(default=0)
-
-    monthly_summary = models.JSONField(default=dict, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Analytics for {self.user.username}"
-
-    class Meta:
-        ordering = ['-updated_at']
-
-
-class QueueItem(models.Model):
-    """Model for managing individual queue items with drag-and-drop support."""
-    queue = models.ForeignKey(PlaybackQueue, on_delete=models.CASCADE, related_name='items')
-    track_data = models.JSONField()
-    position = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        track_name = self.track_data.get('name', 'Unknown')
-        return f"{self.queue.user.username}'s queue - {track_name}"
-
-    class Meta:
-        ordering = ['position']
-        unique_together = ['queue', 'track_data']
-        indexes = [
-            models.Index(fields=['queue', 'position']),
-        ]
-
-
-class TrackLyrics(models.Model):
-    """Model to cache track lyrics."""
-    spotify_track_id = models.CharField(max_length=255, unique=True, db_index=True)
-    track_name = models.CharField(max_length=255)
-    artist_name = models.CharField(max_length=255)
-    lyrics = models.TextField()
-    lyrics_source = models.CharField(max_length=100, default='genius')
-    is_explicit = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.track_name} by {self.artist_name}"
-
-    class Meta:
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['spotify_track_id']),
-        ]
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # user-related fields (e.g., profile picture, bio)
+>>>>>>> 00189218102056f52aaf71f7582a31d6d16ff006

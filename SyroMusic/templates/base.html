@@ -1,14 +1,10 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Syro{% endblock title %}</title>
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
-
+  
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
@@ -25,22 +21,21 @@
       theme: {
         extend: {
           colors: {
-            background: '#000000',
+            background: '#0a0a0a',
             foreground: '#ffffff',
-            card: '#0a0a0a',
+            card: '#1a1a1a',
             'card-foreground': '#ffffff',
-            primary: '#ffffff',
-            'primary-foreground': '#000000',
-            secondary: '#1a1a1a',
+            primary: '#10b981',
+            'primary-foreground': '#ffffff',
+            secondary: '#2a2a2a',
             'secondary-foreground': '#ffffff',
-            muted: '#262626',
+            muted: '#404040',
             'muted-foreground': '#a0a0a0',
-            accent: '#ffffff',
+            accent: '#22c55e',
             'accent-foreground': '#000000',
-            border: '#1a1a1a',
-            input: '#0a0a0a',
-            ring: '#ffffff',
-            'internet-blue': '#0066FF',
+            border: '#333333',
+            input: '#1a1a1a',
+            ring: '#10b981',
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -133,9 +128,9 @@
       border-color: #404040;
     }
     
-    /* Gradient Text - Internet Blue */
+    /* Gradient Text */
     .gradient-text {
-      background: linear-gradient(135deg, #0066FF, #0088FF, #0066FF);
+      background: linear-gradient(135deg, #10b981, #22c55e);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -158,7 +153,7 @@
     
     /* Hover Glow Effect */
     .hover-glow:hover {
-      box-shadow: 0 8px 32px rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
     }
     
     /* Smooth transitions */
@@ -174,135 +169,19 @@
       left: 50%;
       width: 0;
       height: 2px;
-      background: #ffffff;
+      background: linear-gradient(90deg, #10b981, #22c55e);
       transform: translateX(-50%);
       transition: width 0.3s ease;
     }
-
+    
     .nav-link:hover {
-      color: #ffffff;
+      color: #10b981;
     }
-
+    
     .nav-link:hover::after {
       width: 80%;
     }
-
-    /* Logo Styling - Silver Prismatic */
-    .navbar-logo {
-      background: linear-gradient(
-        135deg,
-        #c0c0c0 0%,
-        #e8e8e8 15%,
-        #ffffff 30%,
-        #d4d4ff 45%,
-        #ffd4ff 60%,
-        #ffffff 75%,
-        #e8e8e8 85%,
-        #c0c0c0 100%
-      );
-      background-size: 300% 300%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: prismatic-shift 6s ease-in-out infinite;
-      text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
-      font-weight: 800;
-    }
     
-    @keyframes prismatic-shift {
-      0%, 100% {
-        background-position: 0% 50%;
-      }
-      25% {
-        background-position: 50% 0%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      75% {
-        background-position: 50% 100%;
-      }
-    }
-
-    /* ==================== BUTTON STYLES ==================== */
-
-    .btn-primary {
-      background: linear-gradient(135deg, #ffffff, #f0f0f0);
-      color: #000000;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
-    }
-
-    .btn-secondary {
-      background: transparent;
-      color: #ffffff;
-      border: 2px solid #ffffff;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
-      transform: translateY(-2px);
-    }
-
-    .btn-danger {
-      background: #ef4444;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn-danger:hover {
-      background: #dc2626;
-      transform: translateY(-2px);
-    }
-
-    .btn-spotify {
-      background: #1DB954;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn-spotify:hover {
-      background: #1ed760;
-      transform: translateY(-2px);
-    }
-
     /* Mobile Menu Styles */
     .mobile-menu {
       position: fixed;
@@ -344,70 +223,8 @@
     }
   </style>
   
-  <!-- Spotify Web Playback SDK Initialization -->
-  <!-- Must define callback BEFORE SDK script loads! -->
-  <script>
-    console.log('⏳ Setting up Spotify SDK initialization...');
-
-    // Track SDK loading status globally
-    window.spotifySDKLoaded = false;
-    window.spotifySDKReady = false;
-
-    // Ensure callback exists in global scope before SDK script loads
-    // The actual callback will be properly defined in player.html
-    window.onSpotifyWebPlaybackSDKReady = window.onSpotifyWebPlaybackSDKReady || function() {
-      console.log('✓ SDK ready callback triggered from SDK');
-      window.spotifySDKReady = true;
-    };
-
-    // Monitor SDK script loading
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        if (typeof Spotify !== 'undefined') {
-          console.log('✓ Spotify object available on window.load');
-          window.spotifySDKLoaded = true;
-        }
-      }, 100);
-    });
-  </script>
-
-  <!-- Required for browser-based audio playback -->
+  <!-- Spotify Web Playback SDK -->
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
-
-  <!-- Fallback: Monitor SDK loading and provide diagnostics -->
-  <script>
-    // Try to detect if script tag is being blocked
-    const spotifySDKScript = document.querySelector('script[src*="spotify-player"]');
-    if (spotifySDKScript) {
-      console.log('✓ Spotify SDK script tag found in DOM');
-      spotifySDKScript.addEventListener('error', (e) => {
-        console.error('❌ Spotify SDK script failed to load:', e);
-        window.spotifySDKError = 'Script load error: ' + e;
-      });
-    }
-
-    setTimeout(() => {
-      if (typeof Spotify === 'undefined') {
-        console.error('⚠️  Spotify SDK object not available after 3 seconds');
-        console.error('Possible causes:');
-        console.error('  1. CDN (https://sdk.scdn.co/spotify-player.js) is unreachable');
-        console.error('  2. Browser extension is blocking the script (like installHook.js)');
-        console.error('  3. Network connectivity issue');
-        console.error('  4. Script loads but Spotify object is not created');
-        console.log('');
-        console.log('📋 Diagnostic steps:');
-        console.log('  1. Open DevTools (F12)');
-        console.log('  2. Go to Network tab');
-        console.log('  3. Reload page (F5)');
-        console.log('  4. Look for "spotify-player.js" in the list');
-        console.log('  5. Check if it shows as "blocked" or failed');
-        console.log('  6. If blocked, check browser extensions');
-      } else {
-        console.log('✓ Spotify SDK loaded and available');
-        window.spotifySDKLoaded = true;
-      }
-    }, 3000);
-  </script>
   
   {% block extra_css %}{% endblock extra_css %}
 </head>
@@ -420,48 +237,57 @@
   <div class="mobile-menu" id="mobileMenu">
     <div class="p-6">
       <div class="flex items-center justify-between mb-8">
-        <span class="text-xl font-bold navbar-logo">Syro</span>
-        <button id="closeMobileMenu" class="p-2 rounded-lg hover:bg-white/10 text-white transition">
+        <span class="text-2xl font-bold gradient-text">Menu</span>
+        <button id="closeMobileMenu" class="p-2 rounded-lg hover:bg-gray-100">
           <span class="iconify h-6 w-6" data-icon="mdi:close"></span>
         </button>
       </div>
-
-      <nav class="space-y-1">
-        <a href="{% url 'music:player' %}" class="block px-4 py-3 rounded-lg hover:bg-white/10 text-white transition font-medium">
+      
+      <nav class="space-y-2">
+        <a href="{% url 'home' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
+          Home
+        </a>
+        <a href="{% url 'music:player' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Player
         </a>
-        <a href="{% url 'music:search' %}" class="block px-4 py-3 rounded-lg hover:bg-white/10 text-white transition font-medium">
+        <a href="{% url 'music:search' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
           Search
+        </a>
+        <a href="{% url 'music:stats_dashboard' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
+          Stats
+        </a>
+        <a href="{% url 'music:wrapped' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
+          Wrapped
+        </a>
+        <a href="{% url 'music:artist_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
+          Artists
+        </a>
+        <a href="{% url 'music:album_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
+          Albums
+        </a>
+        <a href="{% url 'music:playlist_list' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
+          Playlists
         </a>
 
         {% if user.is_authenticated %}
-          <div class="pt-4 mt-4 border-t border-white/10 space-y-1">
-            <div class="flex items-center gap-2 px-4 py-2">
-              {% if user.spotify_user.profile_image_url %}
-                <img src="{{ user.spotify_user.profile_image_url }}" alt="{{ user.username }}" class="w-6 h-6 rounded-full object-cover border border-white/20">
-              {% else %}
-                <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center border border-white/20">
-                  <span class="text-xs font-bold text-primary">{{ user.username|slice:":1"|upper }}</span>
-                </div>
-              {% endif %}
-              <p class="text-xs text-primary font-semibold">{{ user.username }}</p>
-            </div>
-            <a href="{% url 'music:dashboard' %}" class="block px-4 py-3 rounded-lg hover:bg-white/10 text-white transition font-medium">
+          <div class="pt-4 mt-4 border-t border-gray-700">
+            <p class="text-sm text-gray-400 mb-2">{{ user.username }}</p>
+            <a href="{% url 'music:dashboard' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition mb-2">
               Dashboard
             </a>
-            <a href="{% url 'logout' %}" class="block px-4 py-3 rounded-lg hover:bg-white/10 text-white transition font-medium">
+            <a href="{% url 'logout' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
               Logout
             </a>
           </div>
         {% else %}
-          <div class="pt-4 mt-4 border-t border-white/10 space-y-2">
-            <a href="{% url 'music:spotify_login' %}" class="block px-4 py-3 rounded-lg bg-primary text-black hover:shadow-lg hover:shadow-primary/50 transition text-center font-semibold">
+          <div class="pt-4 mt-4 border-t border-gray-700 space-y-2">
+            <a href="{% url 'music:spotify_login' %}" class="block px-4 py-3 rounded-lg bg-primary text-white hover:bg-accent transition text-center">
               Spotify Login
             </a>
-            <a href="{% url 'login' %}" class="block px-4 py-3 rounded-lg hover:bg-white/10 text-white transition font-medium">
+            <a href="{% url 'login' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
               Login
             </a>
-            <a href="{% url 'signup' %}" class="block px-4 py-3 rounded-lg hover:bg-white/10 text-white transition font-medium">
+            <a href="{% url 'signup' %}" class="block px-4 py-3 rounded-lg hover:bg-gray-900 text-white transition">
               Sign Up
             </a>
           </div>
@@ -471,55 +297,72 @@
   </div>
 
   <!-- ===================== Header & Navigation ===================== -->
-  <header class="sticky top-0 z-50 w-full backdrop-blur-lg bg-gradient-to-b from-white/5 to-transparent border-b border-white/10 shadow-lg">
+  <header class="sticky top-0 z-50 w-full backdrop-blur-lg bg-white/10 border-b border-white/20 shadow-lg">
     <nav class="container mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <!-- Logo -->
-        <a href="{% url 'home' %}" class="flex items-center gap-2 hover:opacity-80 transition">
-          <span class="text-2xl font-bold navbar-logo">Syro</span>
+        <a href="{% url 'home' %}" class="flex items-center">
+          <span class="text-2xl font-bold text-white">Syro</span>
         </a>
-
+        
         <!-- Desktop Navigation -->
-        <div class="hidden md:flex items-center space-x-6">
-          <a href="{% url 'music:player' %}" class="nav-link px-3 py-2 text-white/80 hover:text-white transition relative font-medium">
-            Player
+        <div class="hidden md:flex items-center space-x-1">
+          <a href="{% url 'home' %}" class="nav-link px-4 py-2 text-white transition relative">
+            Home
           </a>
-          <a href="{% url 'music:search' %}" class="nav-link px-3 py-2 text-white/80 hover:text-white transition relative font-medium">
+          <a href="{% url 'music:dashboard' %}" class="nav-link px-4 py-2 text-white transition relative">
+            Dashboard
+          </a>
+          <a href="{% url 'music:search' %}" class="nav-link px-4 py-2 text-white transition relative">
             Search
           </a>
-          {% if user.is_authenticated %}
-            <a href="{% url 'music:dashboard' %}" class="nav-link px-3 py-2 text-white/80 hover:text-white transition relative font-medium">
-              Dashboard
-            </a>
-          {% endif %}
+          <a href="{% url 'music:stats_dashboard' %}" class="nav-link px-4 py-2 text-white transition relative">
+            Stats
+          </a>
+          <a href="{% url 'music:wrapped' %}" class="nav-link px-4 py-2 text-white transition relative">
+            Wrapped
+          </a>
+          <a href="{% url 'music:player' %}" class="nav-link px-4 py-2 text-white transition relative">
+            Player
+          </a>
+          <a href="{% url 'music:artist_list' %}" class="nav-link px-4 py-2 text-white transition relative">
+            Artists
+          </a>
+          <a href="{% url 'music:album_list' %}" class="nav-link px-4 py-2 text-white transition relative">
+            Albums
+          </a>
+          <a href="{% url 'music:playlist_list' %}" class="nav-link px-4 py-2 text-white transition relative">
+            Playlists
+          </a>
         </div>
-
+        
         <!-- Auth Section & Mobile Burger -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center space-x-2">
           {% if user.is_authenticated %}
-            <div class="hidden md:flex items-center gap-3">
-              {% if user.spotify_user.profile_image_url %}
-                <img src="{{ user.spotify_user.profile_image_url }}" alt="{{ user.username }}" class="w-8 h-8 rounded-full object-cover border-2 border-white/20 hover:border-white/40 transition">
-              {% else %}
-                <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border-2 border-white/20 hover:border-white/40 transition">
-                  <span class="text-sm font-bold text-primary">{{ user.username|slice:":1"|upper }}</span>
-                </div>
-              {% endif %}
-              <span class="text-xs font-medium text-primary">{{ user.username }}</span>
+            <div class="hidden md:flex items-center space-x-3">
+              <span class="text-sm text-gray-400">{{ user.username }}</span>
+              <a href="{% url 'music:dashboard' %}"
+                 class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-gray-900 hover:bg-gray-800 text-white transition">
+                Dashboard
+              </a>
               <a href="{% url 'logout' %}"
-                 class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-xs font-semibold text-white border border-white/20 hover:border-white/40 hover:bg-white/5 transition">
+                 class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-900 text-white transition">
                 Logout
               </a>
             </div>
           {% else %}
             <a href="{% url 'music:spotify_login' %}"
-               class="hidden md:inline-flex items-center justify-center rounded-lg px-5 py-2 text-sm font-semibold bg-primary text-black hover:shadow-lg hover:shadow-primary/50 hover-glow transition">
+               class="hidden md:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-primary text-white hover:bg-accent transition hover-glow">
               Spotify Login
+            </a>
+            <a href="{% url 'login' %}"
+               class="hidden md:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-900 text-white transition">
+              Login
             </a>
           {% endif %}
 
           <!-- Mobile Burger Button -->
-          <button id="openMobileMenu" class="md:hidden p-2 rounded-lg hover:bg-white/10 text-white transition">
+          <button id="openMobileMenu" class="md:hidden p-2 rounded-lg hover:bg-gray-900 text-white transition">
             <span class="iconify h-6 w-6" data-icon="mdi:menu"></span>
           </button>
         </div>
@@ -615,6 +458,6 @@
   {% block extra_js %}{% endblock extra_js %}
 
   <!-- Universal Player Modal -->
-  {% include 'syromusic/player_modal.html' %}
+  {% include 'SyroMusic/player_modal.html' %}
 </body>
 </html>
